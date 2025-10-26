@@ -1,0 +1,25 @@
+
+[project]
+name = "cellscope"
+version = "0.1.0"
+description = "CellScope: capture, package (RO-Crate+PROV), and visualize cell-level relations in Jupyter notebooks."
+authors = [{name="Guillermo Camacho Hortelano"}]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "nbformat>=5.9",
+  "networkx>=3.1",
+  "rocrate>=0.9.8",
+  "pyvis>=0.3.1",
+  "requests>=2.31",
+  "jupyter_server>=2.0"
+]
+
+[project.scripts]
+cellscope = "cellscope_cli.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.entry-points."jupyter_server.extension"]
+cellscope_server = "cellscope_server"

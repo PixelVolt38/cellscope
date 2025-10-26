@@ -78,7 +78,14 @@ aider*
 *chat*.md
 *transcript*.md
 *.chatlog
+docs/
 
 # Jupyter runtime files occasionally copied by mistake
 jpserver-*-open.html
 
+# Local examples and tests (exclude from repo)
+examples/
+tests/
+
+# Local server config
+jupyter_server_config.d/

@@ -19,6 +19,8 @@ interface AnalyzeCell {
   var_uses: string[];
   file_writes: string[];
   file_reads: string[];
+  sos_put: string[];
+  sos_get: string[];
 }
 
 interface AnalyzeEdge {
@@ -37,6 +39,55 @@ interface AnalyzeResponse {
   };
 }
 
+type ReviewRoleMap = Record<string, string>;
+type ReviewDomainMap = Record<string, Record<string, string | string[]>>;
+
+interface ReviewHints {
+  roles: ReviewRoleMap;
+  domains: ReviewDomainMap;
+}
+
+interface ReviewResult {
+  hints: ReviewHints;
+}
+
+interface ReviewDraftVariable {
+  name: string;
+  kind: "data" | "function";
+}
+
+interface ReviewDraftFile {
+  path: string;
+  baseName: string;
+}
+
+interface ReviewDraft {
+  variables: ReviewDraftVariable[];
+  files: ReviewDraftFile[];
+}
+
+interface FilterState {
+  search: string;
+  kernels: Set<string>;
+  requireFileWrites: boolean;
+  requireFileReads: boolean;
+  requireSos: boolean;
+  edgeVia: Set<string>;
+}
+
+const createEmptyReviewResult = (): ReviewResult => ({
+  hints: {
+    roles: {},
+    domains: {}
+  }
+});
+
+const basename = (value: string): string => {
+  const normalised = value.replace(/\\/g, "/");
+  const parts = normalised.split("/");
+  return parts[parts.length - 1] || value;
+};
+
 class AnalysisPanel extends Widget {
   constructor(private readonly app: JupyterFrontEnd, private readonly tracker: INotebookTracker | null) {
     super();
@@ -44,13 +95,16 @@ class AnalysisPanel extends Widget {
     this.title.label = "CellScope";
     this.title.closable = true;
     this.addClass("jp-CellScopePanel");
+    this.node.style.display = "flex";
+    this.node.style.flexDirection = "column";
+    this.node.style.height = "100%";
 
     this._settings = this.app.serviceManager.serverSettings;
 
     this.node.appendChild(this._buildHeader());
     this.node.appendChild(this._statusNode);
-    this.node.appendChild(this._resultsNode);
-    this.node.appendChild(this._edgesNode);
+    this.node.appendChild(this._filterNode);
+    this.node.appendChild(this._contentNode);
     this.node.appendChild(this._exportNode);
     this.node.appendChild(this._helpNode);
 
@@ -127,8 +181,19 @@ class AnalysisPanel extends Widget {
       void this._export();
     });
 
+    this._graphBtn = document.createElement("button");
+    this._graphBtn.textContent = "Open Graph";
+    this._graphBtn.className = "jp-mod-styled";
+    this._graphBtn.disabled = true;
+    this._graphBtn.addEventListener("click", () => {
+      if (!this.openGraphView()) {
+        this._setStatus("Export a crate before opening the graph viewer.", "warn");
+      }
+    });
+
     controls.appendChild(this._analyzeBtn);
     controls.appendChild(this._exportBtn);
+    controls.appendChild(this._graphBtn);
     wrapper.appendChild(controls);
 
     return wrapper;
@@ -164,9 +229,10 @@ class AnalysisPanel extends Widget {
     this._setBusy(true, "Preparing review…");
     try {
       const analysis = await this._requestAnalysis(notebookPath);
+      this._renderAnalysis(analysis);
       this._setBusy(false);
-      const confirmed = await this._showReviewDialog(analysis.graph);
-      if (!confirmed) {
+      const review = await this._showReviewDialog(analysis.graph);
+      if (!review) {
         this._setStatus("Export cancelled.", "warn");
         return;
       }
@@ -178,7 +244,11 @@ class AnalysisPanel extends Widget {
         url,
         {
           method: "POST",
-          body: JSON.stringify({ notebook: notebookPath, out_dir: outDir }),
+          body: JSON.stringify({
+            notebook: notebookPath,
+            out_dir: outDir,
+            hints: review.hints
+          }),
           headers: { "Content-Type": "application/json" }
         },
         this._settings
@@ -192,6 +262,8 @@ class AnalysisPanel extends Widget {
       const crateDir = payload.crate as string;
       this._latestGraphUrl = this._buildGraphUrl(crateDir);
       this._exportNode.textContent = `Crate written to ${crateDir}`;
+      this._lastReview = review;
+      this._graphBtn.disabled = !this._latestGraphUrl;
       this._setStatus("Export complete.", "info");
     } catch (error) {
       console.error(error);
@@ -202,46 +274,217 @@ class AnalysisPanel extends Widget {
   }
 
   private _renderAnalysis(data: AnalyzeResponse): void {
-    const { cells, edges } = data.graph;
     this._lastAnalysis = data.graph;
+    this._syncFilterOptions(data.graph);
+    this._renderFilterControls();
+    this._renderFilteredView();
+  }
 
+  private _syncFilterOptions(graph: GraphSummary): void {
+    const kernelSet = new Set(graph.cells.map(cell => cell.kernel));
+    this._kernelOptions = Array.from(kernelSet).sort((a, b) => a.localeCompare(b));
+    const newKernelSelection = new Set<string>();
+    this._filterState.kernels.forEach(kernel => {
+      if (kernelSet.has(kernel)) {
+        newKernelSelection.add(kernel);
+      }
+    });
+    this._filterState.kernels = newKernelSelection;
+
+    const viaSet = new Set<string>();
+    graph.edges.forEach(edge => {
+      if (edge.via) {
+        viaSet.add(String(edge.via));
+      }
+    });
+    if (viaSet.size === 0) {
+      viaSet.add("ast");
+    }
+    this._edgeViaOptions = Array.from(viaSet).sort((a, b) => a.localeCompare(b));
+    const newViaSelection = new Set<string>();
+    this._filterState.edgeVia.forEach(via => {
+      if (viaSet.has(via)) {
+        newViaSelection.add(via);
+      }
+    });
+    this._filterState.edgeVia = newViaSelection;
+  }
+
+  private _renderFilterControls(): void {
+    const graph = this._lastAnalysis;
+    this._filterNode.innerHTML = "";
+    if (!graph) {
+      this._filterNode.style.display = "none";
+      return;
+    }
+    this._filterNode.style.display = "";
+
+    const searchWrapper = document.createElement("div");
+    searchWrapper.className = "jp-CellScopeFilters-search";
+    const searchLabel = document.createElement("label");
+    searchLabel.textContent = "Search";
+    const searchInput = document.createElement("input");
+    searchInput.type = "search";
+    searchInput.placeholder = "Search cells, files, variables…";
+    searchInput.value = this._filterState.search;
+    searchInput.addEventListener("input", () => {
+      this._filterState.search = searchInput.value;
+      this._renderFilteredView();
+    });
+    searchWrapper.append(searchLabel, searchInput);
+    this._filterNode.appendChild(searchWrapper);
+
+    if (this._kernelOptions.length > 1) {
+      const kernelWrapper = document.createElement("fieldset");
+      kernelWrapper.className = "jp-CellScopeFilters-group";
+      const legend = document.createElement("legend");
+      legend.textContent = "Kernel";
+      kernelWrapper.appendChild(legend);
+      this._kernelOptions.forEach(kernel => {
+        const optionLabel = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        const allSelected = this._filterState.kernels.size === 0;
+        checkbox.checked = allSelected || this._filterState.kernels.has(kernel);
+        checkbox.addEventListener("change", () => {
+          const updated = new Set(this._filterState.kernels);
+          if (checkbox.checked) {
+            updated.add(kernel);
+          } else {
+            updated.delete(kernel);
+          }
+          if (updated.size === this._kernelOptions.length || updated.size === 0) {
+            updated.clear();
+          }
+          this._filterState.kernels = updated;
+          this._renderFilteredView();
+        });
+        optionLabel.append(checkbox, document.createTextNode(kernel));
+        kernelWrapper.appendChild(optionLabel);
+      });
+      this._filterNode.appendChild(kernelWrapper);
+    }
+
+    const togglesWrapper = document.createElement("div");
+    togglesWrapper.className = "jp-CellScopeFilters-toggleGroup";
+    togglesWrapper.appendChild(
+      this._createToggle("Only cells that write files", this._filterState.requireFileWrites, value => {
+        this._filterState.requireFileWrites = value;
+        this._renderFilteredView();
+      })
+    );
+    togglesWrapper.appendChild(
+      this._createToggle("Only cells that read files", this._filterState.requireFileReads, value => {
+        this._filterState.requireFileReads = value;
+        this._renderFilteredView();
+      })
+    );
+    togglesWrapper.appendChild(
+      this._createToggle("Only SoS exchanges", this._filterState.requireSos, value => {
+        this._filterState.requireSos = value;
+        this._renderFilteredView();
+      })
+    );
+    this._filterNode.appendChild(togglesWrapper);
+
+    if (this._edgeViaOptions.length > 1) {
+      const viaWrapper = document.createElement("fieldset");
+      viaWrapper.className = "jp-CellScopeFilters-group";
+      const legend = document.createElement("legend");
+      legend.textContent = "Edge via";
+      viaWrapper.appendChild(legend);
+      this._edgeViaOptions.forEach(via => {
+        const optionLabel = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        const allSelected = this._filterState.edgeVia.size === 0;
+        checkbox.checked = allSelected || this._filterState.edgeVia.has(via);
+        checkbox.addEventListener("change", () => {
+          const updated = new Set(this._filterState.edgeVia);
+          if (checkbox.checked) {
+            updated.add(via);
+          } else {
+            updated.delete(via);
+          }
+          if (updated.size === this._edgeViaOptions.length || updated.size === 0) {
+            updated.clear();
+          }
+          this._filterState.edgeVia = updated;
+          this._renderFilteredView();
+        });
+        optionLabel.append(checkbox, document.createTextNode(via));
+        viaWrapper.appendChild(optionLabel);
+      });
+      this._filterNode.appendChild(viaWrapper);
+    }
+  }
+
+  private _renderFilteredView(): void {
+    const graph = this._lastAnalysis;
     this._resultsNode.innerHTML = "";
-    if (!cells.length) {
-      this._resultsNode.textContent = "No cells detected.";
+    this._edgesNode.innerHTML = "";
+    if (!graph) {
+      this._resultsNode.textContent = "Run Analyze to see notebook metadata.";
+      return;
+    }
+
+    const filteredCells = graph.cells.filter(cell => this._matchesCell(cell));
+    if (!filteredCells.length) {
+      this._resultsNode.textContent = "No cells match the current filters.";
     } else {
-      cells.forEach(cell => {
+      filteredCells.forEach(cell => {
+        const sosPut = cell.sos_put ?? [];
+        const sosGet = cell.sos_get ?? [];
         const details = document.createElement("details");
         details.className = "jp-CellScopePanel-cell";
+        details.open = filteredCells.length <= 4;
         const summary = document.createElement("summary");
         summary.textContent = `Cell ${cell.idx} (${cell.kernel})`;
         details.appendChild(summary);
 
-        const list = document.createElement("div");
-        list.className = "jp-CellScopePanel-cellBody";
-        list.appendChild(this._renderList("Functions", cell.funcs));
-        list.appendChild(this._renderList("Defined Vars", cell.var_defs));
-        list.appendChild(this._renderList("Used Vars", cell.var_uses));
-        list.appendChild(this._renderList("File Writes", cell.file_writes));
-        list.appendChild(this._renderList("File Reads", cell.file_reads));
-        details.appendChild(list);
+        const quickActions = document.createElement("div");
+        quickActions.className = "jp-CellScopePanel-quickActions";
+        const activateBtn = document.createElement("button");
+        activateBtn.textContent = "Activate cell";
+        activateBtn.className = "jp-mod-styled";
+        activateBtn.disabled = !this.tracker || !this.tracker.currentWidget;
+        activateBtn.addEventListener("click", () => {
+          this._activateCell(cell.idx);
+        });
+        quickActions.appendChild(activateBtn);
+        details.appendChild(quickActions);
+
+        const body = document.createElement("div");
+        body.className = "jp-CellScopePanel-cellBody";
+        body.append(
+          this._renderList("Functions", cell.funcs),
+          this._renderList("Defined Vars", cell.var_defs),
+          this._renderList("Used Vars", cell.var_uses),
+          this._renderList("File Writes", cell.file_writes),
+          this._renderList("File Reads", cell.file_reads),
+          this._renderList("SoS put", sosPut),
+          this._renderList("SoS get", sosGet)
+        );
+        details.appendChild(body);
         this._resultsNode.appendChild(details);
       });
     }
 
-    this._edgesNode.innerHTML = "";
     const edgesHeader = document.createElement("h4");
     edgesHeader.textContent = "Edges";
     this._edgesNode.appendChild(edgesHeader);
-    if (!edges.length) {
+
+    const filteredEdges = graph.edges.filter(edge => this._matchesEdge(edge));
+    if (!filteredEdges.length) {
       const none = document.createElement("p");
-      none.textContent = "No edges detected.";
+      none.textContent = "No edges match the current filters.";
       this._edgesNode.appendChild(none);
     } else {
       const ul = document.createElement("ul");
-      edges.forEach(edge => {
+      filteredEdges.forEach(edge => {
         const parts: string[] = [];
         if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
-          parts.push(`${edge.source} → ${edge.target}`);
+          parts.push(`Cell ${edge.source} → Cell ${edge.target}`);
         }
         if (edge.type) {
           parts.push(`type: ${edge.type}`);
@@ -249,15 +492,172 @@ class AnalysisPanel extends Widget {
         if (edge.vars?.length) {
           parts.push(`vars: ${edge.vars.join(", ")}`);
         }
-        if (edge.via) {
-          parts.push(`via ${edge.via}`);
-        }
+        const via = edge.via ?? "ast";
+        parts.push(`via ${via}`);
         const li = document.createElement("li");
-        li.textContent = parts.join(" | ") || JSON.stringify(edge);
+        li.textContent = parts.join(" | ");
         ul.appendChild(li);
       });
       this._edgesNode.appendChild(ul);
     }
+  }
+
+  private _matchesCell(cell: AnalyzeCell): boolean {
+    const { search, kernels, requireFileReads, requireFileWrites, requireSos } = this._filterState;
+    const sosPut = cell.sos_put ?? [];
+    const sosGet = cell.sos_get ?? [];
+    if (kernels.size && !kernels.has(cell.kernel)) {
+      return false;
+    }
+    if (requireFileWrites && cell.file_writes.length === 0) {
+      return false;
+    }
+    if (requireFileReads && cell.file_reads.length === 0) {
+      return false;
+    }
+    if (requireSos && sosPut.length === 0 && sosGet.length === 0) {
+      return false;
+    }
+    const term = search.trim().toLowerCase();
+    if (!term) {
+      return true;
+    }
+    const hintTokens = this._hintTokensForCell(cell);
+    const haystack = [
+      `cell ${cell.idx}`,
+      cell.kernel,
+      ...cell.funcs,
+      ...cell.var_defs,
+      ...cell.var_uses,
+      ...cell.file_writes,
+      ...cell.file_reads,
+      ...sosPut,
+      ...sosGet,
+      ...hintTokens
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(term);
+  }
+
+  private _matchesEdge(edge: AnalyzeEdge): boolean {
+    const { edgeVia, search } = this._filterState;
+    const via = (edge.via ?? "ast").toString();
+    if (edgeVia.size && !edgeVia.has(via)) {
+      return false;
+    }
+    const term = search.trim().toLowerCase();
+    if (!term) {
+      return true;
+    }
+    const parts: string[] = [];
+    if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
+      parts.push(`cell ${edge.source}`);
+      parts.push(`cell ${edge.target}`);
+    }
+    if (edge.type) {
+      parts.push(edge.type);
+    }
+    parts.push(via);
+    if (edge.vars?.length) {
+      parts.push(...edge.vars);
+    }
+    const haystack = parts.join(" ").toLowerCase();
+    return haystack.includes(term);
+  }
+
+  private _createToggle(labelText: string, checked: boolean, onChange: (value: boolean) => void): HTMLElement {
+    const wrapper = document.createElement("label");
+    wrapper.className = "jp-CellScopeFilters-toggle";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = checked;
+    input.addEventListener("change", () => {
+      onChange(input.checked);
+    });
+    wrapper.append(input, document.createTextNode(labelText));
+    return wrapper;
+  }
+
+  private _activateCell(idx: number): void {
+    const panel = this.tracker?.currentWidget;
+    if (!panel) {
+      this._setStatus("Open a notebook to activate cells.", "warn");
+      return;
+    }
+    const { content } = panel;
+    if (!content) {
+      return;
+    }
+    let codeIndex = -1;
+    let targetIndex = -1;
+    const total = content.widgets.length;
+    for (let i = 0; i < total; i++) {
+      const cell = content.widgets[i];
+      if (cell?.model?.type === "code") {
+        codeIndex += 1;
+        if (codeIndex === idx) {
+          targetIndex = i;
+          break;
+        }
+      }
+    }
+    if (targetIndex === -1) {
+      this._setStatus(`Could not locate code cell ${idx}.`, "warn");
+      return;
+    }
+    content.activeCellIndex = targetIndex;
+    content.deselectAll();
+    content.scrollToItem(targetIndex);
+    this.app.shell.activateById(panel.id);
+  }
+
+  private _hintTokensForCell(cell: AnalyzeCell): string[] {
+    const hints = this._lastReview?.hints;
+    if (!hints) {
+      return [];
+    }
+    const tokens: string[] = [];
+    const roles = hints.roles ?? {};
+    const domains = hints.domains ?? {};
+    const seen = new Set<string>();
+
+    [...cell.var_defs, ...cell.var_uses].forEach(varName => {
+      const role = roles[varName];
+      if (role && !seen.has(role)) {
+        tokens.push(role);
+        seen.add(role);
+      }
+    });
+
+    const addDomainTokens = (value: string | string[]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => {
+          const key = String(v);
+          if (!seen.has(key)) {
+            tokens.push(key);
+            seen.add(key);
+          }
+        });
+      } else {
+        const key = String(value);
+        if (!seen.has(key)) {
+          tokens.push(key);
+          seen.add(key);
+        }
+      }
+    };
+
+    [...cell.file_writes, ...cell.file_reads].forEach(path => {
+      const key = basename(path);
+      const domain = domains[key];
+      if (!domain) {
+        return;
+      }
+      Object.values(domain).forEach(addDomainTokens);
+    });
+
+    return tokens;
   }
 
   private _renderList(label: string, items: string[]): HTMLElement {
@@ -289,7 +689,11 @@ class AnalysisPanel extends Widget {
     const path = this._currentNotebookPath();
     this._pathNode.textContent = path ?? "(no notebook)";
     this._latestGraphUrl = null;
+    if (this._graphBtn) {
+      this._graphBtn.disabled = true;
+    }
     this._exportNode.textContent = "";
+    this._lastReview = null;
   }
 
   private _setBusy(busy: boolean, message?: string): void {
@@ -326,13 +730,117 @@ class AnalysisPanel extends Widget {
     return (await response.json()) as AnalyzeResponse;
   }
 
-  private async _showReviewDialog(graph: GraphSummary): Promise<boolean> {
+  private async _showReviewDialog(graph: GraphSummary): Promise<ReviewResult | null> {
     const body = document.createElement("div");
     body.className = "jp-CellScopeReview";
 
     const intro = document.createElement("p");
-    intro.textContent = "Review the captured metadata below. Confirm to generate the RO-Crate.";
+    intro.textContent = "Review the captured metadata, adjust roles or file metadata, and confirm to generate the RO-Crate.";
     body.appendChild(intro);
+
+    const draft = this._buildReviewDraft(graph);
+    const hints = this._lastReview?.hints ?? createEmptyReviewResult().hints;
+
+    const roleInputs = new Map<string, HTMLInputElement>();
+    const fileInputs = new Map<
+      string,
+      {
+        mime: HTMLInputElement;
+        tags: HTMLInputElement;
+      }
+    >();
+
+    const metadataSection = document.createElement("div");
+    metadataSection.className = "jp-CellScopeReview-section";
+    const metadataTitle = document.createElement("h4");
+    metadataTitle.textContent = "Metadata adjustments";
+    metadataSection.appendChild(metadataTitle);
+
+    if (!draft.variables.length && !draft.files.length) {
+      const noEditable = document.createElement("p");
+      noEditable.textContent = "No editable metadata detected for this notebook.";
+      metadataSection.appendChild(noEditable);
+    } else {
+      if (draft.variables.length) {
+        const varTitle = document.createElement("h5");
+        varTitle.textContent = `Variables (${draft.variables.length})`;
+        metadataSection.appendChild(varTitle);
+
+        draft.variables.forEach(variable => {
+          const field = document.createElement("label");
+          field.className = "jp-CellScopeReview-field";
+
+          const nameSpan = document.createElement("span");
+          nameSpan.className = "jp-CellScopeReview-fieldLabel";
+          nameSpan.textContent =
+            variable.kind === "function" ? `${variable.name} (function)` : variable.name;
+          field.appendChild(nameSpan);
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "jp-CellScopeReview-input jp-mod-styled";
+          input.placeholder =
+            variable.kind === "function"
+              ? "Role (e.g., algorithm, helper)"
+              : "Role (e.g., dataset, parameter)";
+          const existing = hints.roles?.[variable.name];
+          if (existing) {
+            input.value = existing;
+          }
+          field.appendChild(input);
+          metadataSection.appendChild(field);
+          roleInputs.set(variable.name, input);
+        });
+      }
+
+      if (draft.files.length) {
+        const fileTitle = document.createElement("h5");
+        fileTitle.textContent = `Files (${draft.files.length})`;
+        metadataSection.appendChild(fileTitle);
+
+        draft.files.forEach(file => {
+          const block = document.createElement("div");
+          block.className = "jp-CellScopeReview-fileBlock";
+
+          const pathLabel = document.createElement("div");
+          pathLabel.className = "jp-CellScopeReview-fieldLabel";
+          pathLabel.textContent = file.path;
+          block.appendChild(pathLabel);
+
+          const mimeInput = document.createElement("input");
+          mimeInput.type = "text";
+          mimeInput.className = "jp-CellScopeReview-input jp-mod-styled";
+          mimeInput.placeholder = "MIME type (e.g., text/csv)";
+          const existingDomain = hints.domains?.[file.baseName];
+          const rawMime = existingDomain ? existingDomain["encodingFormat"] : undefined;
+          const presetMime = Array.isArray(rawMime) ? rawMime[0] ?? "" : rawMime ?? "";
+          if (presetMime) {
+            mimeInput.value = presetMime;
+          }
+          block.appendChild(mimeInput);
+
+          const tagsInput = document.createElement("input");
+          tagsInput.type = "text";
+          tagsInput.className = "jp-CellScopeReview-input jp-mod-styled";
+          tagsInput.placeholder = "Tags (comma separated)";
+          const rawTags = existingDomain ? existingDomain["keywords"] : undefined;
+          const tagsPreset = Array.isArray(rawTags)
+            ? rawTags
+            : typeof rawTags === "string"
+            ? [rawTags]
+            : [];
+          if (tagsPreset.length) {
+            tagsInput.value = tagsPreset.join(", ");
+          }
+          block.appendChild(tagsInput);
+          metadataSection.appendChild(block);
+
+          fileInputs.set(file.baseName, { mime: mimeInput, tags: tagsInput });
+        });
+      }
+    }
+
+    body.appendChild(metadataSection);
 
     const cellsSection = document.createElement("div");
     cellsSection.className = "jp-CellScopeReview-section";
@@ -351,7 +859,9 @@ class AnalysisPanel extends Widget {
         this._renderList("Defined vars", cell.var_defs),
         this._renderList("Used vars", cell.var_uses),
         this._renderList("File writes", cell.file_writes),
-        this->_renderList("File reads", cell.file_reads)
+        this._renderList("File reads", cell.file_reads),
+        this._renderList("SoS put", cell.sos_put ?? []),
+        this._renderList("SoS get", cell.sos_get ?? [])
       );
       details.appendChild(bodyDiv);
       cellsSection.appendChild(details);
@@ -408,7 +918,8 @@ class AnalysisPanel extends Widget {
       buttons: [Dialog.cancelButton({ label: "Cancel" }), Dialog.okButton({ label: "Confirm Export" })]
     });
 
-    const accept = dialog.node.querySelector("button.jp-mod-accept") as HTMLButtonButton | null;    if (accept) {
+    const accept = dialog.node.querySelector("button.jp-mod-accept") as HTMLButtonElement | null;
+    if (accept) {
       accept.disabled = true;
       checkbox.addEventListener("change", () => {
         accept.disabled = !checkbox.checked;
@@ -416,7 +927,82 @@ class AnalysisPanel extends Widget {
     }
 
     const result = await dialog.launch();
-    return result.button.accept === true;
+    if (!result.button.accept) {
+      return null;
+    }
+
+    const roles: ReviewRoleMap = {};
+    roleInputs.forEach((input, variable) => {
+      const value = input.value.trim();
+      if (value) {
+        roles[variable] = value;
+      }
+    });
+
+    const domains: ReviewDomainMap = {};
+    fileInputs.forEach((inputs, baseNameKey) => {
+      const domainEntries: Record<string, string | string[]> = {};
+      const mimeValue = inputs.mime.value.trim();
+      if (mimeValue) {
+        domainEntries["encodingFormat"] = mimeValue;
+      }
+      const tagsValue = inputs.tags.value
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      if (tagsValue.length === 1) {
+        domainEntries["keywords"] = tagsValue[0];
+      } else if (tagsValue.length > 1) {
+        domainEntries["keywords"] = tagsValue;
+      }
+
+      if (Object.keys(domainEntries).length > 0) {
+        domains[baseNameKey] = domainEntries;
+      }
+    });
+
+    const review: ReviewResult = {
+      hints: {
+        roles,
+        domains
+      }
+    };
+    this._lastReview = review;
+    return review;
+  }
+
+  private _buildReviewDraft(graph: GraphSummary): ReviewDraft {
+    const functionNames = new Set<string>();
+    graph.cells.forEach(cell => {
+      cell.funcs.forEach(fn => functionNames.add(fn));
+    });
+
+    const varMap = new Map<string, ReviewDraftVariable>();
+    graph.cells.forEach(cell => {
+      cell.var_defs.forEach(variable => {
+        if (!varMap.has(variable)) {
+          varMap.set(variable, {
+            name: variable,
+            kind: functionNames.has(variable) ? "function" : "data"
+          });
+        }
+      });
+    });
+
+    const fileMap = new Map<string, ReviewDraftFile>();
+    graph.cells.forEach(cell => {
+      [...cell.file_writes, ...cell.file_reads].forEach(filePath => {
+        const baseName = basename(filePath);
+        if (!fileMap.has(baseName)) {
+          fileMap.set(baseName, { path: filePath, baseName });
+        }
+      });
+    });
+
+    return {
+      variables: Array.from(varMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+      files: Array.from(fileMap.values()).sort((a, b) => a.baseName.localeCompare(b.baseName))
+    };
   }
 
   private _stringifyError(error: unknown): string {
@@ -438,14 +1024,32 @@ class AnalysisPanel extends Widget {
     div.className = "jp-CellScopePanel-status";
     return div;
   })();
+  private readonly _filterNode = (() => {
+    const div = document.createElement("div");
+    div.className = "jp-CellScopePanel-filters";
+    div.style.display = "none";
+    return div;
+  })();
   private readonly _resultsNode = (() => {
     const div = document.createElement("div");
     div.className = "jp-CellScopePanel-results";
+    div.style.paddingBottom = "8px";
     return div;
   })();
   private readonly _edgesNode = (() => {
     const div = document.createElement("div");
     div.className = "jp-CellScopePanel-edges";
+    div.style.marginTop = "12px";
+    return div;
+  })();
+  private readonly _contentNode = (() => {
+    const div = document.createElement("div");
+    div.className = "jp-CellScopePanel-content";
+    div.style.flex = "1 1 auto";
+    div.style.overflowY = "auto";
+    div.style.paddingRight = "4px";
+    div.appendChild(this._resultsNode);
+    div.appendChild(this._edgesNode);
     return div;
   })();
   private readonly _exportNode = (() => {
@@ -463,8 +1067,20 @@ class AnalysisPanel extends Widget {
   private _pathNode!: HTMLElement;
   private _analyzeBtn!: HTMLButtonElement;
   private _exportBtn!: HTMLButtonElement;
+  private _graphBtn!: HTMLButtonElement;
   private _latestGraphUrl: string | null = null;
   private _lastAnalysis: GraphSummary | null = null;
+  private _lastReview: ReviewResult | null = null;
+  private _filterState: FilterState = {
+    search: "",
+    kernels: new Set<string>(),
+    requireFileWrites: false,
+    requireFileReads: false,
+    requireSos: false,
+    edgeVia: new Set<string>()
+  };
+  private _kernelOptions: string[] = [];
+  private _edgeViaOptions: string[] = [];
 }
 
 const plugin: JupyterFrontEndPlugin<void> = {

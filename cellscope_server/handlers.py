@@ -145,6 +145,8 @@ def _to_json(capture: Dict[str, Any]) -> Dict[str, Any]:
             "var_uses": sorted(c.var_uses),
             "file_writes": sorted(c.file_writes),
             "file_reads": sorted(c.file_reads),
+            "sos_put": sorted(getattr(c, "sos_put", [])),
+            "sos_get": sorted(getattr(c, "sos_get", [])),
         })
     edges = [_serialise_edge(edge) for edge in capture["graph"].get("edges", [])]
     return {"cells": cells, "edges": edges}

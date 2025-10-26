@@ -79,12 +79,40 @@ def build_rocrate(capture: Dict[str, Any],
         abs_path = os.path.join(crate_root, rel_path)
         with open(abs_path, 'w', encoding='utf-8') as f:
             f.write(c.source)
+        roles_for_cell = []
+        role_map = ((hints or {}).get('roles') or {})
+        for var in sorted(getattr(c, 'var_defs', [])):
+            role_val = role_map.get(var)
+            if role_val:
+                roles_for_cell.append(f"{var}: {role_val}")
+
+        file_hints_for_cell = []
+        domain_map = ((hints or {}).get('domains') or {})
+        file_candidates = sorted(set(getattr(c, 'file_writes', set())) | set(getattr(c, 'file_reads', set())))
+        for fpath in file_candidates:
+            base = os.path.basename(fpath)
+            domain_info = domain_map.get(base)
+            if not domain_info:
+                continue
+            parts = []
+            for key, value in domain_info.items():
+                if isinstance(value, (list, tuple)):
+                    parts.append(f"{key}: {', '.join(map(str, value))}")
+                else:
+                    parts.append(f"{key}: {value}")
+            if parts:
+                file_hints_for_cell.append(f"{base} ({'; '.join(parts)})")
+
         props = {
             '@type': f'{OFLOW}Activity',
             'name': f'Cell {c.idx}',
             'kernel': c.kernel,
             'version': '1',
         }
+        if roles_for_cell:
+            props['roles'] = roles_for_cell
+        if file_hints_for_cell:
+            props['fileHints'] = file_hints_for_cell
         act = crate.add_file(abs_path, dest_path=rel_path, properties=props)
         activities[c.idx] = act
 

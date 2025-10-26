@@ -1,0 +1,48 @@
+{
+    "name":  "cellscope-lab",
+    "version":  "0.1.0",
+    "description":  "CellScope JupyterLab front-end stub",
+    "homepage":  "",
+    "license":  "BSD-3-Clause",
+    "author":  "CellScope Team",
+    "main":  "lib/index.js",
+    "jupyterlab":  {
+                       "extension":  "./lib/index.js",
+                       "schemaDir":  "./schema",
+                       "outputDir":  "./labextension",
+                       "sharedPackages":  {
+                                              "@jupyterlab/application":  {
+                                                                              "singleton":  true,
+                                                                              "strictVersion":  false
+                                                                          },
+                                              "@jupyterlab/apputils":  {
+                                                                           "singleton":  true,
+                                                                           "strictVersion":  false
+                                                                       },
+                                              "@lumino/widgets":  {
+                                                                      "singleton":  true,
+                                                                      "strictVersion":  false
+                                                                  }
+                                          }
+                   },
+    "scripts":  {
+                    "build":  "npm run clean \u0026\u0026 npm run build:lib \u0026\u0026 npm run build:labextension",
+                    "build:lib":  "npx tsc --project tsconfig.json",
+                    "build:labextension":  "node buildutils/build-labextension.js",
+                    "clean":  "npx rimraf lib labextension",
+                    "stage":  "npm run build \u0026\u0026 node buildutils/stage-to-venv.js"
+                },
+    "dependencies":  {
+                         "@jupyterlab/application":  "^4.0.0",
+                         "@jupyterlab/apputils":  "^4.0.0",
+                         "@jupyterlab/services":  "^4.0.0",
+                         "@lumino/widgets":  "^2.0.0",
+                         "@jupyterlab/notebook":  "^4.0.0"
+                     },
+    "devDependencies":  {
+                            "@jupyterlab/builder":  "^4.4.9",
+                            "fs-extra":  "^11.2.0",
+                            "rimraf":  "^5.0.10",
+                            "typescript":  "~5.4.0"
+                        }
+}

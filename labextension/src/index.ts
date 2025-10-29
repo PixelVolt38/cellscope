@@ -1,7 +1,8 @@
 import { JupyterFrontEnd, JupyterFrontEndPlugin } from "@jupyterlab/application";
 import { ICommandPalette, MainAreaWidget, Dialog } from "@jupyterlab/apputils";
-import { INotebookTracker } from "@jupyterlab/notebook";
+import { INotebookTracker, NotebookPanel } from "@jupyterlab/notebook";
 import { URLExt } from "@jupyterlab/coreutils";
+import { DocumentRegistry } from "@jupyterlab/docregistry";
 import { ServerConnection } from "@jupyterlab/services";
 import { JSONExt } from "@lumino/coreutils";
 import { Widget } from "@lumino/widgets";
@@ -68,12 +69,27 @@ interface ReviewDraft {
 
 interface FilterState {
   search: string;
-  kernels: Set<string>;
+  kernels: Set<string> | null;
   requireFileWrites: boolean;
   requireFileReads: boolean;
   requireSos: boolean;
-  edgeVia: Set<string>;
+  edgeVia: Set<string> | null;
+  roles: Set<string> | null;
+  fileHints: Set<string> | null;
 }
+
+interface StoredFilterState {
+  search: string;
+  kernels: string[] | null;
+  requireFileWrites: boolean;
+  requireFileReads: boolean;
+  requireSos: boolean;
+  edgeVia: string[] | null;
+  roles: string[] | null;
+  fileHints: string[] | null;
+}
+
+type NotebookChangeReason = "save" | "execution" | "content";
 
 const createEmptyReviewResult = (): ReviewResult => ({
   hints: {
@@ -103,6 +119,7 @@ class AnalysisPanel extends Widget {
 
     this.node.appendChild(this._buildHeader());
     this.node.appendChild(this._statusNode);
+    this.node.appendChild(this._pendingNode);
     this.node.appendChild(this._filterNode);
     this.node.appendChild(this._contentNode);
     this.node.appendChild(this._exportNode);
@@ -120,6 +137,8 @@ class AnalysisPanel extends Widget {
       this.tracker.currentChanged.disconnect(this._syncNotebook, this);
       this.tracker.widgetAdded.disconnect(this._syncNotebook, this);
     }
+    this._disposeNotebookListeners();
+    this._cancelPendingTimer();
     super.dispose();
   }
 
@@ -200,23 +219,7 @@ class AnalysisPanel extends Widget {
   }
 
   private async _analyze(): Promise<void> {
-    const notebookPath = this._currentNotebookPath();
-    if (!notebookPath) {
-      this._setStatus("Open a notebook to analyze.", "warn");
-      return;
-    }
-
-    this._setBusy(true, "Analyzing notebook…");
-    try {
-      const payload = await this._requestAnalysis(notebookPath);
-      this._renderAnalysis(payload);
-      this._setStatus("Analysis complete.", "info");
-    } catch (error) {
-      console.error(error);
-      this._setStatus(`Failed to analyze notebook: ${this._stringifyError(error)}`, "error");
-    } finally {
-      this._setBusy(false);
-    }
+    await this._runAnalysis("manual");
   }
 
   private async _export(): Promise<void> {
@@ -261,9 +264,17 @@ class AnalysisPanel extends Widget {
       const payload = await response.json();
       const crateDir = payload.crate as string;
       this._latestGraphUrl = this._buildGraphUrl(crateDir);
-      this._exportNode.textContent = `Crate written to ${crateDir}`;
+      this._renderExportSummary(crateDir, payload.index ?? null);
       this._lastReview = review;
       this._graphBtn.disabled = !this._latestGraphUrl;
+      if (this._lastAnalysis) {
+        this._syncFilterOptions(this._lastAnalysis);
+        this._renderFilterControls();
+        this._saveFilterState();
+        this._renderFilteredView(true);
+      } else {
+        this._renderFilteredView(true);
+      }
       this._setStatus("Export complete.", "info");
     } catch (error) {
       console.error(error);
@@ -273,23 +284,232 @@ class AnalysisPanel extends Widget {
     }
   }
 
+  private _renderExportSummary(crateDir: string, indexInfo: any): void {
+    const lines: string[] = [];
+    lines.push(`Crate written to ${this._normalisePath(crateDir)}`);
+    if (indexInfo) {
+      const endpoint = typeof indexInfo.endpoint === "string" ? indexInfo.endpoint : null;
+      const outputPath = typeof indexInfo.output === "string" ? indexInfo.output : null;
+      const triples = typeof indexInfo.triples === "number" ? indexInfo.triples : null;
+      const attempts = typeof indexInfo.attempts === "number" ? indexInfo.attempts : null;
+      const duration = typeof indexInfo.duration_seconds === "number" ? indexInfo.duration_seconds : null;
+      const status = typeof indexInfo.status === "number" ? indexInfo.status : null;
+
+      if (endpoint) {
+        const attemptText = attempts ? `attempts ${attempts}` : "attempts n/a";
+        const durationText = duration !== null ? `in ${duration.toFixed(1)}s` : "";
+        const statusText = status !== null ? `status ${status}` : "status n/a";
+        const triplesText = triples !== null ? `${triples} triples` : "triples n/a";
+        lines.push(`SPARQL push → ${endpoint} (${triplesText}, ${statusText}, ${attemptText} ${durationText}).`);
+      } else {
+        const dest = outputPath ?? "index/last_update.sparql";
+        const triplesText = triples !== null ? `${triples} triples` : "triples n/a";
+        lines.push(`SPARQL delta saved to ${this._normalisePath(dest)} (${triplesText}, endpoint not configured).`);
+      }
+    }
+    this._exportNode.textContent = lines.join(" • ");
+  }
+  private _normalisePath(pathValue: string): string {
+    if (!pathValue) {
+      return pathValue;
+    }
+    return pathValue.replace(/\\/g, "/");
+  }
+
+  private async _runAnalysis(source: "manual" | "auto"): Promise<void> {
+    const notebookPath = this._currentNotebookPath();
+    if (!notebookPath) {
+      if (source === "manual") {
+        this._setStatus("Open a notebook to analyze.", "warn");
+      }
+      return;
+    }
+
+    if (this._analyzeInFlight) {
+      if (source === "auto") {
+        this._rerunAfterCurrent = true;
+        this._cancelPendingTimer();
+      }
+      return;
+    }
+
+    if (this._pendingTimeout !== null) {
+      window.clearTimeout(this._pendingTimeout);
+      this._pendingTimeout = null;
+    }
+
+    this._analyzeInFlight = true;
+    this._rerunAfterCurrent = false;
+
+    if (source === "manual") {
+      this._setBusy(true, "Analyzing notebook…");
+    } else {
+      this._setBusy(true, undefined, true);
+    }
+
+    try {
+      const payload = await this._requestAnalysis(notebookPath);
+      this._renderAnalysis(payload);
+      if (source === "manual") {
+        this._setStatus("Analysis complete.", "info");
+      } else if (!(this._statusNode.textContent ?? "").trim()) {
+        this._setStatus("Analysis refreshed.", "info");
+      }
+    } catch (error) {
+      console.error(error);
+      this._setStatus(`Failed to analyze notebook: ${this._stringifyError(error)}`, "error");
+    } finally {
+      this._analyzeInFlight = false;
+      this._setBusy(false, undefined, source === "auto");
+      if (this._rerunAfterCurrent) {
+        this._setPending(true, "Additional notebook changes detected. Refreshing analysis…");
+        this._scheduleAutoAnalyze("content");
+        this._rerunAfterCurrent = false;
+      } else {
+        this._setPending(false);
+      }
+    }
+  }
+
   private _renderAnalysis(data: AnalyzeResponse): void {
     this._lastAnalysis = data.graph;
     this._syncFilterOptions(data.graph);
     this._renderFilterControls();
-    this._renderFilteredView();
+    this._saveFilterState();
+    this._renderFilteredView(true);
+  }
+
+  private _handleNotebookChange(reason: NotebookChangeReason): void {
+    if (!this._lastAnalysis || !this._activeNotebookPath) {
+      return;
+    }
+    let message: string;
+    switch (reason) {
+      case "save":
+        message = "Notebook saved. Refreshing analysis…";
+        break;
+      case "execution":
+        message = "Execution finished. Refreshing analysis…";
+        break;
+      default:
+        message = "Notebook changed. Refreshing analysis…";
+    }
+    this._setPending(true, message);
+    this._scheduleAutoAnalyze(reason);
+  }
+
+  private _scheduleAutoAnalyze(reason: NotebookChangeReason): void {
+    if (!this._lastAnalysis || !this._activeNotebookPath) {
+      return;
+    }
+    if (this._pendingTimeout !== null) {
+      window.clearTimeout(this._pendingTimeout);
+    }
+    const delay = reason === "save" ? 400 : reason === "execution" ? 800 : 1000;
+    const targetPath = this._activeNotebookPath;
+    this._pendingTimeout = window.setTimeout(() => {
+      this._pendingTimeout = null;
+      if (targetPath !== this._activeNotebookPath) {
+        return;
+      }
+      void this._runAnalysis("auto");
+    }, delay);
+  }
+
+  private _setPending(active: boolean, message?: string, force = false): void {
+    if (active) {
+      this._pendingChanges = true;
+      this._pendingNode.style.display = "";
+      this._pendingNode.classList.toggle("jp-mod-warn", true);
+      this._pendingNode.textContent =
+        message ?? "Notebook changes detected. Analysis will refresh shortly…";
+      return;
+    }
+    if (!force) {
+      if (this._pendingTimeout !== null || this._rerunAfterCurrent) {
+        return;
+      }
+    }
+    this._pendingChanges = false;
+    this._pendingNode.style.display = "none";
+    this._pendingNode.classList.remove("jp-mod-warn");
+    this._pendingNode.textContent = "";
+  }
+
+  private _cancelPendingTimer(): void {
+    if (this._pendingTimeout !== null) {
+      window.clearTimeout(this._pendingTimeout);
+      this._pendingTimeout = null;
+    }
+  }
+
+  private _setupNotebookListeners(panel: NotebookPanel | null): void {
+    this._disposeNotebookListeners();
+    this._observedPanel = panel;
+    this._kernelWasBusySinceLastIdle = false;
+    this._cancelPendingTimer();
+    if (!panel) {
+      this._setPending(false, undefined, true);
+      return;
+    }
+    const { context } = panel;
+    if (!context) {
+      return;
+    }
+    const onSaveState = (_: DocumentRegistry.Context, state: DocumentRegistry.SaveState) => {
+      if (state === "completed") {
+        this._handleNotebookChange("save");
+      }
+    };
+    context.saveState.connect(onSaveState, this);
+    this._notebookListeners.push(() => context.saveState.disconnect(onSaveState, this));
+
+    const session = context.sessionContext;
+    if (session) {
+      const onStatus = (_: unknown, status: string) => {
+        this._onKernelStatusChanged(status);
+      };
+      session.statusChanged.connect(onStatus, this);
+      this._notebookListeners.push(() => session.statusChanged.disconnect(onStatus, this));
+    }
+  }
+
+  private _disposeNotebookListeners(): void {
+    while (this._notebookListeners.length) {
+      const dispose = this._notebookListeners.pop();
+      try {
+        dispose?.();
+      } catch (error) {
+        console.debug("[cellscope] Failed to detach notebook listener", error);
+      }
+    }
+    this._observedPanel = null;
+    this._kernelWasBusySinceLastIdle = false;
+  }
+
+  private _onKernelStatusChanged(status: string): void {
+    if (!this._lastAnalysis || !this._activeNotebookPath) {
+      return;
+    }
+    if (status === "busy") {
+      this._kernelWasBusySinceLastIdle = true;
+      return;
+    }
+    if (status === "idle" && this._kernelWasBusySinceLastIdle) {
+      this._kernelWasBusySinceLastIdle = false;
+      this._handleNotebookChange("execution");
+      return;
+    }
+    if (status === "restarting" || status === "dead" || status === "terminating") {
+      this._kernelWasBusySinceLastIdle = false;
+    }
   }
 
   private _syncFilterOptions(graph: GraphSummary): void {
-    const kernelSet = new Set(graph.cells.map(cell => cell.kernel));
-    this._kernelOptions = Array.from(kernelSet).sort((a, b) => a.localeCompare(b));
-    const newKernelSelection = new Set<string>();
-    this._filterState.kernels.forEach(kernel => {
-      if (kernelSet.has(kernel)) {
-        newKernelSelection.add(kernel);
-      }
-    });
-    this._filterState.kernels = newKernelSelection;
+    this._kernelOptions = Array.from(new Set(graph.cells.map(cell => cell.kernel))).sort((a, b) =>
+      a.localeCompare(b)
+    );
+    this._filterState.kernels = this._sanitizeFacet(this._filterState.kernels, this._kernelOptions);
 
     const viaSet = new Set<string>();
     graph.edges.forEach(edge => {
@@ -301,15 +521,38 @@ class AnalysisPanel extends Widget {
       viaSet.add("ast");
     }
     this._edgeViaOptions = Array.from(viaSet).sort((a, b) => a.localeCompare(b));
-    const newViaSelection = new Set<string>();
-    this._filterState.edgeVia.forEach(via => {
-      if (viaSet.has(via)) {
-        newViaSelection.add(via);
-      }
-    });
-    this._filterState.edgeVia = newViaSelection;
-  }
+    this._filterState.edgeVia = this._sanitizeFacet(this._filterState.edgeVia, this._edgeViaOptions);
 
+    const hints = this._effectiveHints();
+    const roleSet = new Set<string>();
+    if (hints?.roles) {
+      Object.values(hints.roles).forEach(role => {
+        if (role) {
+          roleSet.add(String(role));
+        }
+      });
+    }
+    this._roleOptions = Array.from(roleSet).sort((a, b) => a.localeCompare(b));
+    this._filterState.roles = this._sanitizeFacet(this._filterState.roles, this._roleOptions);
+
+    const hintSet = new Set<string>();
+    if (hints?.domains) {
+      Object.entries(hints.domains).forEach(([_, info]) => {
+        if (!info) {
+          return;
+        }
+        Object.entries(info).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach(v => hintSet.add(`${key}: ${v}`));
+          } else if (typeof value !== "undefined" && value !== null) {
+            hintSet.add(`${key}: ${value}`);
+          }
+        });
+      });
+    }
+    this._fileHintOptions = Array.from(hintSet).sort((a, b) => a.localeCompare(b));
+    this._filterState.fileHints = this._sanitizeFacet(this._filterState.fileHints, this._fileHintOptions);
+  }
   private _renderFilterControls(): void {
     const graph = this._lastAnalysis;
     this._filterNode.innerHTML = "";
@@ -328,8 +571,9 @@ class AnalysisPanel extends Widget {
     searchInput.placeholder = "Search cells, files, variables…";
     searchInput.value = this._filterState.search;
     searchInput.addEventListener("input", () => {
-      this._filterState.search = searchInput.value;
-      this._renderFilteredView();
+      this._updateFilters(() => {
+        this._filterState.search = searchInput.value;
+      });
     });
     searchWrapper.append(searchLabel, searchInput);
     this._filterNode.appendChild(searchWrapper);
@@ -344,20 +588,19 @@ class AnalysisPanel extends Widget {
         const optionLabel = document.createElement("label");
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        const allSelected = this._filterState.kernels.size === 0;
-        checkbox.checked = allSelected || this._filterState.kernels.has(kernel);
+        const facet = this._filterState.kernels;
+        const allSelected = this._facetIsAll(facet, this._kernelOptions);
+        const isChecked = allSelected || (!!facet && facet.has(kernel));
+        checkbox.checked = isChecked;
         checkbox.addEventListener("change", () => {
-          const updated = new Set(this._filterState.kernels);
-          if (checkbox.checked) {
-            updated.add(kernel);
-          } else {
-            updated.delete(kernel);
-          }
-          if (updated.size === this._kernelOptions.length || updated.size === 0) {
-            updated.clear();
-          }
-          this._filterState.kernels = updated;
-          this._renderFilteredView();
+          this._updateFilters(() => {
+            this._filterState.kernels = this._toggleFacet(
+              this._filterState.kernels,
+              kernel,
+              checkbox.checked,
+              this._kernelOptions
+            );
+          });
         });
         optionLabel.append(checkbox, document.createTextNode(kernel));
         kernelWrapper.appendChild(optionLabel);
@@ -368,24 +611,87 @@ class AnalysisPanel extends Widget {
     const togglesWrapper = document.createElement("div");
     togglesWrapper.className = "jp-CellScopeFilters-toggleGroup";
     togglesWrapper.appendChild(
-      this._createToggle("Only cells that write files", this._filterState.requireFileWrites, value => {
-        this._filterState.requireFileWrites = value;
-        this._renderFilteredView();
-      })
+      this._createToggle("Only cells that write files", this._filterState.requireFileWrites, value =>
+        this._updateFilters(() => {
+          this._filterState.requireFileWrites = value;
+        })
+      )
     );
     togglesWrapper.appendChild(
-      this._createToggle("Only cells that read files", this._filterState.requireFileReads, value => {
-        this._filterState.requireFileReads = value;
-        this._renderFilteredView();
-      })
+      this._createToggle("Only cells that read files", this._filterState.requireFileReads, value =>
+        this._updateFilters(() => {
+          this._filterState.requireFileReads = value;
+        })
+      )
     );
     togglesWrapper.appendChild(
-      this._createToggle("Only SoS exchanges", this._filterState.requireSos, value => {
-        this._filterState.requireSos = value;
-        this._renderFilteredView();
-      })
+      this._createToggle("Only SoS exchanges", this._filterState.requireSos, value =>
+        this._updateFilters(() => {
+          this._filterState.requireSos = value;
+        })
+      )
     );
     this._filterNode.appendChild(togglesWrapper);
+
+    if (this._roleOptions.length) {
+      const roleWrapper = document.createElement("fieldset");
+      roleWrapper.className = "jp-CellScopeFilters-group";
+      const legend = document.createElement("legend");
+      legend.textContent = "Roles";
+      roleWrapper.appendChild(legend);
+      this._roleOptions.forEach(role => {
+        const optionLabel = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        const facet = this._filterState.roles;
+        const allSelected = this._facetIsAll(facet, this._roleOptions);
+        const isChecked = allSelected || (!!facet && facet.has(role));
+        checkbox.checked = isChecked;
+        checkbox.addEventListener("change", () => {
+          this._updateFilters(() => {
+            this._filterState.roles = this._toggleFacet(
+              this._filterState.roles,
+              role,
+              checkbox.checked,
+              this._roleOptions
+            );
+          });
+        });
+        optionLabel.append(checkbox, document.createTextNode(role));
+        roleWrapper.appendChild(optionLabel);
+      });
+      this._filterNode.appendChild(roleWrapper);
+    }
+
+    if (this._fileHintOptions.length) {
+      const hintWrapper = document.createElement("fieldset");
+      hintWrapper.className = "jp-CellScopeFilters-group";
+      const legend = document.createElement("legend");
+      legend.textContent = "File metadata";
+      hintWrapper.appendChild(legend);
+      this._fileHintOptions.forEach(hint => {
+        const optionLabel = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        const facet = this._filterState.fileHints;
+        const allSelected = this._facetIsAll(facet, this._fileHintOptions);
+        const isChecked = allSelected || (!!facet && facet.has(hint));
+        checkbox.checked = isChecked;
+        checkbox.addEventListener("change", () => {
+          this._updateFilters(() => {
+            this._filterState.fileHints = this._toggleFacet(
+              this._filterState.fileHints,
+              hint,
+              checkbox.checked,
+              this._fileHintOptions
+            );
+          });
+        });
+        optionLabel.append(checkbox, document.createTextNode(hint));
+        hintWrapper.appendChild(optionLabel);
+      });
+      this._filterNode.appendChild(hintWrapper);
+    }
 
     if (this._edgeViaOptions.length > 1) {
       const viaWrapper = document.createElement("fieldset");
@@ -397,20 +703,19 @@ class AnalysisPanel extends Widget {
         const optionLabel = document.createElement("label");
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        const allSelected = this._filterState.edgeVia.size === 0;
-        checkbox.checked = allSelected || this._filterState.edgeVia.has(via);
+        const facet = this._filterState.edgeVia;
+        const allSelected = this._facetIsAll(facet, this._edgeViaOptions);
+        const isChecked = allSelected || (!!facet && facet.has(via));
+        checkbox.checked = isChecked;
         checkbox.addEventListener("change", () => {
-          const updated = new Set(this._filterState.edgeVia);
-          if (checkbox.checked) {
-            updated.add(via);
-          } else {
-            updated.delete(via);
-          }
-          if (updated.size === this._edgeViaOptions.length || updated.size === 0) {
-            updated.clear();
-          }
-          this._filterState.edgeVia = updated;
-          this._renderFilteredView();
+          this._updateFilters(() => {
+            this._filterState.edgeVia = this._toggleFacet(
+              this._filterState.edgeVia,
+              via,
+              checkbox.checked,
+              this._edgeViaOptions
+            );
+          });
         });
         optionLabel.append(checkbox, document.createTextNode(via));
         viaWrapper.appendChild(optionLabel);
@@ -418,8 +723,7 @@ class AnalysisPanel extends Widget {
       this._filterNode.appendChild(viaWrapper);
     }
   }
-
-  private _renderFilteredView(): void {
+  private _renderFilteredView(emitEvent = false): void {
     const graph = this._lastAnalysis;
     this._resultsNode.innerHTML = "";
     this._edgesNode.innerHTML = "";
@@ -429,12 +733,17 @@ class AnalysisPanel extends Widget {
     }
 
     const filteredCells = graph.cells.filter(cell => this._matchesCell(cell));
+    const filteredEdges = graph.edges.filter(edge => this._matchesEdge(edge));
+    const hints = this._effectiveHints();
+
     if (!filteredCells.length) {
       this._resultsNode.textContent = "No cells match the current filters.";
     } else {
       filteredCells.forEach(cell => {
         const sosPut = cell.sos_put ?? [];
         const sosGet = cell.sos_get ?? [];
+        const roleTokens = this._roleTokensForCell(cell, hints);
+        const fileTokens = this._fileHintTokensForCell(cell, hints);
         const details = document.createElement("details");
         details.className = "jp-CellScopePanel-cell";
         details.open = filteredCells.length <= 4;
@@ -463,7 +772,9 @@ class AnalysisPanel extends Widget {
           this._renderList("File Writes", cell.file_writes),
           this._renderList("File Reads", cell.file_reads),
           this._renderList("SoS put", sosPut),
-          this._renderList("SoS get", sosGet)
+          this._renderList("SoS get", sosGet),
+          this._renderList("Roles", roleTokens),
+          this._renderList("File metadata", fileTokens)
         );
         details.appendChild(body);
         this._resultsNode.appendChild(details);
@@ -474,7 +785,6 @@ class AnalysisPanel extends Widget {
     edgesHeader.textContent = "Edges";
     this._edgesNode.appendChild(edgesHeader);
 
-    const filteredEdges = graph.edges.filter(edge => this._matchesEdge(edge));
     if (!filteredEdges.length) {
       const none = document.createElement("p");
       none.textContent = "No edges match the current filters.";
@@ -500,15 +810,23 @@ class AnalysisPanel extends Widget {
       });
       this._edgesNode.appendChild(ul);
     }
-  }
 
+    if (emitEvent) {
+      this._emitFilterChange(filteredCells.length, filteredEdges.length);
+    }
+  }
   private _matchesCell(cell: AnalyzeCell): boolean {
-    const { search, kernels, requireFileReads, requireFileWrites, requireSos } = this._filterState;
+    const { search, kernels, requireFileReads, requireFileWrites, requireSos, roles, fileHints } = this._filterState;
     const sosPut = cell.sos_put ?? [];
     const sosGet = cell.sos_get ?? [];
-    if (kernels.size && !kernels.has(cell.kernel)) {
+    const hints = this._effectiveHints();
+    const roleTokens = this._roleTokensForCell(cell, hints);
+    const fileHintTokens = this._fileHintTokensForCell(cell, hints);
+
+    if (kernels && kernels.size > 0 && !kernels.has(cell.kernel)) {
       return false;
     }
+
     if (requireFileWrites && cell.file_writes.length === 0) {
       return false;
     }
@@ -518,11 +836,20 @@ class AnalysisPanel extends Widget {
     if (requireSos && sosPut.length === 0 && sosGet.length === 0) {
       return false;
     }
+
+    if (roles && roles.size > 0 && !roleTokens.some(role => roles.has(role))) {
+      return false;
+    }
+
+    if (fileHints && fileHints.size > 0 && !fileHintTokens.some(token => fileHints.has(token))) {
+      return false;
+    }
+
     const term = search.trim().toLowerCase();
     if (!term) {
       return true;
     }
-    const hintTokens = this._hintTokensForCell(cell);
+    const hintTokens = this._hintTokensForCell(cell, hints);
     const haystack = [
       `cell ${cell.idx}`,
       cell.kernel,
@@ -539,11 +866,10 @@ class AnalysisPanel extends Widget {
       .toLowerCase();
     return haystack.includes(term);
   }
-
   private _matchesEdge(edge: AnalyzeEdge): boolean {
     const { edgeVia, search } = this._filterState;
     const via = (edge.via ?? "ast").toString();
-    if (edgeVia.size && !edgeVia.has(via)) {
+    if (edgeVia && edgeVia.size > 0 && !edgeVia.has(via)) {
       return false;
     }
     const term = search.trim().toLowerCase();
@@ -564,6 +890,58 @@ class AnalysisPanel extends Widget {
     }
     const haystack = parts.join(" ").toLowerCase();
     return haystack.includes(term);
+  }
+
+  private _toggleFacet(current: Set<string> | null, value: string, checked: boolean, allValues: readonly string[]): Set<string> | null {
+    if (!allValues.length) {
+      return null;
+    }
+    const universe = new Set(allValues);
+    const working = current === null ? new Set(universe) : new Set(current);
+    if (checked) {
+      working.add(value);
+    } else {
+      working.delete(value);
+    }
+    if (working.size === 0) {
+      return null;
+    }
+    if (working.size === universe.size) {
+      return universe.size === 1 ? working : null;
+    }
+    return working;
+  }
+
+  private _facetIsAll(facet: Set<string> | null, options: readonly string[]): boolean {
+    if (!options.length) {
+      return true;
+    }
+    if (facet === null) {
+      return true;
+    }
+    return facet.size === options.length;
+  }
+
+  private _sanitizeFacet(current: Set<string> | null, options: readonly string[]): Set<string> | null {
+    if (!options.length) {
+      return null;
+    }
+    if (current === null) {
+      return null;
+    }
+    const filtered = new Set<string>();
+    options.forEach(option => {
+      if (current.has(option)) {
+        filtered.add(option);
+      }
+    });
+    if (filtered.size === 0) {
+      return null;
+    }
+    if (filtered.size === options.length) {
+      return options.length === 1 ? filtered : null;
+    }
+    return filtered;
   }
 
   private _createToggle(labelText: string, checked: boolean, onChange: (value: boolean) => void): HTMLElement {
@@ -612,54 +990,219 @@ class AnalysisPanel extends Widget {
     this.app.shell.activateById(panel.id);
   }
 
-  private _hintTokensForCell(cell: AnalyzeCell): string[] {
-    const hints = this._lastReview?.hints;
-    if (!hints) {
+  private _updateFilters(mutator: () => void): void {
+    mutator();
+    this._saveFilterState();
+    this._renderFilteredView(true);
+  }
+
+  private _effectiveHints(): ReviewHints | null {
+    return this._lastReview?.hints ?? this._storedHints;
+  }
+
+  private _roleTokensForCell(cell: AnalyzeCell, hints: ReviewHints | null): string[] {
+    if (!hints?.roles) {
       return [];
     }
-    const tokens: string[] = [];
-    const roles = hints.roles ?? {};
-    const domains = hints.domains ?? {};
     const seen = new Set<string>();
-
+    const tokens: string[] = [];
     [...cell.var_defs, ...cell.var_uses].forEach(varName => {
-      const role = roles[varName];
+      const role = hints.roles?.[varName];
       if (role && !seen.has(role)) {
-        tokens.push(role);
         seen.add(role);
+        tokens.push(role);
       }
     });
-
-    const addDomainTokens = (value: string | string[]) => {
-      if (Array.isArray(value)) {
-        value.forEach(v => {
-          const key = String(v);
-          if (!seen.has(key)) {
-            tokens.push(key);
-            seen.add(key);
-          }
-        });
-      } else {
-        const key = String(value);
-        if (!seen.has(key)) {
-          tokens.push(key);
-          seen.add(key);
-        }
-      }
-    };
-
-    [...cell.file_writes, ...cell.file_reads].forEach(path => {
-      const key = basename(path);
-      const domain = domains[key];
-      if (!domain) {
-        return;
-      }
-      Object.values(domain).forEach(addDomainTokens);
-    });
-
     return tokens;
   }
 
+  private _fileHintTokensForCell(cell: AnalyzeCell, hints: ReviewHints | null): string[] {
+    if (!hints?.domains) {
+      return [];
+    }
+    const tokens = new Set<string>();
+    const domains = hints.domains ?? {};
+    const fileNames = new Set<string>();
+    [...cell.file_writes, ...cell.file_reads].forEach(path => fileNames.add(basename(path)));
+    fileNames.forEach(name => {
+      const info = domains[name];
+      if (!info) {
+        return;
+      }
+      Object.entries(info).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach(v => tokens.add(`${key}: ${v}`));
+        } else if (typeof value !== "undefined" && value !== null) {
+          tokens.add(`${key}: ${value}`);
+        }
+      });
+    });
+    return Array.from(tokens);
+  }
+
+  private _hintTokensForCell(cell: AnalyzeCell, hints?: ReviewHints | null): string[] {
+    const effective = hints ?? this._effectiveHints();
+    if (!effective) {
+      return [];
+    }
+    const tokens = new Set<string>();
+    this._roleTokensForCell(cell, effective).forEach(token => tokens.add(token));
+    this._fileHintTokensForCell(cell, effective).forEach(token => tokens.add(token));
+    return Array.from(tokens);
+  }
+
+  private _createDefaultFilterState(): FilterState {
+    return {
+      search: "",
+      kernels: null,
+      requireFileWrites: false,
+      requireFileReads: false,
+      requireSos: false,
+      edgeVia: null,
+      roles: null,
+      fileHints: null
+    };
+  }
+
+  private _serializeFilterState(): StoredFilterState {
+    const toSortedArray = (value: Set<string> | null) => {
+      if (!value || value.size === 0) {
+        return null;
+      }
+      return Array.from(value).sort((a, b) => a.localeCompare(b));
+    };
+    return {
+      search: this._filterState.search,
+      kernels: toSortedArray(this._filterState.kernels),
+      requireFileWrites: this._filterState.requireFileWrites,
+      requireFileReads: this._filterState.requireFileReads,
+      requireSos: this._filterState.requireSos,
+      edgeVia: toSortedArray(this._filterState.edgeVia),
+      roles: toSortedArray(this._filterState.roles),
+      fileHints: toSortedArray(this._filterState.fileHints)
+    };
+  }
+
+  private _saveFilterState(): void {
+    const key = this._filterStorageKey();
+    if (!key) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(key, JSON.stringify(this._serializeFilterState()));
+    } catch (error) {
+      console.debug("[cellscope] Failed to save filter state", error);
+    }
+  }
+
+  private _loadFilterState(): void {
+    this._filterState = this._createDefaultFilterState();
+    const key = this._filterStorageKey();
+    if (!key) {
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) {
+        return;
+      }
+      const parsed = JSON.parse(raw) as Partial<StoredFilterState>;
+      if (typeof parsed.search === "string") {
+        this._filterState.search = parsed.search;
+      }
+      if (parsed.kernels === null) {
+        this._filterState.kernels = null;
+      } else if (Array.isArray(parsed.kernels)) {
+        this._filterState.kernels = new Set(parsed.kernels);
+      }
+      if (typeof parsed.requireFileWrites === "boolean") {
+        this._filterState.requireFileWrites = parsed.requireFileWrites;
+      }
+      if (typeof parsed.requireFileReads === "boolean") {
+        this._filterState.requireFileReads = parsed.requireFileReads;
+      }
+      if (typeof parsed.requireSos === "boolean") {
+        this._filterState.requireSos = parsed.requireSos;
+      }
+      if (parsed.edgeVia === null) {
+        this._filterState.edgeVia = null;
+      } else if (Array.isArray(parsed.edgeVia)) {
+        this._filterState.edgeVia = new Set(parsed.edgeVia);
+      }
+      if (parsed.roles === null) {
+        this._filterState.roles = null;
+      } else if (Array.isArray(parsed.roles)) {
+        this._filterState.roles = new Set(parsed.roles);
+      }
+      if (parsed.fileHints === null) {
+        this._filterState.fileHints = null;
+      } else if (Array.isArray(parsed.fileHints)) {
+        this._filterState.fileHints = new Set(parsed.fileHints);
+      }
+    } catch (error) {
+      console.debug("[cellscope] Failed to load filter state", error);
+      this._filterState = this._createDefaultFilterState();
+    }
+  }
+
+  private _filterStorageKey(): string | null {
+    if (!this._activeNotebookPath) {
+      return null;
+    }
+    return `cellscope:filters:${encodeURIComponent(this._activeNotebookPath)}`;
+  }
+
+  private _hintsStorageKey(): string | null {
+    if (!this._activeNotebookPath) {
+      return null;
+    }
+    return `cellscope:hints:${encodeURIComponent(this._activeNotebookPath)}`;
+  }
+
+  private _persistHints(hints: ReviewHints): void {
+    const key = this._hintsStorageKey();
+    if (!key) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(key, JSON.stringify(hints));
+      this._storedHints = hints;
+    } catch (error) {
+      console.debug("[cellscope] Failed to persist hints", error);
+    }
+  }
+
+  private _loadStoredHints(): void {
+    const key = this._hintsStorageKey();
+    this._storedHints = null;
+    if (!key) {
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) {
+        return;
+      }
+      this._storedHints = JSON.parse(raw) as ReviewHints;
+    } catch (error) {
+      console.debug("[cellscope] Failed to load stored hints", error);
+      this._storedHints = null;
+    }
+  }
+
+  private _emitFilterChange(filteredCells: number, filteredEdges: number): void {
+    const detail = {
+      ...this._serializeFilterState(),
+      filteredCells,
+      filteredEdges
+    };
+    const signature = JSON.stringify(detail);
+    if (signature === this._lastFilterSignature) {
+      return;
+    }
+    this._lastFilterSignature = signature;
+    document.dispatchEvent(new CustomEvent("cellscope:filters-changed", { detail }));
+  }
   private _renderList(label: string, items: string[]): HTMLElement {
     const container = document.createElement("div");
     container.className = "jp-CellScopePanel-section";
@@ -686,22 +1229,34 @@ class AnalysisPanel extends Widget {
   }
 
   private _syncNotebook(): void {
-    const path = this._currentNotebookPath();
-    this._pathNode.textContent = path ?? "(no notebook)";
+    const panel = this.tracker?.currentWidget ?? null;
+    this._setupNotebookListeners(panel ?? null);
+    const pathVal = panel?.context.path ?? this._currentNotebookPath();
+    this._pathNode.textContent = pathVal ?? "(no notebook)";
     this._latestGraphUrl = null;
     if (this._graphBtn) {
       this._graphBtn.disabled = true;
     }
     this._exportNode.textContent = "";
     this._lastReview = null;
+    this._activeNotebookPath = pathVal;
+    this._storedHints = null;
+    this._lastFilterSignature = "";
+    this._cancelPendingTimer();
+    this._setPending(false, undefined, true);
+    if (pathVal) {
+      this._loadStoredHints();
+      this._loadFilterState();
+    } else {
+      this._filterState = this._createDefaultFilterState();
+    }
   }
-
-  private _setBusy(busy: boolean, message?: string): void {
+  private _setBusy(busy: boolean, message?: string, preserveStatus = false): void {
     this._analyzeBtn.disabled = busy;
     this._exportBtn.disabled = busy;
     if (message) {
       this._setStatus(message, "info");
-    } else if (!busy) {
+    } else if (!busy && !preserveStatus) {
       this._statusNode.textContent = "";
     }
   }
@@ -1024,6 +1579,12 @@ class AnalysisPanel extends Widget {
     div.className = "jp-CellScopePanel-status";
     return div;
   })();
+  private readonly _pendingNode = (() => {
+    const div = document.createElement("div");
+    div.className = "jp-CellScopePanel-pending";
+    div.style.display = "none";
+    return div;
+  })();
   private readonly _filterNode = (() => {
     const div = document.createElement("div");
     div.className = "jp-CellScopePanel-filters";
@@ -1071,16 +1632,21 @@ class AnalysisPanel extends Widget {
   private _latestGraphUrl: string | null = null;
   private _lastAnalysis: GraphSummary | null = null;
   private _lastReview: ReviewResult | null = null;
-  private _filterState: FilterState = {
-    search: "",
-    kernels: new Set<string>(),
-    requireFileWrites: false,
-    requireFileReads: false,
-    requireSos: false,
-    edgeVia: new Set<string>()
-  };
+  private _storedHints: ReviewHints | null = null;
+  private _activeNotebookPath: string | null = null;
+  private _filterState: FilterState = this._createDefaultFilterState();
   private _kernelOptions: string[] = [];
   private _edgeViaOptions: string[] = [];
+  private _roleOptions: string[] = [];
+  private _fileHintOptions: string[] = [];
+  private _pendingTimeout: number | null = null;
+  private _pendingChanges = false;
+  private _notebookListeners: Array<() => void> = [];
+  private _observedPanel: NotebookPanel | null = null;
+  private _kernelWasBusySinceLastIdle = false;
+  private _analyzeInFlight = false;
+  private _rerunAfterCurrent = false;
+  private _lastFilterSignature = "";
 }
 
 const plugin: JupyterFrontEndPlugin<void> = {

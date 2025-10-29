@@ -177,10 +177,11 @@ def build_rocrate(capture: Dict[str, Any],
                 'contentPath': absf,
                 'version': '1',
             }
+            h = None
             if os.path.exists(absf):
                 h = _b2_hash(absf)
                 if h:
-                    props['contentHash'] = {'algorithm': 'blake2b-256', 'value': h}
+                    props['contentHash'] = f'blake2b-256:{h}'
             fe = ContextEntity(crate, f'#file-{h if props.get("contentHash") else os.path.basename(absf)}', properties=props)
             crate.add(fe)
             file_entities[absf] = fe

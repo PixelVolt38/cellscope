@@ -238,6 +238,9 @@ def index_crate(
     output_path: Optional[str] = None,
     base_uri: Optional[str] = None,
     session: Optional[Any] = None,
+    auth: Optional[Any] = None,
+    headers: Optional[Dict[str, str]] = None,
+    timeout: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
     Generate a SPARQL UPDATE payload projecting the RO-Crate metadata.
@@ -258,6 +261,12 @@ def index_crate(
         derived from crate_dir.
     session:
         Optional requests-like session for HTTP interactions (mainly test hooks).
+    auth:
+        Optional requests-compatible auth object (e.g., tuple username/password).
+    headers:
+        Extra headers to merge with the default SPARQL Content-Type header.
+    timeout:
+        Optional request timeout (seconds) when POSTing to an endpoint.
     """
 
     if crate_metadata is None:
@@ -291,7 +300,16 @@ def index_crate(
         if requests is None:
             raise RuntimeError("requests is required to POST to an endpoint")
         http = session or requests
-        response = http.post(endpoint, data=sparql_payload.encode("utf-8"), headers={"Content-Type": "application/sparql-update"})
+        post_headers = {"Content-Type": "application/sparql-update"}
+        if headers:
+            post_headers.update(headers)
+        response = http.post(
+            endpoint,
+            data=sparql_payload.encode("utf-8"),
+            headers=post_headers,
+            auth=auth,
+            timeout=timeout,
+        )
         post_status = response.status_code
         response.raise_for_status()
 

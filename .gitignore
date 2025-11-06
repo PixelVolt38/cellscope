@@ -89,3 +89,5 @@ tests/
 
 # Local server config
 jupyter_server_config.d/
+
+component_containerizer/

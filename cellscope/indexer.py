@@ -181,6 +181,42 @@ def _collect_triples(
                     )
                 )
 
+        encoding_format = entity.get("encodingFormat") or entity.get(SCHEMA + "encodingFormat")
+        if encoding_format:
+            for value in _iter_values(encoding_format):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "encodingFormat", str(value), True, None)
+                )
+
+        keywords = entity.get("keywords") or entity.get(SCHEMA + "keywords")
+        if keywords:
+            for kw in _iter_values(keywords):
+                if kw is None:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "keywords", str(kw), True, None)
+                )
+
+        activity_roles = entity.get("roles")
+        if activity_roles:
+            for role_entry in _iter_values(activity_roles):
+                if not role_entry:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "roles", str(role_entry), True, None)
+                )
+                if isinstance(role_entry, str) and ":" in role_entry:
+                    var_name, role_label = role_entry.split(":", 1)
+                    var_name = var_name.strip()
+                    role_label = role_label.strip()
+                    if var_name:
+                        var_identifier = _resolve_identifier(base_uri, f"#var-{var_name}")
+                        triples.add(
+                            (var_identifier, SCHEMA + "roleName", role_label, True, None)
+                        )
+
         for predicate in ("prov:used", "prov:wasGeneratedBy", "prov:wasDerivedFrom", "prov:wasRevisionOf"):
             pred_iri = _resolve_term(predicate)
             values = entity.get(predicate)

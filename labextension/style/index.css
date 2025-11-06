@@ -1,0 +1,284 @@
+.jp-CellScopePanel {
+  padding: 10px;
+  gap: 10px;
+  font-size: var(--jp-content-font-size1);
+}
+
+.jp-CellScopePanel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.jp-CellScopePanel-header h3 {
+  margin: 0;
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+}
+
+.jp-CellScopePanel-row {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopePanel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jp-CellScopePanel-status {
+  margin-bottom: 4px;
+  min-height: 18px;
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-CellScopePanel-status.jp-mod-warn {
+  color: var(--jp-warn-color1);
+}
+
+.jp-CellScopePanel-status.jp-mod-error {
+  color: var(--jp-error-color1);
+}
+
+.jp-CellScopePanel-pending {
+  display: none;
+  background: var(--jp-layout-color2);
+  border-left: 3px solid var(--jp-warn-color1);
+  padding: 6px 8px;
+  border-radius: var(--jp-border-radius);
+  margin-bottom: 8px;
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-CellScopePanel-filtersPopover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  max-width: min(420px, 90vw);
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: var(--jp-border-radius);
+  box-shadow: var(--jp-elevation-z4);
+  padding: 10px 12px 12px;
+  z-index: 12;
+}
+
+.jp-CellScopePanel-filtersButton.jp-mod-active {
+  background: var(--jp-layout-color2);
+  box-shadow: var(--jp-shadow-inner);
+}
+
+.jp-CellScopePanel-filters {
+  display: grid;
+  gap: 12px;
+}
+
+.jp-CellScopeFilters-search {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jp-CellScopeFilters-search label {
+  font-weight: 600;
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopeFilters-search input {
+  width: 100%;
+}
+
+.jp-CellScopeFilters-group {
+  border: 1px solid var(--jp-border-color2);
+  border-radius: var(--jp-border-radius);
+  padding: 8px;
+  background: var(--jp-layout-color1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jp-CellScopeFilters-group legend {
+  font-size: var(--jp-content-font-size0);
+  font-weight: 600;
+  padding: 0 6px;
+}
+
+.jp-CellScopeFilters-group label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopeFilters-toggleGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.jp-CellScopeFilters-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopePanel-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jp-CellScopePanel-cell {
+  border: 1px solid var(--jp-border-color2);
+  border-radius: var(--jp-border-radius);
+  background: var(--jp-layout-color1);
+  padding: 4px 8px 8px;
+}
+
+.jp-CellScopePanel-cell > summary {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.jp-CellScopePanel-quickActions {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+
+.jp-CellScopePanel-cellBody {
+  display: grid;
+  gap: 6px 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopePanel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopePanel-section strong {
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-CellScopePanel-edges h4 {
+  margin: 8px 0 4px;
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-CellScopePanel-edges ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopePanel-export {
+  margin-top: 8px;
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-CellScopePanel-help {
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-CellScopeReview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 4px;
+  font-size: var(--jp-content-font-size1);
+}
+
+.jp-CellScopeReview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-CellScopeReview-section h4 {
+  margin: 0;
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+}
+
+.jp-CellScopeReview-section h5 {
+  margin: 0;
+  font-size: var(--jp-content-font-size1);
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-CellScopeReview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.jp-CellScopeReview-field,
+.jp-CellScopeReview-fileBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: var(--jp-border-radius);
+  background: var(--jp-layout-color1);
+  padding: 10px;
+  box-shadow: inset 0 0 0 1px transparent;
+}
+
+.jp-CellScopeReview-fieldLabel {
+  font-weight: 600;
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color1);
+  word-break: break-word;
+}
+
+.jp-CellScopeReview-input {
+  width: 100%;
+}
+
+.jp-CellScopeReview-fileBlock .jp-CellScopeReview-input {
+  margin-top: 2px;
+}
+
+.jp-CellScopeReview-consent {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: var(--jp-content-font-size0);
+}
+
+.jp-CellScopeReview-consent input {
+  margin-top: 4px;
+}
+
+.jp-CellScopeReview dl {
+  margin: 0;
+}
+
+.jp-CellScopeReview ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}

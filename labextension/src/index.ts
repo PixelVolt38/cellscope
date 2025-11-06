@@ -6,6 +6,7 @@ import { DocumentRegistry } from "@jupyterlab/docregistry";
 import { ServerConnection } from "@jupyterlab/services";
 import { JSONExt } from "@lumino/coreutils";
 import { Widget } from "@lumino/widgets";
+import "../style/index.css";
 
 const LIST_CMD = "cellscope:open-list";
 const GRAPH_CMD = "cellscope:open-graph";
@@ -120,7 +121,6 @@ class AnalysisPanel extends Widget {
     this.node.appendChild(this._buildHeader());
     this.node.appendChild(this._statusNode);
     this.node.appendChild(this._pendingNode);
-    this.node.appendChild(this._filterNode);
     this.node.appendChild(this._contentNode);
     this.node.appendChild(this._exportNode);
     this.node.appendChild(this._helpNode);
@@ -186,6 +186,17 @@ class AnalysisPanel extends Widget {
     const controls = document.createElement("div");
     controls.className = "jp-CellScopePanel-controls";
 
+    this._filtersBtn = document.createElement("button");
+    this._filtersBtn.textContent = "Filters";
+    this._filtersBtn.className = "jp-mod-styled jp-CellScopePanel-filtersButton";
+    this._filtersBtn.disabled = true;
+    this._filtersBtn.addEventListener("click", () => {
+      if (this._filtersBtn.disabled) {
+        return;
+      }
+      this._toggleFilters();
+    });
+
     this._analyzeBtn = document.createElement("button");
     this._analyzeBtn.textContent = "Analyze";
     this._analyzeBtn.className = "jp-mod-styled";
@@ -210,10 +221,17 @@ class AnalysisPanel extends Widget {
       }
     });
 
+    controls.appendChild(this._filtersBtn);
     controls.appendChild(this._analyzeBtn);
     controls.appendChild(this._exportBtn);
     controls.appendChild(this._graphBtn);
     wrapper.appendChild(controls);
+
+    this._filterOverlay = document.createElement("div");
+    this._filterOverlay.className = "jp-CellScopePanel-filtersPopover";
+    this._filterOverlay.style.display = "none";
+    this._filterOverlay.appendChild(this._filterNode);
+    wrapper.appendChild(this._filterOverlay);
 
     return wrapper;
   }
@@ -375,6 +393,7 @@ class AnalysisPanel extends Widget {
     this._lastAnalysis = data.graph;
     this._syncFilterOptions(data.graph);
     this._renderFilterControls();
+    this._toggleFilters(false);
     this._saveFilterState();
     this._renderFilteredView(true);
   }
@@ -557,10 +576,12 @@ class AnalysisPanel extends Widget {
     const graph = this._lastAnalysis;
     this._filterNode.innerHTML = "";
     if (!graph) {
-      this._filterNode.style.display = "none";
+      this._filtersBtn.disabled = true;
+      this._filtersBtn.textContent = "Filters";
+      this._toggleFilters(false);
       return;
     }
-    this._filterNode.style.display = "";
+    this._filtersBtn.disabled = false;
 
     const searchWrapper = document.createElement("div");
     searchWrapper.className = "jp-CellScopeFilters-search";
@@ -1259,7 +1280,61 @@ class AnalysisPanel extends Widget {
     } else if (!busy && !preserveStatus) {
       this._statusNode.textContent = "";
     }
+
+    const activeCount =
+      (this._filterState.search.trim() ? 1 : 0) +
+      (this._filterState.kernels && this._filterState.kernels.size > 0 ? 1 : 0) +
+      (this._filterState.roles && this._filterState.roles.size > 0 ? 1 : 0) +
+      (this._filterState.fileHints && this._filterState.fileHints.size > 0 ? 1 : 0) +
+      (this._filterState.edgeVia && this._filterState.edgeVia.size > 0 ? 1 : 0) +
+      (this._filterState.requireFileReads ? 1 : 0) +
+      (this._filterState.requireFileWrites ? 1 : 0) +
+      (this._filterState.requireSos ? 1 : 0);
+    this._filtersBtn.textContent = activeCount ? `Filters (${activeCount})` : "Filters";
+    if (!activeCount) {
+      this._toggleFilters(false);
+    }
   }
+  private _toggleFilters(force?: boolean): void {
+    const next = force ?? !this._filtersVisible;
+    if (!this._filtersBtn || !this._filterOverlay) {
+      return;
+    }
+    if (next && this._filtersBtn.disabled) {
+      return;
+    }
+    this._filtersVisible = next;
+    if (next) {
+      const rect = this._filtersBtn.getBoundingClientRect();
+      const parentRect = this.node.getBoundingClientRect();
+      const availableRight = parentRect.right - rect.left;
+      const width = Math.min(420, Math.max(260, availableRight - 16));
+      this._filterOverlay.style.width = `${width}px`;
+      this._filterOverlay.style.left = `${Math.min(
+        rect.left - parentRect.left,
+        parentRect.width - width - 8
+      )}px`;
+      this._filterOverlay.style.top = `${rect.bottom - parentRect.top + 4}px`;
+    }
+    this._filterOverlay.style.display = next ? "block" : "none";
+    this._filtersBtn.classList.toggle("jp-mod-active", next);
+    if (next) {
+      this._filterOverlay.scrollTop = 0;
+    }
+  }
+
+  private _handleDocumentClick = (event: MouseEvent): void => {
+    if (!this._filtersVisible) {
+      return;
+    }
+    if (!this._filterOverlay || !this._filtersBtn) {
+      return;
+    }
+    const target = event.target as Node;
+    if (!this._filterOverlay.contains(target) && !this._filtersBtn.contains(target)) {
+      this._toggleFilters(false);
+    }
+  };
 
   private _setStatus(message: string, level: "info" | "warn" | "error"): void {
     this._statusNode.textContent = message;
@@ -1321,6 +1396,9 @@ class AnalysisPanel extends Widget {
         varTitle.textContent = `Variables (${draft.variables.length})`;
         metadataSection.appendChild(varTitle);
 
+        const varGrid = document.createElement("div");
+        varGrid.className = "jp-CellScopeReview-grid";
+
         draft.variables.forEach(variable => {
           const field = document.createElement("label");
           field.className = "jp-CellScopeReview-field";
@@ -1343,9 +1421,11 @@ class AnalysisPanel extends Widget {
             input.value = existing;
           }
           field.appendChild(input);
-          metadataSection.appendChild(field);
+          varGrid.appendChild(field);
           roleInputs.set(variable.name, input);
         });
+
+        metadataSection.appendChild(varGrid);
       }
 
       if (draft.files.length) {
@@ -1353,13 +1433,16 @@ class AnalysisPanel extends Widget {
         fileTitle.textContent = `Files (${draft.files.length})`;
         metadataSection.appendChild(fileTitle);
 
+        const fileGrid = document.createElement("div");
+        fileGrid.className = "jp-CellScopeReview-grid";
+
         draft.files.forEach(file => {
           const block = document.createElement("div");
           block.className = "jp-CellScopeReview-fileBlock";
 
           const pathLabel = document.createElement("div");
           pathLabel.className = "jp-CellScopeReview-fieldLabel";
-          pathLabel.textContent = file.path;
+          pathLabel.textContent = file.path.replace(/\\/g, "/");
           block.appendChild(pathLabel);
 
           const mimeInput = document.createElement("input");
@@ -1388,10 +1471,12 @@ class AnalysisPanel extends Widget {
             tagsInput.value = tagsPreset.join(", ");
           }
           block.appendChild(tagsInput);
-          metadataSection.appendChild(block);
+          fileGrid.appendChild(block);
 
           fileInputs.set(file.baseName, { mime: mimeInput, tags: tagsInput });
         });
+
+        metadataSection.appendChild(fileGrid);
       }
     }
 
@@ -1588,7 +1673,6 @@ class AnalysisPanel extends Widget {
   private readonly _filterNode = (() => {
     const div = document.createElement("div");
     div.className = "jp-CellScopePanel-filters";
-    div.style.display = "none";
     return div;
   })();
   private readonly _resultsNode = (() => {
@@ -1629,6 +1713,8 @@ class AnalysisPanel extends Widget {
   private _analyzeBtn!: HTMLButtonElement;
   private _exportBtn!: HTMLButtonElement;
   private _graphBtn!: HTMLButtonElement;
+  private _filtersBtn!: HTMLButtonElement;
+  private _filterOverlay!: HTMLElement;
   private _latestGraphUrl: string | null = null;
   private _lastAnalysis: GraphSummary | null = null;
   private _lastReview: ReviewResult | null = null;
@@ -1646,6 +1732,7 @@ class AnalysisPanel extends Widget {
   private _kernelWasBusySinceLastIdle = false;
   private _analyzeInFlight = false;
   private _rerunAfterCurrent = false;
+  private _filtersVisible = false;
   private _lastFilterSignature = "";
 }
 

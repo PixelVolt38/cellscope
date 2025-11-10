@@ -155,16 +155,19 @@ def visualize_rocrate(crate_dir: str, snippet_lines: int = 25, html_tooltips: bo
         if not is_oflow:
             continue
 
-        # derive cid
-        name_val = props.get('name', 'Cell 0')
-        try:
-            cid = int(str(name_val).split()[-1])
-        except Exception:
-            # try file name
-            fid = getattr(entity, 'id', '')
+        cid = None
+        fid = getattr(entity, 'id', '')
+        if isinstance(fid, str):
             try:
                 base = os.path.basename(fid)
-                cid = int(base.split('_')[1].split('.')[0])
+                if base.startswith('cell_') and '_' in base:
+                    cid = int(base.split('_')[1].split('.')[0])
+            except Exception:
+                cid = None
+        if cid is None:
+            name_val = props.get('name', 'cell_0')
+            try:
+                cid = int(str(name_val).rsplit('_', 1)[-1])
             except Exception:
                 cid = 0
 
@@ -198,18 +201,20 @@ def visualize_rocrate(crate_dir: str, snippet_lines: int = 25, html_tooltips: bo
             meta_rows.append(f"<div><b>{html.escape(str(k))}:</b> {html.escape(str(v))}</div>")
         meta_html = ''.join(meta_rows) or '<div><i>(none)</i></div>'
 
+        label_value = props.get('name') or f'cell_{cid}'
+
         if html_tooltips:
             tooltip = (
                 f"<div style='font-family:sans-serif;max-width:520px'>"
-                f"<b>{html.escape(props.get('name','Cell'))}</b><br>"
+                f"<b>{html.escape(str(label_value))}</b><br>"
                 f"<b>Code{' (truncated)' if truncated else ''}:</b>"
                 f"{snippet_html}"
                 f"<b>Metadata:</b>{meta_html}"
                 f"</div>"
             )
-            node_kwargs = dict(label=props['name'], title=tooltip, snippet=snippet_html, meta=meta_html)
+            node_kwargs = dict(label=label_value, title=tooltip, snippet=snippet_html, meta=meta_html)
         else:
-            node_kwargs = dict(label=props['name'], snippet=snippet_html, meta=meta_html)
+            node_kwargs = dict(label=label_value, snippet=snippet_html, meta=meta_html)
 
         net.add_node(cid, **node_kwargs)
 

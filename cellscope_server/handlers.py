@@ -262,6 +262,7 @@ def _to_json(capture: Dict[str, Any]) -> Dict[str, Any]:
     for c in capture["cells"]:
         cells.append({
             "idx": c.idx,
+            "name": getattr(c, "label", f"cell_{c.idx}"),
             "kernel": c.kernel,
             "funcs": sorted(c.funcs),
             "func_calls": sorted(getattr(c, "func_calls", [])),

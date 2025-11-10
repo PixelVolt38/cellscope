@@ -15,6 +15,7 @@ type GraphSummary = AnalyzeResponse["graph"];
 
 interface AnalyzeCell {
   idx: number;
+  name?: string;
   kernel: string;
   funcs: string[];
   var_defs: string[];
@@ -391,6 +392,10 @@ class AnalysisPanel extends Widget {
 
   private _renderAnalysis(data: AnalyzeResponse): void {
     this._lastAnalysis = data.graph;
+    this._cellLabelMap.clear();
+    data.graph.cells.forEach(cell => {
+      this._cellLabelMap.set(cell.idx, this._cellLabel(cell));
+    });
     this._syncFilterOptions(data.graph);
     this._renderFilterControls();
     this._toggleFilters(false);
@@ -769,7 +774,7 @@ class AnalysisPanel extends Widget {
         details.className = "jp-CellScopePanel-cell";
         details.open = filteredCells.length <= 4;
         const summary = document.createElement("summary");
-        summary.textContent = `Cell ${cell.idx} (${cell.kernel})`;
+        summary.textContent = this._cellSummary(cell);
         details.appendChild(summary);
 
         const quickActions = document.createElement("div");
@@ -815,7 +820,11 @@ class AnalysisPanel extends Widget {
       filteredEdges.forEach(edge => {
         const parts: string[] = [];
         if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
-          parts.push(`Cell ${edge.source} → Cell ${edge.target}`);
+          const sourceLabel = this._formatCellReference(edge.source);
+          const targetLabel = this._formatCellReference(edge.target);
+          if (sourceLabel && targetLabel) {
+            parts.push(`${sourceLabel} → ${targetLabel}`);
+          }
         }
         if (edge.type) {
           parts.push(`type: ${edge.type}`);
@@ -872,6 +881,7 @@ class AnalysisPanel extends Widget {
     }
     const hintTokens = this._hintTokensForCell(cell, hints);
     const haystack = [
+      this._cellLabel(cell),
       `cell ${cell.idx}`,
       cell.kernel,
       ...cell.funcs,
@@ -901,6 +911,14 @@ class AnalysisPanel extends Widget {
     if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
       parts.push(`cell ${edge.source}`);
       parts.push(`cell ${edge.target}`);
+      const sourceLabel = this._formatCellReference(edge.source);
+      const targetLabel = this._formatCellReference(edge.target);
+      if (sourceLabel) {
+        parts.push(sourceLabel);
+      }
+      if (targetLabel) {
+        parts.push(targetLabel);
+      }
     }
     if (edge.type) {
       parts.push(edge.type);
@@ -1009,6 +1027,26 @@ class AnalysisPanel extends Widget {
     content.deselectAll();
     content.scrollToItem(targetIndex);
     this.app.shell.activateById(panel.id);
+  }
+
+  private _cellLabel(cell: AnalyzeCell): string {
+    const raw = (cell.name ?? "").trim();
+    return raw || `Cell ${cell.idx}`;
+  }
+
+  private _cellSummary(cell: AnalyzeCell): string {
+    return `${this._cellLabel(cell)} (cell ${cell.idx}, ${cell.kernel})`;
+  }
+
+  private _formatCellReference(value: number | string | undefined): string | null {
+    if (typeof value === "number") {
+      const label = this._cellLabelMap.get(value);
+      return label ? `${label} (cell ${value})` : `Cell ${value}`;
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    return null;
   }
 
   private _updateFilters(mutator: () => void): void {
@@ -1491,7 +1529,7 @@ class AnalysisPanel extends Widget {
       const details = document.createElement("details");
       details.open = graph.cells.length <= 3;
       const summary = document.createElement("summary");
-      summary.textContent = `Cell ${cell.idx} (${cell.kernel})`;
+      summary.textContent = this._cellSummary(cell);
       details.appendChild(summary);
       const bodyDiv = document.createElement("div");
       bodyDiv.append(
@@ -1523,7 +1561,11 @@ class AnalysisPanel extends Widget {
         const item = document.createElement("li");
         const parts: string[] = [];
         if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
-          parts.push(`${edge.source} → ${edge.target}`);
+          const src = this._formatCellReference(edge.source);
+          const tgt = this._formatCellReference(edge.target);
+          if (src && tgt) {
+            parts.push(`${src} → ${tgt}`);
+          }
         }
         if (edge.type) {
           parts.push(edge.type);
@@ -1725,6 +1767,7 @@ class AnalysisPanel extends Widget {
   private _edgeViaOptions: string[] = [];
   private _roleOptions: string[] = [];
   private _fileHintOptions: string[] = [];
+  private _cellLabelMap: Map<number, string> = new Map();
   private _pendingTimeout: number | null = null;
   private _pendingChanges = false;
   private _notebookListeners: Array<() => void> = [];

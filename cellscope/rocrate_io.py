@@ -103,9 +103,10 @@ def build_rocrate(capture: Dict[str, Any],
             if parts:
                 file_hints_for_cell.append(f"{base} ({'; '.join(parts)})")
 
+        cell_name = getattr(c, 'label', f'cell_{c.idx}')
         props = {
             '@type': f'{OFLOW}Activity',
-            'name': f'Cell {c.idx}',
+            'name': cell_name,
             'kernel': c.kernel,
             'version': '1',
         }

@@ -13,9 +13,11 @@ pip-wheel-metadata/
 
 # Virtual environments
 .venv/
+.venv_linux/
 venv/
 ENV/
 env/
+.virtual_documents/
 
 # Testing / tooling caches
 .pytest_cache/
@@ -36,6 +38,7 @@ out1/
 out-lab/
 out-lab*/
 out-*/
+virtual_labs/
 
 # JupyterLab extension (frontend) build artifacts
 labextension/node_modules/
@@ -91,3 +94,6 @@ tests/
 jupyter_server_config.d/
 
 component_containerizer/
+
+# Thesis folder
+thesis_content/

@@ -1,4 +1,5 @@
 import os
+import re
 import ast
 import nbformat
 from .containerizer_adapter import analyze_r_cell
@@ -9,6 +10,7 @@ class CellInfo:
         self.idx = idx
         self.kernel = kernel or "python"
         self.source = source or ""
+        self.label = f"cell_{idx}"
         self.funcs: Set[str] = set()
         self.func_calls: Set[str] = set()
         self.var_defs: Set[str] = set()
@@ -167,6 +169,7 @@ def _collect_file_io(tree: ast.AST) -> (Set[str], Set[str]):
     return {norm(p) for p in writes}, {norm(p) for p in reads}
 
 def _sanitize_source(source: str) -> str:
+    """Strip magics/shell shortcuts so ast.parse only sees valid Python."""
     cleaned_lines = []
     for line in source.splitlines():
         stripped = line.lstrip()
@@ -175,6 +178,33 @@ def _sanitize_source(source: str) -> str:
         else:
             cleaned_lines.append(line)
     return '\n'.join(cleaned_lines)
+
+
+_NON_ALNUM_RE = re.compile(r'[^0-9a-zA-Z]+')
+
+
+def _slugify_label(value: str) -> Optional[str]:
+    slug = _NON_ALNUM_RE.sub('_', value.lower()).strip('_')
+    return slug or None
+
+
+def _extract_cell_label(source: str) -> Optional[str]:
+    if not source:
+        return None
+    for raw_line in source.splitlines():
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith(('#', '//')):
+            comment_body = stripped.lstrip('#/').strip()
+            if not comment_body:
+                continue
+            return _slugify_label(comment_body)
+        if stripped.startswith(('%', '!', '?')):
+            # Skip magics or shell shortcuts at the top of the cell.
+            continue
+        break
+    return None
 
 
 def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, collect_materialized: bool = True) -> Dict[str, Any]:
@@ -192,9 +222,19 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
     cells: List[CellInfo] = []
     last_def: Dict[str, int] = {}
     edges: List[tuple] = []
+    used_labels: Set[str] = set()
 
     for i, c in enumerate(code_cells):
         info = CellInfo(i, _kernel_for_cell(nb, c), c.source or "")
+        base_label = _extract_cell_label(info.source) or f"cell_{i}"
+        label = base_label
+        if label in used_labels:
+            suffix = 2
+            while f"{base_label}_{suffix}" in used_labels:
+                suffix += 1
+            label = f"{base_label}_{suffix}"
+        used_labels.add(label)
+        info.label = label
         # SoS
         puts, gets = _detect_sos_magics(info.source.splitlines())
         info.sos_put |= puts

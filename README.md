@@ -90,6 +90,18 @@ For local testing, Apache Jena Fuseki can be started with
 `java -jar fuseki-server.jar --mem /cellscope` and the endpoint set to
 `http://localhost:3030/cellscope/update`.
 
+### Quick setup via helper scripts
+
+- Edit `config/sparql.env` with your endpoint, auth token/credentials, and retry
+  preferences. The file ships with local Fuseki defaults.
+- **Windows**: `powershell -ExecutionPolicy Bypass -File scripts/jupyter_lab_with_sparql.ps1`
+- **Linux/macOS**: `bash scripts/jupyter_lab_with_sparql.sh [optional-config-path]`
+
+The scripts load the env file (if present), fall back to sane defaults, export
+the `CELLSCOPE_*` variables, and run `jupyter lab` using the repository’s
+virtual environment. Any extra arguments after the config path are forwarded to
+JupyterLab.
+
 ---
 
 ## CLI Usage
@@ -115,6 +127,10 @@ GraphML, PyVis HTML, and the SPARQL delta.
 - **Analyzer filters**: the filter dropdown is rendered via the Lumino widget tree.
   The button label reflects the number of active filters, and the popover closes on
   outside clicks. When adjusting UI code keep these behaviors intact.
+- **Cell labels**: each cell inherits the slugified text of its first top-of-cell
+  comment (e.g., `# climate data input` → `climate_data_input`). The label propagates
+  through the analyzer UI, the RO-Crate activities, and SPARQL triples so downstream
+  consumers see stable names instead of `Cell 0`, `Cell 1`, etc.
 - **Metadata serialization**: the indexer now emits `schema:roles` on activities
   and `schema:roleName` on variables in addition to file MIME/tags. Any future
   integrations (e.g., external containerizers) can rely on those triples.

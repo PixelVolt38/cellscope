@@ -1,19 +1,23 @@
 const path = require('path');
-const fs = require('fs-extra');
+const fsExtra = require('fs-extra');
+const fs = require('fs');
 
 const packagePath = path.resolve(__dirname, '..');
-const envPath = path.resolve(packagePath, '..', '.venv', 'share', 'jupyter', 'labextensions', 'cellscope-lab');
+const repoRoot = path.resolve(packagePath, '..');
+const hasLinuxVenv = fs.existsSync(path.join(repoRoot, '.venv_linux'));
+const venvName = hasLinuxVenv ? '.venv_linux' : '.venv';
+const envPath = path.resolve(repoRoot, venvName, 'share', 'jupyter', 'labextensions', 'cellscope-lab');
 const source = path.resolve(packagePath, 'labextension');
 
 (async () => {
-  await fs.remove(envPath).catch(() => undefined);
-  await fs.mkdirp(envPath);
-  await fs.copy(source, envPath, { dereference: true });
+  await fsExtra.remove(envPath).catch(() => undefined);
+  await fsExtra.mkdirp(envPath);
+  await fsExtra.copy(source, envPath, { dereference: true });
   const install = {
     packageManager: 'npm',
     packageName: 'cellscope-lab',
     uninstallInstructions: 'Remove the cellscope repository editable install'
   };
-  await fs.writeJSON(path.join(envPath, 'install.json'), install, { spaces: 2 });
+  await fsExtra.writeJSON(path.join(envPath, 'install.json'), install, { spaces: 2 });
   console.log(`Staged ${packagePath} into ${envPath}`);
 })();

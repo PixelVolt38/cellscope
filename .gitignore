@@ -18,6 +18,7 @@ venv/
 ENV/
 env/
 .virtual_documents/
+examples/
 
 # Testing / tooling caches
 .pytest_cache/
@@ -31,6 +32,7 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 .jupyter/lab/workspaces/
+.jupyter-config/
 
 # Project outputs (RO-Crate, generated views)
 out/

@@ -1,8 +1,9 @@
 import { JupyterFrontEnd, JupyterFrontEndPlugin } from "@jupyterlab/application";
-import { ICommandPalette, MainAreaWidget, Dialog } from "@jupyterlab/apputils";
+import { ICommandPalette, MainAreaWidget, Dialog, showErrorMessage } from "@jupyterlab/apputils";
 import { INotebookTracker, NotebookPanel } from "@jupyterlab/notebook";
 import { URLExt } from "@jupyterlab/coreutils";
 import { DocumentRegistry } from "@jupyterlab/docregistry";
+import { IDocumentManager } from "@jupyterlab/docmanager";
 import { ServerConnection } from "@jupyterlab/services";
 import { JSONExt } from "@lumino/coreutils";
 import { Widget } from "@lumino/widgets";
@@ -10,8 +11,17 @@ import "../style/index.css";
 
 const LIST_CMD = "cellscope:open-list";
 const GRAPH_CMD = "cellscope:open-graph";
+const WORKFLOW_CMD = "cellscope:workflow-capture";
 
 type GraphSummary = AnalyzeResponse["graph"];
+
+interface WorkflowCaptureInitial {
+  workflow?: string;
+  outDir?: string;
+  defaultNotebook?: string | null;
+  notebookRoots?: string[];
+}
+
 
 interface AnalyzeCell {
   idx: number;
@@ -89,6 +99,31 @@ interface StoredFilterState {
   edgeVia: string[] | null;
   roles: string[] | null;
   fileHints: string[] | null;
+}
+
+interface WorkflowCaptureDialogValue {
+  workflow: string;
+  outDir: string;
+  notebookRoots: string[];
+  notebookMap: Record<string, string>;
+  defaultNotebook: string | null;
+  skipCrates: boolean;
+}
+
+interface WorkflowCaptureResponseNode {
+  id: string;
+  title: string;
+  status: string;
+  notebook?: string | null;
+  error?: string | null;
+}
+
+interface WorkflowCaptureResponse {
+  workflow_id: string;
+  manifest: string;
+  captured: number;
+  total: number;
+  nodes: WorkflowCaptureResponseNode[];
 }
 
 type NotebookChangeReason = "save" | "execution" | "content";
@@ -226,6 +261,14 @@ class AnalysisPanel extends Widget {
     controls.appendChild(this._analyzeBtn);
     controls.appendChild(this._exportBtn);
     controls.appendChild(this._graphBtn);
+
+    const workflowBtn = document.createElement("button");
+    workflowBtn.textContent = "Workflow";
+    workflowBtn.className = "jp-mod-styled jp-CellScopePanel-workflowButton";
+    workflowBtn.addEventListener("click", () => {
+      void this.app.commands.execute(WORKFLOW_CMD);
+    });
+    controls.appendChild(workflowBtn);
     wrapper.appendChild(controls);
 
     this._filterOverlay = document.createElement("div");
@@ -536,7 +579,8 @@ class AnalysisPanel extends Widget {
     this._filterState.kernels = this._sanitizeFacet(this._filterState.kernels, this._kernelOptions);
 
     const viaSet = new Set<string>();
-    graph.edges.forEach(edge => {
+    const allEdges = this._edgeList(graph);
+    allEdges.forEach(edge => {
       if (edge.via) {
         viaSet.add(String(edge.via));
       }
@@ -759,7 +803,7 @@ class AnalysisPanel extends Widget {
     }
 
     const filteredCells = graph.cells.filter(cell => this._matchesCell(cell));
-    const filteredEdges = graph.edges.filter(edge => this._matchesEdge(edge));
+    const filteredEdges = this._edgeList(graph).filter(edge => this._matchesEdge(edge));
     const hints = this._effectiveHints();
 
     if (!filteredCells.length) {
@@ -1057,6 +1101,13 @@ class AnalysisPanel extends Widget {
 
   private _effectiveHints(): ReviewHints | null {
     return this._lastReview?.hints ?? this._storedHints;
+  }
+
+  private _edgeList(graph: GraphSummary): AnalyzeEdge[] {
+    if (!graph || !Array.isArray(graph.edges)) {
+      return [];
+    }
+    return graph.edges;
   }
 
   private _roleTokensForCell(cell: AnalyzeCell, hints: ReviewHints | null): string[] {
@@ -1549,15 +1600,16 @@ class AnalysisPanel extends Widget {
     const edgesSection = document.createElement("div");
     edgesSection.className = "jp-CellScopeReview-section";
     const edgesTitle = document.createElement("h4");
-    edgesTitle.textContent = `Edges (${graph.edges.length})`;
+    const edges = this._edgeList(graph);
+    edgesTitle.textContent = `Edges (${edges.length})`;
     edgesSection.appendChild(edgesTitle);
-    if (!graph.edges.length) {
+    if (!edges.length) {
       const none = document.createElement("p");
       none.textContent = "No edges detected.";
       edgesSection.appendChild(none);
     } else {
       const list = document.createElement("ul");
-      graph.edges.forEach(edge => {
+      edges.forEach(edge => {
         const item = document.createElement("li");
         const parts: string[] = [];
         if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
@@ -1778,16 +1830,295 @@ class AnalysisPanel extends Widget {
   private _filtersVisible = false;
   private _lastFilterSignature = "";
 }
+class WorkflowCaptureForm extends Widget {
+  private _workflow: HTMLInputElement;
+  private _outDir: HTMLInputElement;
+  private _defaultNotebook: HTMLInputElement;
+  private _notebookMap: HTMLTextAreaElement;
+  private _skipCrates: HTMLInputElement;
+  private _rootsList!: HTMLUListElement;
+  private _manualRootInput!: HTMLInputElement;
+  private _notebookRoots: string[] = [];
+
+  constructor(initial: WorkflowCaptureInitial = {}, defaultOutDir = "out-lab/workflows") {
+    super({ node: document.createElement("div") });
+    this.addClass("jp-CellScopeWorkflowDialog");
+
+    const description = document.createElement("p");
+    description.textContent = "Capture a workflow (.naavrewf) and store per-node captures/manifests.";
+    this.node.appendChild(description);
+
+    this._workflow = this._createInputRow("Workflow file", "text", "Path to .naavrewf file");
+    this._outDir = this._createInputRow("Output directory", "text", defaultOutDir);
+    this._buildNotebookRootsRow();
+    this._defaultNotebook = this._createInputRow("Default notebook", "text", "Fallback notebook path");
+    this._notebookMap = this._createTextAreaRow(
+      "Notebook map (optional)",
+      "JSON object mapping node ids/titles to notebook paths"
+    );
+    this._skipCrates = document.createElement("input");
+    this._skipCrates.type = "checkbox";
+    const skipLabel = document.createElement("label");
+    skipLabel.textContent = " Skip crate build (capture metadata only)";
+    const skipWrapper = document.createElement("div");
+    skipWrapper.className = "jp-CellScopeWorkflowDialog-row";
+    skipWrapper.appendChild(this._skipCrates);
+    skipWrapper.appendChild(skipLabel);
+    this.node.appendChild(skipWrapper);
+
+    this._applyInitial(initial, defaultOutDir);
+  }
+
+  getValue(): WorkflowCaptureDialogValue {
+    const workflow = this._workflow.value.trim();
+    if (!workflow) {
+      throw new Error("Workflow path is required.");
+    }
+    const outDir = this._outDir.value.trim() || "out-lab/workflows";
+    const notebookRoots = this._notebookRoots.length ? [...this._notebookRoots] : [];
+    const defaultNotebook = this._defaultNotebook.value.trim() || null;
+    const mapText = this._notebookMap.value.trim();
+    let notebookMap: Record<string, string> = {};
+    if (mapText) {
+      try {
+        const parsed = JSON.parse(mapText);
+        if (!parsed || Array.isArray(parsed)) {
+          throw new Error();
+        }
+        for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+          if (value === null || value === undefined) {
+            continue;
+          }
+          notebookMap[String(key)] = String(value);
+        }
+      } catch (error) {
+        throw new Error('Notebook map must be valid JSON object (e.g. {"node-id": "/path/notebook.ipynb"})');
+      }
+    }
+
+    return {
+      workflow,
+      outDir,
+      notebookRoots,
+      notebookMap,
+      defaultNotebook,
+      skipCrates: this._skipCrates.checked,
+    };
+  }
+
+  private _createInputRow(labelText: string, type: string, placeholder = ""): HTMLInputElement {
+    const wrapper = document.createElement("div");
+    wrapper.className = "jp-CellScopeWorkflowDialog-row";
+    const label = document.createElement("label");
+    label.textContent = labelText;
+    const input = document.createElement("input");
+    input.type = type;
+    input.placeholder = placeholder;
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+    this.node.appendChild(wrapper);
+    return input;
+  }
+
+  private _applyInitial(initial: WorkflowCaptureInitial, defaultOutDir: string): void {
+    if (initial.workflow) {
+      this._workflow.value = initial.workflow;
+    }
+    this._outDir.value = initial.outDir ?? defaultOutDir;
+    if (typeof initial.defaultNotebook === "string") {
+      this._defaultNotebook.value = initial.defaultNotebook;
+    }
+    if (initial.notebookRoots && initial.notebookRoots.length) {
+      initial.notebookRoots.forEach(root => this._addNotebookRoot(root));
+    }
+  }
+
+  private _createTextAreaRow(labelText: string, placeholder = ""): HTMLTextAreaElement {
+    const wrapper = document.createElement("div");
+    wrapper.className = "jp-CellScopeWorkflowDialog-row";
+    const label = document.createElement("label");
+    label.textContent = labelText;
+    const textarea = document.createElement("textarea");
+    textarea.placeholder = placeholder;
+    wrapper.appendChild(label);
+    wrapper.appendChild(textarea);
+    this.node.appendChild(wrapper);
+    return textarea;
+  }
+
+
+  private _buildNotebookRootsRow(): void {
+    const wrapper = document.createElement("div");
+    wrapper.className = "jp-CellScopeWorkflowDialog-row jp-CellScopeWorkflowDialog-rootsRow";
+    const label = document.createElement("label");
+    label.textContent = "Notebook roots";
+    wrapper.appendChild(label);
+
+    this._rootsList = document.createElement("ul");
+    this._rootsList.className = "jp-CellScopeWorkflowDialog-rootsList";
+    wrapper.appendChild(this._rootsList);
+
+    const controls = document.createElement("div");
+    controls.className = "jp-CellScopeWorkflowDialog-rootsControls";
+    this._manualRootInput = document.createElement("input");
+    this._manualRootInput.type = "text";
+    this._manualRootInput.placeholder = "Or paste a directory path";
+    this._manualRootInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        this._addNotebookRoot(this._manualRootInput.value);
+      }
+    });
+    controls.appendChild(this._manualRootInput);
+    const manualAddBtn = document.createElement("button");
+    manualAddBtn.type = "button";
+    manualAddBtn.className = "jp-mod-styled";
+    manualAddBtn.textContent = "Add path";
+    manualAddBtn.addEventListener("click", () => this._addNotebookRoot(this._manualRootInput.value));
+    controls.appendChild(manualAddBtn);
+    wrapper.appendChild(controls);
+
+    const hint = document.createElement("p");
+    hint.className = "jp-CellScopeWorkflowDialog-helpText";
+    hint.textContent = "Roots are searched in order; add multiple directories if your workflow spans repositories.";
+    wrapper.appendChild(hint);
+
+    this.node.appendChild(wrapper);
+    this._renderNotebookRoots();
+  }
+
+  private _renderNotebookRoots(): void {
+    this._rootsList.innerHTML = "";
+    if (!this._notebookRoots.length) {
+      const item = document.createElement("li");
+      item.textContent = "No notebook roots selected.";
+      item.className = "jp-CellScopeWorkflowDialog-rootsEmpty";
+      this._rootsList.appendChild(item);
+      return;
+    }
+    this._notebookRoots.forEach((root, index) => {
+      const item = document.createElement("li");
+      const code = document.createElement("code");
+      code.textContent = root;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "jp-mod-styled";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", () => {
+        this._notebookRoots.splice(index, 1);
+        this._renderNotebookRoots();
+      });
+      item.appendChild(code);
+      item.appendChild(remove);
+      this._rootsList.appendChild(item);
+    });
+  }
+
+  private _addNotebookRoot(value: string): void {
+    const path = value.trim();
+    if (!path) {
+      return;
+    }
+    if (!this._notebookRoots.includes(path)) {
+      this._notebookRoots.push(path);
+    }
+    if (this._manualRootInput) {
+      this._manualRootInput.value = "";
+    }
+    this._renderNotebookRoots();
+  }
+}
+
+class WorkflowCaptureResultWidget extends Widget {
+  constructor(result: WorkflowCaptureResponse) {
+    super({ node: document.createElement("div") });
+    this.addClass("jp-CellScopeWorkflowResult");
+    const summary = document.createElement("p");
+    summary.textContent = `Captured ${result.captured}/${result.total} nodes. Manifest: ${result.manifest}`;
+    this.node.appendChild(summary);
+    const list = document.createElement("ul");
+    result.nodes.forEach(node => {
+      const item = document.createElement("li");
+      item.textContent = `${node.title ?? node.id}: ${node.status}${node.error ? ` (${node.error})` : ""}`;
+      list.appendChild(item);
+    });
+    this.node.appendChild(list);
+  }
+}
+
+async function requestWorkflowCapture(
+  settings: ServerConnection.ISettings,
+  payload: Record<string, unknown>
+): Promise<WorkflowCaptureResponse> {
+  const url = URLExt.join(settings.baseUrl, "cellscope", "workflow", "capture");
+  const response = await ServerConnection.makeRequest(
+    url,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" }
+    },
+    settings
+  );
+
+  if (!response.ok) {
+    const bodyText = await response.text();
+    let message = bodyText || `${response.status} ${response.statusText}`;
+    try {
+      const parsed = JSON.parse(bodyText);
+      if (parsed && parsed.error) {
+        message = parsed.error;
+      }
+    } catch {
+      /* ignore JSON parse failures */
+    }
+    throw new Error(message);
+  }
+
+  const data = (await response.json()) as WorkflowCaptureResponse;
+  return data;
+}
+
+
+function collectWorkflowInitial(
+  app: JupyterFrontEnd,
+  docManager: IDocumentManager | null,
+  tracker: INotebookTracker | null
+): WorkflowCaptureInitial {
+  const initial: WorkflowCaptureInitial = {};
+  const widget = app.shell.currentWidget;
+  const context = docManager && widget ? docManager.contextForWidget(widget) : null;
+  if (context && context.path) {
+    const path = context.path;
+    if (path.endsWith(".naavrewf")) {
+      initial.workflow = path;
+      const workflowsIdx = path.lastIndexOf("/workflows/");
+      if (workflowsIdx !== -1) {
+        const prefix = path.slice(0, workflowsIdx);
+        initial.notebookRoots = [`${prefix}/codebase`];
+      }
+    }
+  }
+  const notebook = tracker?.currentWidget;
+  const notebookPath = notebook?.context?.path;
+  if (notebookPath && notebookPath.endsWith(".ipynb")) {
+    initial.defaultNotebook = notebookPath;
+  }
+  return initial;
+}
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: "cellscope-lab:plugin",
   autoStart: true,
-  optional: [ICommandPalette, INotebookTracker],
+  optional: [ICommandPalette, INotebookTracker, IDocumentManager],
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette | null,
-    tracker: INotebookTracker | null
+    tracker: INotebookTracker | null,
+    docManager: IDocumentManager | null
   ) => {
+    const serverSettings = app.serviceManager.serverSettings;
+    const documentManager = docManager ?? null;
     const panel = new AnalysisPanel(app, tracker ?? null);
     app.shell.add(panel, "left", { rank: 950 });
 
@@ -1811,9 +2142,58 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     });
 
+    app.commands.addCommand(WORKFLOW_CMD, {
+      label: "CellScope: Capture Workflow",
+      execute: async () => {
+        const initial = collectWorkflowInitial(app, documentManager, tracker ?? null);
+        const form = new WorkflowCaptureForm(initial);
+        const dialog = new Dialog({
+          title: "CellScope Workflow Capture",
+          body: form,
+          buttons: [Dialog.cancelButton(), Dialog.okButton({ label: "Capture" })]
+        });
+        const result = await dialog.launch();
+        if (!result.button.accept) {
+          return;
+        }
+        let value: WorkflowCaptureDialogValue;
+        try {
+          value = form.getValue();
+        } catch (error) {
+          await showErrorMessage(
+            "CellScope Workflow Capture",
+            error instanceof Error ? error.message : String(error)
+          );
+          return;
+        }
+        const payload: Record<string, unknown> = {
+          workflow: value.workflow,
+          out_dir: value.outDir,
+          notebook_roots: value.notebookRoots,
+          notebook_map: value.notebookMap,
+          default_notebook: value.defaultNotebook || undefined,
+          skip_crates: value.skipCrates
+        };
+        try {
+          const captureResult = await requestWorkflowCapture(serverSettings, payload);
+          await new Dialog({
+            title: "Workflow Captured",
+            body: new WorkflowCaptureResultWidget(captureResult),
+            buttons: [Dialog.okButton({ label: "Close" })]
+          }).launch();
+        } catch (error) {
+          await showErrorMessage(
+            "CellScope Workflow Capture",
+            error instanceof Error ? error.message : String(error)
+          );
+        }
+      }
+    });
+
     if (palette) {
       palette.addItem({ command: LIST_CMD, category: "CellScope" });
       palette.addItem({ command: GRAPH_CMD, category: "CellScope" });
+      palette.addItem({ command: WORKFLOW_CMD, category: "CellScope" });
     }
   }
 };

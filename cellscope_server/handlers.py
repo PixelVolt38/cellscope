@@ -23,6 +23,7 @@ from cellscope import (
 )
 from cellscope.serialization import capture_to_json
 from cellscope.workflow import capture_workflow, parse_workflow
+from pathlib import Path
 
 
 EdgeRecord = Union[Dict[str, Any], Iterable[Any]]
@@ -39,6 +40,14 @@ DEFAULT_INDEX_SETTINGS: IndexConfig = {
     "username": None,
     "password": None,
 }
+
+def _resolve_graph_uri(nb_path: Optional[str]) -> Optional[str]:
+    if not nb_path:
+        return None
+    try:
+        return Path(nb_path).resolve().as_uri()
+    except Exception:
+        return None
 
 
 class AnalyzeHandler(APIHandler):
@@ -106,6 +115,7 @@ class ExportHandler(APIHandler):
                     index_result = index_crate(
                         crate_dir,
                         output_path=index_cfg.get("output"),
+                        graph_uri=_resolve_graph_uri(nb_path),
                     )
                     index_result["attempts"] = 1
                     index_result["duration_seconds"] = 0.0

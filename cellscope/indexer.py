@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
@@ -27,6 +28,14 @@ PREFIXES = {
 
 def _ensure_trailing_slash(value: str) -> str:
     return value if value.endswith("/") else value + "/"
+
+
+_NON_ALNUM = re.compile(r"[^A-Za-z0-9]+")
+
+
+def _slugify(value: str) -> str:
+    slug = _NON_ALNUM.sub("-", value.strip().lower()).strip("-")
+    return slug or "crate"
 
 
 def _is_uri(value: str) -> bool:
@@ -241,8 +250,37 @@ def _collect_triples(
     return triples
 
 
+def _find_similar_graphs(crate_path: Path, root_name: Optional[str]) -> Set[str]:
+    graph_uris: Set[str] = set()
+    if not crate_path or not root_name:
+        return graph_uris
+    try:
+        root = crate_path.parent.parent
+    except Exception:
+        return graph_uris
+    if not root.exists() or not root.is_dir():
+        return graph_uris
+    for meta_path in root.glob("*/ro-crate/ro-crate-metadata.json"):
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            graph = meta.get("@graph", [])
+            root_entity = next((e for e in graph if e.get("@id") == "./"), None)
+            if not root_entity:
+                continue
+            name = root_entity.get("name")
+            if name != root_name:
+                continue
+            crate_dir = meta_path.parent
+            graph_uris.add(_ensure_trailing_slash(crate_dir.resolve().as_uri()).rstrip("/"))
+        except Exception:
+            continue
+    return graph_uris
+
+
 def _render_sparql(
-    triples: Set[Tuple[str, str, str, bool, Optional[str]]]
+    triples: Set[Tuple[str, str, str, bool, Optional[str]]],
+    graph_uri: str,
+    drop_graphs: Optional[Set[str]] = None,
 ) -> str:
     prefix_lines = [
         f"PREFIX {prefix}: <{iri}>"
@@ -263,7 +301,29 @@ def _render_sparql(
         else:
             body_lines.append(f"<{subj}> <{pred}> <{obj}> .")
     body = "\n  ".join(body_lines)
-    return f"{prefix_block}\n\nINSERT DATA {{\n  {body}\n}}"
+    drops = drop_graphs or set()
+    drops.add(graph_uri)
+    drop_block = "\n".join([f"DROP SILENT GRAPH <{g}>;" for g in sorted(drops)])
+    return f"{prefix_block}\n\n{drop_block}\nINSERT DATA {{ GRAPH <{graph_uri}> {{\n  {body}\n}} }}"
+
+
+def _count_exports(crate_root: Path, notebook_name: Optional[str]) -> int:
+    if not notebook_name:
+        return 1
+    parent = crate_root.parent if crate_root else None
+    if not parent or not parent.exists() or not parent.is_dir():
+        return 1
+    count = 0
+    for meta_path in parent.glob("*/ro-crate/ro-crate-metadata.json"):
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            graph = meta.get("@graph", [])
+            root_entity = next((e for e in graph if e.get("@id") == "./"), None)
+            if root_entity and root_entity.get("name") == notebook_name:
+                count += 1
+        except Exception:
+            continue
+    return max(count, 1)
 
 
 def index_crate(
@@ -273,6 +333,8 @@ def index_crate(
     endpoint: Optional[str] = None,
     output_path: Optional[str] = None,
     base_uri: Optional[str] = None,
+    graph_uri: Optional[str] = None,
+    drop_legacy_graphs: bool = True,
     session: Optional[Any] = None,
     auth: Optional[Any] = None,
     headers: Optional[Dict[str, str]] = None,
@@ -318,8 +380,25 @@ def index_crate(
         base_uri = _ensure_trailing_slash(crate_path.resolve().as_uri())
     base_uri = base_uri or "https://cellscope.local/crate/"
 
+    root_entity = next((e for e in crate_metadata.get("@graph", []) if e.get("@id") == "./"), None) if crate_metadata else None
+    root_name = root_entity.get("name") if isinstance(root_entity, dict) else None
+
+    if graph_uri:
+        graph_uri = graph_uri.rstrip("/")
+    else:
+        slug = _slugify(Path(root_name).stem if root_name else (crate_path.name if crate_path else "crate"))
+        export_count = _count_exports(crate_path.parent if crate_path else Path(""), root_name)
+        graph_uri = f"https://cellscope.local/graph/{slug}"
+        # Optional: include version as a query to distinguish exports, even though we overwrite the graph each time.
+        graph_uri = f"{graph_uri}?v={export_count}"
+
+    drop_graphs: Set[str] = set()
+    if drop_legacy_graphs:
+        drop_graphs.add(base_uri.rstrip("/"))
+        drop_graphs.add(graph_uri)
+
     triples = _collect_triples(crate_metadata, base_uri)
-    sparql_payload = _render_sparql(triples)
+    sparql_payload = _render_sparql(triples, graph_uri, drop_graphs)
 
     if output_path:
         output_file = Path(output_path)

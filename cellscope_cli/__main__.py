@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -13,6 +15,10 @@ from cellscope.validate_crate import validate_crate
 from cellscope.indexer import index_crate
 from cellscope.utils import load_yaml, load_sidecars
 from cellscope.workflow import capture_workflow, load_workflow_manifest, parse_workflow
+
+ENABLE_WORKFLOWS = os.environ.get("CELLSCOPE_ENABLE_WORKFLOWS") == "1"
+
+ENABLE_WORKFLOWS = os.environ.get("CELLSCOPE_ENABLE_WORKFLOWS") == "1"
 
 
 def _load_alias_map(path: Optional[str]) -> Optional[Dict[str, str]]:
@@ -64,6 +70,15 @@ def _format_index_output(template: Optional[str], node_id: str) -> Optional[str]
     return template
 
 
+def _notebook_graph_uri(nb_path: Optional[str]) -> Optional[str]:
+    if not nb_path:
+        return None
+    try:
+        return Path(nb_path).resolve().as_uri()
+    except Exception:
+        return None
+
+
 def cmd_build(args):
     alias_map = _load_alias_map(args.aliases)
     hints = _load_dict(args.hints, "--hints")
@@ -89,6 +104,7 @@ def cmd_build(args):
             crate_dir,
             endpoint=args.index_endpoint,
             output_path=args.index_output,
+            graph_uri=_notebook_graph_uri(args.notebook),
         )
         _print_index_result(index_result)
 
@@ -208,27 +224,28 @@ def main():
     pval.add_argument("crate", help="Directory of RO-Crate")
     pval.set_defaults(func=cmd_validate)
 
-    pw = sub.add_parser("workflow", help="Workflow capture/import helpers")
-    pw_sub = pw.add_subparsers(dest="workflow_cmd", required=True)
+    if ENABLE_WORKFLOWS:
+        pw = sub.add_parser("workflow", help="Workflow capture/import helpers (set CELLSCOPE_ENABLE_WORKFLOWS=1 to enable)")
+        pw_sub = pw.add_subparsers(dest="workflow_cmd", required=True)
 
-    pwc = pw_sub.add_parser("capture", help="Capture a multi-notebook workflow from a .naavrewf file")
-    pwc.add_argument("workflow", help="Path to workflow .naavrewf file")
-    pwc.add_argument("--out", default="out-lab/workflows", help="Directory where workflow assets are stored")
-    pwc.add_argument("--notebook-root", dest="notebook_roots", action="append", help="Directory to search for node notebooks by title/source (repeatable)")
-    pwc.add_argument("--notebook-map", help="YAML mapping of node ids/titles to explicit notebook paths")
-    pwc.add_argument("--default-notebook", help="Fallback notebook path when a node cannot be resolved")
-    pwc.add_argument("--aliases", help="YAML file mapping equivalent variable names")
-    pwc.add_argument("--hints", help="YAML file with roles/domain hints")
-    pwc.add_argument("--sidecars", nargs="*", help="JSON sidecar files with bridge hints")
-    pwc.add_argument("--skip-crates", action="store_true", help="Capture metadata only (skip per-node crate build)")
-    pwc.set_defaults(func=cmd_workflow_capture)
+        pwc = pw_sub.add_parser("capture", help="Capture a multi-notebook workflow from a .naavrewf file")
+        pwc.add_argument("workflow", help="Path to workflow .naavrewf file")
+        pwc.add_argument("--out", default="out-lab/workflows", help="Directory where workflow assets are stored")
+        pwc.add_argument("--notebook-root", dest="notebook_roots", action="append", help="Directory to search for node notebooks by title/source (repeatable)")
+        pwc.add_argument("--notebook-map", help="YAML mapping of node ids/titles to explicit notebook paths")
+        pwc.add_argument("--default-notebook", help="Fallback notebook path when a node cannot be resolved")
+        pwc.add_argument("--aliases", help="YAML file mapping equivalent variable names")
+        pwc.add_argument("--hints", help="YAML file with roles/domain hints")
+        pwc.add_argument("--sidecars", nargs="*", help="JSON sidecar files with bridge hints")
+        pwc.add_argument("--skip-crates", action="store_true", help="Capture metadata only (skip per-node crate build)")
+        pwc.set_defaults(func=cmd_workflow_capture)
 
-    pwi = pw_sub.add_parser("import", help="Load a stored workflow manifest and optionally index crates")
-    pwi.add_argument("manifest", help="Path to workflow_manifest.json")
-    pwi.add_argument("--index", action="store_true", help="Generate SPARQL deltas for captured nodes")
-    pwi.add_argument("--index-endpoint", help="SPARQL endpoint URL")
-    pwi.add_argument("--index-output", help="Output path or template (supports '{node}') for SPARQL payloads")
-    pwi.set_defaults(func=cmd_workflow_import)
+        pwi = pw_sub.add_parser("import", help="Load a stored workflow manifest and optionally index crates")
+        pwi.add_argument("manifest", help="Path to workflow_manifest.json")
+        pwi.add_argument("--index", action="store_true", help="Generate SPARQL deltas for captured nodes")
+        pwi.add_argument("--index-endpoint", help="SPARQL endpoint URL")
+        pwi.add_argument("--index-output", help="Output path or template (supports '{node}') for SPARQL payloads")
+        pwi.set_defaults(func=cmd_workflow_import)
 
     args = parser.parse_args()
     if hasattr(args, "workflow_cmd") and not getattr(args, "workflow_cmd"):

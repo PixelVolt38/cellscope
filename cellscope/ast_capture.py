@@ -268,7 +268,7 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
             func_calls = set()
 
         # variable defs: assignment targets (simple heuristic)
-        defs = set()
+        defs = set(info.var_defs)
         for n in (ast.walk(tree) if tree is not None else []):
             if isinstance(n, ast.Assign):
                 for tgt in n.targets:
@@ -282,7 +282,7 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
                 if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)
             } - (defs | info.funcs)
         else:
-            uses = set()
+            uses = set(info.var_uses)
 
         # alias normalization
         if alias_map:

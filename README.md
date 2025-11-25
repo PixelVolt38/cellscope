@@ -117,6 +117,15 @@ JupyterLab.
 Each export creates a versioned directory under `out-lab/` containing the RO‑Crate,
 GraphML, PyVis HTML, and the SPARQL delta.
 
+### Workflows (optional)
+The `.naavrewf` workflow capture/import tooling is disabled by default to keep CellScope portable. Set `CELLSCOPE_ENABLE_WORKFLOWS=1` if you have those assets locally and want to enable the CLI commands and JupyterLab Workflow dialog.
+
+### R analysis and external services
+CellScope now uses an internal static analyzer for R cells. Hooks for the external Component Containerizer/NaaVRE stack remain in the codebase for future integrations, but they are not required for normal operation.
+
+### SPARQL graph naming
+Indexing now uses notebook-based graph URIs (slug + version) and issues a drop+insert so re-exports replace the same graph instead of creating duplicates.
+
 ---
 
 ## Development Notes

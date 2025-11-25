@@ -71,6 +71,15 @@ def build_rocrate(capture: Dict[str, Any],
 
     cells = capture['cells']
     crate = ROCrate()
+    try:
+        nb_name = os.path.basename(capture.get('nb_path', 'notebook'))
+        crate.root_dataset['name'] = nb_name
+        crate.root_dataset['description'] = f"CellScope export for {nb_name}"
+        # Simple default license to satisfy RO-Crate root requirements; callers can override via hints.
+        if 'license' not in crate.root_dataset.properties():
+            crate.root_dataset['license'] = "https://creativecommons.org/publicdomain/zero/1.0/"
+    except Exception:
+        pass
     function_symbols = {fn for cell in cells for fn in getattr(cell, 'funcs', [])}
 
     activities = {}
@@ -105,7 +114,7 @@ def build_rocrate(capture: Dict[str, Any],
 
         cell_name = getattr(c, 'label', f'cell_{c.idx}')
         props = {
-            '@type': f'{OFLOW}Activity',
+            '@type': ['File', f'{OFLOW}Activity'],
             'name': cell_name,
             'kernel': c.kernel,
             'version': '1',
@@ -168,38 +177,68 @@ def build_rocrate(capture: Dict[str, Any],
                 activities[v].append_to('via', d.get('via', 'xkernel'))
 
     file_entities: Dict[str, ContextEntity] = {}
+    used_dest_names: Set[str] = set()
+
+    def _unique_dest(base: str) -> str:
+        candidate = base
+        counter = 2
+        while candidate in used_dest_names:
+            candidate = f"{base}_{counter}"
+            counter += 1
+        used_dest_names.add(candidate)
+        return candidate
+
     for c in cells:
         for fpath in c.file_writes:
             absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
-            fid = f'files/{os.path.basename(absf)}'
+            base = os.path.basename(absf)
+            dest_rel = f"files/{_unique_dest(base)}"
             props = {
-                '@type': f'{ONTODT}Data',
-                'name': os.path.basename(absf),
-                'contentPath': absf,
+                '@type': ['File', f'{ONTODT}Data'],
+                'name': base,
                 'version': '1',
             }
-            h = None
             if os.path.exists(absf):
                 h = _b2_hash(absf)
                 if h:
                     props['contentHash'] = f'blake2b-256:{h}'
-            fe = ContextEntity(crate, f'#file-{h if props.get("contentHash") else os.path.basename(absf)}', properties=props)
-            crate.add(fe)
+                fe = crate.add_file(absf, dest_path=dest_rel, properties=props)
+            else:
+                fe = ContextEntity(crate, dest_rel, properties=props)
+                crate.add(fe)
             file_entities[absf] = fe
+            crate.root_dataset.append_to("hasPart", fe)
             activities[c.idx].append_to(f'{OFLOW}hasOutput', fe)
             fe.append_to(f'{PROV}wasGeneratedBy', activities[c.idx])
-            dh = _domain_hints_for(os.path.basename(absf), hints or {})
+            dh = _domain_hints_for(base, hints or {})
             for k, v in dh.items():
                 fe.append_to(k, v)
 
         for fpath in c.file_reads:
             absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
-            if absf in file_entities:
-                fe = file_entities[absf]
-                activities[c.idx].append_to(f'{OFLOW}hasInput', fe)
-                activities[c.idx].append_to(f'{PROV}used', fe)
-                role = _role_for_input(os.path.basename(absf), hints or {}) or 'dataset'
-                _add_usage_with_role(crate, activities[c.idx], fe, role)
+            fe = file_entities.get(absf)
+            if fe is None:
+                base = os.path.basename(absf)
+                dest_rel = f"files/{_unique_dest(base)}"
+                props = {
+                    '@type': ['File', f'{ONTODT}Data'],
+                    'name': base,
+                    'version': '1',
+                }
+                if os.path.exists(absf):
+                    h = _b2_hash(absf)
+                    if h:
+                        props['contentHash'] = f'blake2b-256:{h}'
+                    fe = crate.add_file(absf, dest_path=dest_rel, properties=props)
+                else:
+                    fe = ContextEntity(crate, dest_rel, properties=props)
+                    crate.add(fe)
+                file_entities[absf] = fe
+            crate.root_dataset.append_to("hasPart", fe)
+            activities[c.idx].append_to(f'{OFLOW}hasInput', fe)
+            activities[c.idx].append_to(f'{PROV}used', fe)
+            role = _role_for_input(os.path.basename(absf), hints or {}) or 'dataset'
+            _add_usage_with_role(crate, activities[c.idx], fe, role)
 
     for sj in (sidecars or []):
         sid = sj.get('id') or f"#sidecar-{abs(hash(json.dumps(sj, sort_keys=True)))}"
@@ -240,7 +279,7 @@ def build_rocrate(capture: Dict[str, Any],
     nx.write_graphml(G, graph_path)
 
     crate.add_file(graph_path, dest_path='cell_graph.graphml',
-                   properties={'@type': 'https://example.org/ontology/graph#Graph', 'name': 'cell_graph'})
+                   properties={'@type': ['File', 'https://example.org/ontology/graph#Graph'], 'name': 'cell_graph'})
 
     crate.write(crate_root)
 

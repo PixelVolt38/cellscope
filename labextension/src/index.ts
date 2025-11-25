@@ -1,7 +1,7 @@
 import { JupyterFrontEnd, JupyterFrontEndPlugin } from "@jupyterlab/application";
 import { ICommandPalette, MainAreaWidget, Dialog, showErrorMessage } from "@jupyterlab/apputils";
 import { INotebookTracker, NotebookPanel } from "@jupyterlab/notebook";
-import { URLExt } from "@jupyterlab/coreutils";
+import { URLExt, PageConfig } from "@jupyterlab/coreutils";
 import { DocumentRegistry } from "@jupyterlab/docregistry";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import { ServerConnection } from "@jupyterlab/services";
@@ -12,6 +12,7 @@ import "../style/index.css";
 const LIST_CMD = "cellscope:open-list";
 const GRAPH_CMD = "cellscope:open-graph";
 const WORKFLOW_CMD = "cellscope:workflow-capture";
+const WORKFLOWS_ENABLED = PageConfig.getOption("cellscopeEnableWorkflows") === "true";
 
 type GraphSummary = AnalyzeResponse["graph"];
 
@@ -262,13 +263,15 @@ class AnalysisPanel extends Widget {
     controls.appendChild(this._exportBtn);
     controls.appendChild(this._graphBtn);
 
-    const workflowBtn = document.createElement("button");
-    workflowBtn.textContent = "Workflow";
-    workflowBtn.className = "jp-mod-styled jp-CellScopePanel-workflowButton";
-    workflowBtn.addEventListener("click", () => {
-      void this.app.commands.execute(WORKFLOW_CMD);
-    });
-    controls.appendChild(workflowBtn);
+    if (WORKFLOWS_ENABLED) {
+      const workflowBtn = document.createElement("button");
+      workflowBtn.textContent = "Workflow";
+      workflowBtn.className = "jp-mod-styled jp-CellScopePanel-workflowButton";
+      workflowBtn.addEventListener("click", () => {
+        void this.app.commands.execute(WORKFLOW_CMD);
+      });
+      controls.appendChild(workflowBtn);
+    }
     wrapper.appendChild(controls);
 
     this._filterOverlay = document.createElement("div");
@@ -1635,30 +1638,11 @@ class AnalysisPanel extends Widget {
     }
     body.appendChild(edgesSection);
 
-    const consentWrapper = document.createElement("div");
-    consentWrapper.className = "jp-CellScopeReview-consent";
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.id = "cellscope-review-consent";
-    const consentLabel = document.createElement("label");
-    consentLabel.htmlFor = checkbox.id;
-    consentLabel.textContent = "I have reviewed the metadata and want to export the crate.";
-    consentWrapper.append(checkbox, consentLabel);
-    body.appendChild(consentWrapper);
-
     const dialog = new Dialog({
       title: "Review Notebook Metadata",
       body: new Widget({ node: body }),
       buttons: [Dialog.cancelButton({ label: "Cancel" }), Dialog.okButton({ label: "Confirm Export" })]
     });
-
-    const accept = dialog.node.querySelector("button.jp-mod-accept") as HTMLButtonElement | null;
-    if (accept) {
-      accept.disabled = true;
-      checkbox.addEventListener("change", () => {
-        accept.disabled = !checkbox.checked;
-      });
-    }
 
     const result = await dialog.launch();
     if (!result.button.accept) {
@@ -2142,58 +2126,62 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    app.commands.addCommand(WORKFLOW_CMD, {
-      label: "CellScope: Capture Workflow",
-      execute: async () => {
-        const initial = collectWorkflowInitial(app, documentManager, tracker ?? null);
-        const form = new WorkflowCaptureForm(initial);
-        const dialog = new Dialog({
-          title: "CellScope Workflow Capture",
-          body: form,
-          buttons: [Dialog.cancelButton(), Dialog.okButton({ label: "Capture" })]
-        });
-        const result = await dialog.launch();
-        if (!result.button.accept) {
-          return;
+    if (WORKFLOWS_ENABLED) {
+      app.commands.addCommand(WORKFLOW_CMD, {
+        label: "CellScope: Capture Workflow",
+        execute: async () => {
+          const initial = collectWorkflowInitial(app, documentManager, tracker ?? null);
+          const form = new WorkflowCaptureForm(initial);
+          const dialog = new Dialog({
+            title: "CellScope Workflow Capture",
+            body: form,
+            buttons: [Dialog.cancelButton(), Dialog.okButton({ label: "Capture" })]
+          });
+          const result = await dialog.launch();
+          if (!result.button.accept) {
+            return;
+          }
+          let value: WorkflowCaptureDialogValue;
+          try {
+            value = form.getValue();
+          } catch (error) {
+            await showErrorMessage(
+              "CellScope Workflow Capture",
+              error instanceof Error ? error.message : String(error)
+            );
+            return;
+          }
+          const payload: Record<string, unknown> = {
+            workflow: value.workflow,
+            out_dir: value.outDir,
+            notebook_roots: value.notebookRoots,
+            notebook_map: value.notebookMap,
+            default_notebook: value.defaultNotebook || undefined,
+            skip_crates: value.skipCrates
+          };
+          try {
+            const captureResult = await requestWorkflowCapture(serverSettings, payload);
+            await new Dialog({
+              title: "Workflow Captured",
+              body: new WorkflowCaptureResultWidget(captureResult),
+              buttons: [Dialog.okButton({ label: "Close" })]
+            }).launch();
+          } catch (error) {
+            await showErrorMessage(
+              "CellScope Workflow Capture",
+              error instanceof Error ? error.message : String(error)
+            );
+          }
         }
-        let value: WorkflowCaptureDialogValue;
-        try {
-          value = form.getValue();
-        } catch (error) {
-          await showErrorMessage(
-            "CellScope Workflow Capture",
-            error instanceof Error ? error.message : String(error)
-          );
-          return;
-        }
-        const payload: Record<string, unknown> = {
-          workflow: value.workflow,
-          out_dir: value.outDir,
-          notebook_roots: value.notebookRoots,
-          notebook_map: value.notebookMap,
-          default_notebook: value.defaultNotebook || undefined,
-          skip_crates: value.skipCrates
-        };
-        try {
-          const captureResult = await requestWorkflowCapture(serverSettings, payload);
-          await new Dialog({
-            title: "Workflow Captured",
-            body: new WorkflowCaptureResultWidget(captureResult),
-            buttons: [Dialog.okButton({ label: "Close" })]
-          }).launch();
-        } catch (error) {
-          await showErrorMessage(
-            "CellScope Workflow Capture",
-            error instanceof Error ? error.message : String(error)
-          );
-        }
-      }
-    });
+      });
+    }
 
     if (palette) {
       palette.addItem({ command: LIST_CMD, category: "CellScope" });
       palette.addItem({ command: GRAPH_CMD, category: "CellScope" });
-      palette.addItem({ command: WORKFLOW_CMD, category: "CellScope" });
+      if (WORKFLOWS_ENABLED) {
+        palette.addItem({ command: WORKFLOW_CMD, category: "CellScope" });
+      }
     }
   }
 };

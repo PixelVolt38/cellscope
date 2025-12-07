@@ -27,7 +27,7 @@ package-dir = {"" = "."}
 cellscope_server = ["jupyter_server_config.d/*.json"]
 
 [tool.setuptools.data-files]
-"share/jupyter/jupyter_server_config.d" = ["cellscope_server/jupyter_server_config.d/cellscope_server.json"]
+"etc/jupyter/jupyter_server_config.d" = ["cellscope_server/jupyter_server_config.d/cellscope_server.json"]
 
 [project.entry-points."jupyter_server.extension"]
 cellscope_server = "cellscope_server"

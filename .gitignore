@@ -94,6 +94,8 @@ tests/
 
 # Local server config
 jupyter_server_config.d/
+!cellscope_server/jupyter_server_config.d/
+!cellscope_server/jupyter_server_config.d/cellscope_server.json
 
 component_containerizer/
 

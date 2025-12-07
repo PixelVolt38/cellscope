@@ -21,6 +21,13 @@ cellscope = "cellscope_cli.__main__:main"
 [tool.setuptools]
 # Explicitly list packages so the server extension always ships into site-packages.
 packages = ["cellscope", "cellscope_cli", "cellscope_server"]
+package-dir = {"" = "."}
+
+[tool.setuptools.package-data]
+cellscope_server = ["jupyter_server_config.d/*.json"]
+
+[tool.setuptools.data-files]
+"share/jupyter/jupyter_server_config.d" = ["cellscope_server/jupyter_server_config.d/cellscope_server.json"]
 
 [project.entry-points."jupyter_server.extension"]
 cellscope_server = "cellscope_server"

@@ -3,6 +3,7 @@ import json
 import hashlib
 import networkx as nx
 from typing import Dict, Any, List, Optional, Tuple, Set
+from urllib.parse import urlsplit
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
@@ -45,6 +46,18 @@ def _role_for_input(varname: str, hints: Dict[str, Any]) -> Optional[str]:
 def _domain_hints_for(name: str, hints: Dict[str, Any]) -> Dict[str, Any]:
     dom = (hints or {}).get('domains') or {}
     return dom.get(name, {})
+
+
+def _is_url(path: str) -> bool:
+    return isinstance(path, str) and (path.startswith("http://") or path.startswith("https://"))
+
+
+def _basename_for_path(path: str) -> str:
+    if _is_url(path):
+        parsed = urlsplit(path)
+        # fallback to entire path if no trailing segment
+        return os.path.basename(parsed.path) or path
+    return os.path.basename(path)
 
 
 def _add_usage_with_role(crate: ROCrate, activity, data_entity, role: Optional[str]):
@@ -190,15 +203,22 @@ def build_rocrate(capture: Dict[str, Any],
 
     for c in cells:
         for fpath in c.file_writes:
-            absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
-            base = os.path.basename(absf)
+            if _is_url(fpath):
+                absf = fpath
+            else:
+                absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
+            base = _basename_for_path(absf)
             dest_rel = f"files/{_unique_dest(base)}"
             props = {
                 '@type': ['File', f'{ONTODT}Data'],
                 'name': base,
                 'version': '1',
             }
-            if os.path.exists(absf):
+            if _is_url(absf):
+                props['accessURL'] = absf
+                fe = ContextEntity(crate, dest_rel, properties=props)
+                crate.add(fe)
+            elif os.path.exists(absf):
                 h = _b2_hash(absf)
                 if h:
                     props['contentHash'] = f'blake2b-256:{h}'
@@ -215,17 +235,24 @@ def build_rocrate(capture: Dict[str, Any],
                 fe.append_to(k, v)
 
         for fpath in c.file_reads:
-            absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
+            if _is_url(fpath):
+                absf = fpath
+            else:
+                absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
             fe = file_entities.get(absf)
             if fe is None:
-                base = os.path.basename(absf)
+                base = _basename_for_path(absf)
                 dest_rel = f"files/{_unique_dest(base)}"
                 props = {
                     '@type': ['File', f'{ONTODT}Data'],
                     'name': base,
                     'version': '1',
                 }
-                if os.path.exists(absf):
+                if _is_url(absf):
+                    props['accessURL'] = absf
+                    fe = ContextEntity(crate, dest_rel, properties=props)
+                    crate.add(fe)
+                elif os.path.exists(absf):
                     h = _b2_hash(absf)
                     if h:
                         props['contentHash'] = f'blake2b-256:{h}'
@@ -237,7 +264,7 @@ def build_rocrate(capture: Dict[str, Any],
             crate.root_dataset.append_to("hasPart", fe)
             activities[c.idx].append_to(f'{OFLOW}hasInput', fe)
             activities[c.idx].append_to(f'{PROV}used', fe)
-            role = _role_for_input(os.path.basename(absf), hints or {}) or 'dataset'
+            role = _role_for_input(_basename_for_path(absf), hints or {}) or 'dataset'
             _add_usage_with_role(crate, activities[c.idx], fe, role)
 
     for sj in (sidecars or []):

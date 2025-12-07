@@ -160,8 +160,13 @@ def _collect_file_io(tree: ast.AST) -> (Set[str], Set[str]):
                     if fname and method in read_methods:
                         reads.add(fname)
 
+    def _is_url(p: str) -> bool:
+        return isinstance(p, str) and (p.startswith("http://") or p.startswith("https://"))
+
     def norm(p: str) -> str:
         try:
+            if _is_url(p):
+                return p
             return os.path.normpath(p)
         except Exception:
             return p

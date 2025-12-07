@@ -208,6 +208,33 @@ def _collect_triples(
                     (subject, SCHEMA + "keywords", str(kw), True, None)
                 )
 
+        access_url = entity.get("accessURL") or entity.get(DCAT + "accessURL")
+        if access_url:
+            for value in _iter_values(access_url):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, DCAT + "accessURL", str(value), True, None)
+                )
+
+        retrieved_at = entity.get("retrievedAt") or entity.get(PROV + "generatedAtTime")
+        if retrieved_at:
+            for value in _iter_values(retrieved_at):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, PROV + "generatedAtTime", str(value), True, None)
+                )
+
+        etag = entity.get("etag")
+        if etag:
+            for value in _iter_values(etag):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "identifier", str(value), True, None)
+                )
+
         activity_roles = entity.get("roles")
         if activity_roles:
             for role_entry in _iter_values(activity_roles):

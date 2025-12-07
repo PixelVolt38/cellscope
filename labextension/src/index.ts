@@ -1469,6 +1469,9 @@ class AnalysisPanel extends Widget {
       {
         mime: HTMLInputElement;
         tags: HTMLInputElement;
+        source: HTMLInputElement;
+        version: HTMLInputElement;
+        retrieved: HTMLInputElement;
       }
     >();
 
@@ -1563,9 +1566,47 @@ class AnalysisPanel extends Widget {
             tagsInput.value = tagsPreset.join(", ");
           }
           block.appendChild(tagsInput);
+
+          const sourceInput = document.createElement("input");
+          sourceInput.type = "text";
+          sourceInput.className = "jp-CellScopeReview-input jp-mod-styled";
+          sourceInput.placeholder = "Source URL (for remote datasets)";
+          const rawSource = existingDomain ? existingDomain["accessURL"] : undefined;
+          if (typeof rawSource === "string" && rawSource.length) {
+            sourceInput.value = rawSource;
+          } else if (/^https?:\/\//i.test(file.path)) {
+            sourceInput.value = file.path.replace(/\\/g, "/");
+          }
+          block.appendChild(sourceInput);
+
+          const versionInput = document.createElement("input");
+          versionInput.type = "text";
+          versionInput.className = "jp-CellScopeReview-input jp-mod-styled";
+          versionInput.placeholder = "Version / ETag";
+          const rawEtag = existingDomain ? existingDomain["etag"] : undefined;
+          if (typeof rawEtag === "string" && rawEtag.length) {
+            versionInput.value = rawEtag;
+          }
+          block.appendChild(versionInput);
+
+          const retrievedInput = document.createElement("input");
+          retrievedInput.type = "text";
+          retrievedInput.className = "jp-CellScopeReview-input jp-mod-styled";
+          retrievedInput.placeholder = "Retrieved at (ISO 8601)";
+          const rawRetrieved = existingDomain ? existingDomain["retrievedAt"] : undefined;
+          if (typeof rawRetrieved === "string" && rawRetrieved.length) {
+            retrievedInput.value = rawRetrieved;
+          }
+          block.appendChild(retrievedInput);
           fileGrid.appendChild(block);
 
-          fileInputs.set(file.baseName, { mime: mimeInput, tags: tagsInput });
+          fileInputs.set(file.baseName, {
+            mime: mimeInput,
+            tags: tagsInput,
+            source: sourceInput,
+            version: versionInput,
+            retrieved: retrievedInput
+          });
         });
 
         metadataSection.appendChild(fileGrid);
@@ -1672,6 +1713,19 @@ class AnalysisPanel extends Widget {
         domainEntries["keywords"] = tagsValue[0];
       } else if (tagsValue.length > 1) {
         domainEntries["keywords"] = tagsValue;
+      }
+
+      const sourceValue = inputs.source.value.trim();
+      if (sourceValue) {
+        domainEntries["accessURL"] = sourceValue;
+      }
+      const versionValue = inputs.version.value.trim();
+      if (versionValue) {
+        domainEntries["etag"] = versionValue;
+      }
+      const retrievedValue = inputs.retrieved.value.trim();
+      if (retrievedValue) {
+        domainEntries["retrievedAt"] = retrievedValue;
       }
 
       if (Object.keys(domainEntries).length > 0) {

@@ -20,6 +20,7 @@ cellscope = "cellscope_cli.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["cellscope", "cellscope_cli", "cellscope_server"]
 
 [project.entry-points."jupyter_server.extension"]
 cellscope_server = "cellscope_server"

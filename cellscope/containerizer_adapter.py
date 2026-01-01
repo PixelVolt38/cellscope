@@ -65,10 +65,14 @@ READ_CALLS = {
     "read.csv2": {"fallback_index": 0},
     "read.table": {"fallback_index": 0},
     "read.delim": {"fallback_index": 0},
+    "read_tsv": {"fallback_index": 0},
+    "read_csv": {"fallback_index": 0},
+    "read_tsv2": {"fallback_index": 0},
     "readRDS": {"fallback_index": 0},
     "load": {"fallback_index": 0},
     "readLines": {"fallback_index": 0},
     "read_feather": {"fallback_index": 0},
+    "download.file": {"fallback_index": 0},
 }
 
 WRITE_CALLS = {
@@ -76,10 +80,13 @@ WRITE_CALLS = {
     "write.csv2": {"fallback_index": 1},
     "write.table": {"fallback_index": 1},
     "write.delim": {"fallback_index": 1},
+    "write_csv": {"fallback_index": 1},
+    "write_tsv": {"fallback_index": 1},
     "writeLines": {"fallback_index": 1},
     "saveRDS": {"fallback_index": 1},
     "save": {"fallback_index": 1},
     "write_feather": {"fallback_index": 1},
+    "download.file": {"fallback_index": 1},
 }
 
 FILE_ARG_NAMES = ("file", "path", "con", "destfile")
@@ -139,7 +146,10 @@ def _extract_file_operations(code: str, call_specs: Optional[dict]) -> Set[str]:
         args = _split_args(arg_string)
         literal = _resolve_path_from_args(args, preferred=FILE_ARG_NAMES, fallback_index=spec.get("fallback_index"))
         if literal:
-            paths.add(os.path.normpath(literal))
+            if literal.startswith("http://") or literal.startswith("https://"):
+                paths.add(literal)
+            else:
+                paths.add(os.path.normpath(literal))
     return paths
 
 

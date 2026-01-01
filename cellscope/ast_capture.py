@@ -240,11 +240,6 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
             label = f"{base_label}_{suffix}"
         used_labels.add(label)
         info.label = label
-        # SoS
-        puts, gets = _detect_sos_magics(info.source.splitlines())
-        info.sos_put |= puts
-        info.sos_get |= gets
-
         try:
             if str(info.kernel).lower().startswith(('ir', 'r-', 'r')):
                 # Ask containerizer adapter for R cell analysis (defs, uses, writes, reads)

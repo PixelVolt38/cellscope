@@ -4,6 +4,13 @@ import hashlib
 import networkx as nx
 from typing import Dict, Any, List, Optional, Tuple, Set
 from urllib.parse import urlsplit
+from datetime import datetime
+import os
+
+try:
+    import requests  # type: ignore
+except Exception:  # requests is optional
+    requests = None
 
 from rocrate.rocrate import ROCrate
 from rocrate.model.contextentity import ContextEntity
@@ -60,6 +67,32 @@ def _basename_for_path(path: str) -> str:
     return os.path.basename(path)
 
 
+def _remote_metadata(url: str) -> Dict[str, Any]:
+    """
+    Best-effort metadata fetch for remote artifacts.
+    Only runs when CELLSCOPE_FETCH_REMOTE_METADATA is truthy and requests is available.
+    """
+    if not os.environ.get("CELLSCOPE_FETCH_REMOTE_METADATA"):
+        return {}
+    if requests is None:
+        return {}
+    try:
+        resp = requests.head(url, timeout=5)
+    except Exception:
+        return {}
+    if resp is None or resp.status_code >= 400:
+        return {}
+    props: Dict[str, Any] = {}
+    etag = resp.headers.get("ETag")
+    if etag:
+        props["etag"] = etag
+    last_modified = resp.headers.get("Last-Modified")
+    if last_modified:
+        props["dateModified"] = last_modified
+    props["retrievedAt"] = datetime.utcnow().isoformat() + "Z"
+    return props
+
+
 def _add_usage_with_role(crate: ROCrate, activity, data_entity, role: Optional[str]):
     if not role:
         return
@@ -95,9 +128,18 @@ def build_rocrate(capture: Dict[str, Any],
         pass
     function_symbols = {fn for cell in cells for fn in getattr(cell, 'funcs', [])}
 
+    def _cell_extension(kernel_name: str) -> str:
+        k = (kernel_name or "").lower()
+        if k == "r" or k.startswith(("ir", "r-")) or k.startswith("r "):
+            return ".R"
+        if "python" in k or k.startswith("py"):
+            return ".py"
+        return ".txt"
+
     activities = {}
     for c in cells:
-        rel_path = f'cells/cell_{c.idx}.py'
+        ext = _cell_extension(getattr(c, "kernel", ""))
+        rel_path = f'cells/cell_{c.idx}{ext}'
         abs_path = os.path.join(crate_root, rel_path)
         with open(abs_path, 'w', encoding='utf-8') as f:
             f.write(c.source)
@@ -130,6 +172,9 @@ def build_rocrate(capture: Dict[str, Any],
             '@type': ['File', f'{OFLOW}Activity'],
             'name': cell_name,
             'kernel': c.kernel,
+            'programmingLanguage': c.kernel,
+            'position': c.idx,
+            'isPartOf': './',
             'version': '1',
         }
         if roles_for_cell:
@@ -212,10 +257,12 @@ def build_rocrate(capture: Dict[str, Any],
             props = {
                 '@type': ['File', f'{ONTODT}Data'],
                 'name': base,
+                'isPartOf': './',
                 'version': '1',
             }
             if _is_url(absf):
                 props['accessURL'] = absf
+                props.update(_remote_metadata(absf))
                 fe = ContextEntity(crate, dest_rel, properties=props)
                 crate.add(fe)
             elif os.path.exists(absf):
@@ -246,10 +293,12 @@ def build_rocrate(capture: Dict[str, Any],
                 props = {
                     '@type': ['File', f'{ONTODT}Data'],
                     'name': base,
+                    'isPartOf': './',
                     'version': '1',
                 }
                 if _is_url(absf):
                     props['accessURL'] = absf
+                    props.update(_remote_metadata(absf))
                     fe = ContextEntity(crate, dest_rel, properties=props)
                     crate.add(fe)
                 elif os.path.exists(absf):

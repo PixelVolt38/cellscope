@@ -50,8 +50,6 @@ def capture_to_json(capture: Dict[str, Any]) -> Dict[str, Any]:
                 "var_uses": sorted(getattr(cell, "var_uses", [])),
                 "file_writes": sorted(getattr(cell, "file_writes", [])),
                 "file_reads": sorted(getattr(cell, "file_reads", [])),
-                "sos_put": sorted(getattr(cell, "sos_put", [])),
-                "sos_get": sorted(getattr(cell, "sos_get", [])),
             }
         )
 

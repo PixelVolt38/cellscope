@@ -13,6 +13,8 @@ const LIST_CMD = "cellscope:open-list";
 const GRAPH_CMD = "cellscope:open-graph";
 const WORKFLOW_CMD = "cellscope:workflow-capture";
 const WORKFLOWS_ENABLED = PageConfig.getOption("cellscopeEnableWorkflows") === "true";
+const CONFIG_STORAGE_KEY = "cellscope:config";
+const DEFAULT_SPARQL_ENDPOINT = "http://localhost:3030/cellscope/update";
 
 type GraphSummary = AnalyzeResponse["graph"];
 
@@ -23,18 +25,28 @@ interface WorkflowCaptureInitial {
   notebookRoots?: string[];
 }
 
+interface CellScopeConfig {
+  endpoint: string;
+  token: string;
+  username: string;
+  password: string;
+  retries: number;
+  backoffSeconds: number;
+  outputPath: string;
+  dataSource: "local" | "sparql";
+}
+
 
 interface AnalyzeCell {
   idx: number;
   name?: string;
   kernel: string;
+  graph?: string;
   funcs: string[];
   var_defs: string[];
   var_uses: string[];
   file_writes: string[];
   file_reads: string[];
-  sos_put: string[];
-  sos_get: string[];
 }
 
 interface AnalyzeEdge {
@@ -85,7 +97,6 @@ interface FilterState {
   kernels: Set<string> | null;
   requireFileWrites: boolean;
   requireFileReads: boolean;
-  requireSos: boolean;
   edgeVia: Set<string> | null;
   roles: Set<string> | null;
   fileHints: Set<string> | null;
@@ -96,7 +107,6 @@ interface StoredFilterState {
   kernels: string[] | null;
   requireFileWrites: boolean;
   requireFileReads: boolean;
-  requireSos: boolean;
   edgeVia: string[] | null;
   roles: string[] | null;
   fileHints: string[] | null;
@@ -154,6 +164,7 @@ class AnalysisPanel extends Widget {
     this.node.style.height = "100%";
 
     this._settings = this.app.serviceManager.serverSettings;
+    this._config = this._loadConfig();
 
     this.node.appendChild(this._buildHeader());
     this.node.appendChild(this._statusNode);
@@ -234,6 +245,13 @@ class AnalysisPanel extends Widget {
       this._toggleFilters();
     });
 
+    this._settingsBtn = document.createElement("button");
+    this._settingsBtn.textContent = "Settings";
+    this._settingsBtn.className = "jp-mod-styled jp-CellScopePanel-settingsButton";
+    this._settingsBtn.addEventListener("click", () => {
+      void this._showSettingsDialog();
+    });
+
     this._analyzeBtn = document.createElement("button");
     this._analyzeBtn.textContent = "Analyze";
     this._analyzeBtn.className = "jp-mod-styled";
@@ -259,6 +277,7 @@ class AnalysisPanel extends Widget {
     });
 
     controls.appendChild(this._filtersBtn);
+    controls.appendChild(this._settingsBtn);
     controls.appendChild(this._analyzeBtn);
     controls.appendChild(this._exportBtn);
     controls.appendChild(this._graphBtn);
@@ -315,7 +334,8 @@ class AnalysisPanel extends Widget {
           body: JSON.stringify({
             notebook: notebookPath,
             out_dir: outDir,
-            hints: review.hints
+            hints: review.hints,
+            index: this._buildIndexConfig()
           }),
           headers: { "Content-Type": "application/json" }
         },
@@ -382,14 +402,6 @@ class AnalysisPanel extends Widget {
   }
 
   private async _runAnalysis(source: "manual" | "auto"): Promise<void> {
-    const notebookPath = this._currentNotebookPath();
-    if (!notebookPath) {
-      if (source === "manual") {
-        this._setStatus("Open a notebook to analyze.", "warn");
-      }
-      return;
-    }
-
     if (this._analyzeInFlight) {
       if (source === "auto") {
         this._rerunAfterCurrent = true;
@@ -402,18 +414,34 @@ class AnalysisPanel extends Widget {
       window.clearTimeout(this._pendingTimeout);
       this._pendingTimeout = null;
     }
+    if (this._config.dataSource === "sparql") {
+      this._latestGraphUrl = null;
+    }
 
     this._analyzeInFlight = true;
     this._rerunAfterCurrent = false;
 
     if (source === "manual") {
-      this._setBusy(true, "Analyzing notebook…");
+      this._setBusy(true, this._config.dataSource === "sparql" ? "Loading from SPARQL…" : "Analyzing notebook…");
     } else {
       this._setBusy(true, undefined, true);
     }
 
     try {
-      const payload = await this._requestAnalysis(notebookPath);
+      let payload: AnalyzeResponse;
+      if (this._config.dataSource === "sparql") {
+        payload = await this._requestSparqlSummary();
+        this._latestGraphUrl = await this._requestSparqlGraph();
+      } else {
+        const notebookPath = this._currentNotebookPath();
+        if (!notebookPath) {
+          if (source === "manual") {
+            this._setStatus("Open a notebook to analyze.", "warn");
+          }
+          return;
+        }
+        payload = await this._requestAnalysis(notebookPath);
+      }
       this._renderAnalysis(payload);
       if (source === "manual") {
         this._setStatus("Analysis complete.", "info");
@@ -444,6 +472,7 @@ class AnalysisPanel extends Widget {
     });
     this._syncFilterOptions(data.graph);
     this._renderFilterControls();
+    this._graphBtn.disabled = !this._latestGraphUrl;
     this._toggleFilters(false);
     this._saveFilterState();
     this._renderFilteredView(true);
@@ -697,13 +726,6 @@ class AnalysisPanel extends Widget {
         })
       )
     );
-    togglesWrapper.appendChild(
-      this._createToggle("Only SoS exchanges", this._filterState.requireSos, value =>
-        this._updateFilters(() => {
-          this._filterState.requireSos = value;
-        })
-      )
-    );
     this._filterNode.appendChild(togglesWrapper);
 
     if (this._roleOptions.length) {
@@ -812,9 +834,20 @@ class AnalysisPanel extends Widget {
     if (!filteredCells.length) {
       this._resultsNode.textContent = "No cells match the current filters.";
     } else {
+      const groups = new Map<string, AnalyzeCell[]>();
       filteredCells.forEach(cell => {
-        const sosPut = cell.sos_put ?? [];
-        const sosGet = cell.sos_get ?? [];
+        const label = cell.graph ?? "Notebook";
+        const arr = groups.get(label) ?? [];
+        arr.push(cell);
+        groups.set(label, arr);
+      });
+
+      Array.from(groups.entries()).forEach(([label, cells]) => {
+        const header = document.createElement("h4");
+        header.textContent = `Notebook: ${label}`;
+        this._resultsNode.appendChild(header);
+
+        cells.forEach(cell => {
         const roleTokens = this._roleTokensForCell(cell, hints);
         const fileTokens = this._fileHintTokensForCell(cell, hints);
         const details = document.createElement("details");
@@ -844,13 +877,12 @@ class AnalysisPanel extends Widget {
           this._renderList("Used Vars", cell.var_uses),
           this._renderList("File Writes", cell.file_writes),
           this._renderList("File Reads", cell.file_reads),
-          this._renderList("SoS put", sosPut),
-          this._renderList("SoS get", sosGet),
           this._renderList("Roles", roleTokens),
           this._renderList("File metadata", fileTokens)
         );
         details.appendChild(body);
         this._resultsNode.appendChild(details);
+      });
       });
     }
 
@@ -893,9 +925,7 @@ class AnalysisPanel extends Widget {
     }
   }
   private _matchesCell(cell: AnalyzeCell): boolean {
-    const { search, kernels, requireFileReads, requireFileWrites, requireSos, roles, fileHints } = this._filterState;
-    const sosPut = cell.sos_put ?? [];
-    const sosGet = cell.sos_get ?? [];
+    const { search, kernels, requireFileReads, requireFileWrites, roles, fileHints } = this._filterState;
     const hints = this._effectiveHints();
     const roleTokens = this._roleTokensForCell(cell, hints);
     const fileHintTokens = this._fileHintTokensForCell(cell, hints);
@@ -910,10 +940,6 @@ class AnalysisPanel extends Widget {
     if (requireFileReads && cell.file_reads.length === 0) {
       return false;
     }
-    if (requireSos && sosPut.length === 0 && sosGet.length === 0) {
-      return false;
-    }
-
     if (roles && roles.size > 0 && !roleTokens.some(role => roles.has(role))) {
       return false;
     }
@@ -936,8 +962,6 @@ class AnalysisPanel extends Widget {
       ...cell.var_uses,
       ...cell.file_writes,
       ...cell.file_reads,
-      ...sosPut,
-      ...sosGet,
       ...hintTokens
     ]
       .join(" ")
@@ -1170,7 +1194,6 @@ class AnalysisPanel extends Widget {
       kernels: null,
       requireFileWrites: false,
       requireFileReads: false,
-      requireSos: false,
       edgeVia: null,
       roles: null,
       fileHints: null
@@ -1189,7 +1212,6 @@ class AnalysisPanel extends Widget {
       kernels: toSortedArray(this._filterState.kernels),
       requireFileWrites: this._filterState.requireFileWrites,
       requireFileReads: this._filterState.requireFileReads,
-      requireSos: this._filterState.requireSos,
       edgeVia: toSortedArray(this._filterState.edgeVia),
       roles: toSortedArray(this._filterState.roles),
       fileHints: toSortedArray(this._filterState.fileHints)
@@ -1233,9 +1255,6 @@ class AnalysisPanel extends Widget {
       }
       if (typeof parsed.requireFileReads === "boolean") {
         this._filterState.requireFileReads = parsed.requireFileReads;
-      }
-      if (typeof parsed.requireSos === "boolean") {
-        this._filterState.requireSos = parsed.requireSos;
       }
       if (parsed.edgeVia === null) {
         this._filterState.edgeVia = null;
@@ -1380,8 +1399,7 @@ class AnalysisPanel extends Widget {
       (this._filterState.fileHints && this._filterState.fileHints.size > 0 ? 1 : 0) +
       (this._filterState.edgeVia && this._filterState.edgeVia.size > 0 ? 1 : 0) +
       (this._filterState.requireFileReads ? 1 : 0) +
-      (this._filterState.requireFileWrites ? 1 : 0) +
-      (this._filterState.requireSos ? 1 : 0);
+      (this._filterState.requireFileWrites ? 1 : 0);
     this._filtersBtn.textContent = activeCount ? `Filters (${activeCount})` : "Filters";
     if (!activeCount) {
       this._toggleFilters(false);
@@ -1450,6 +1468,42 @@ class AnalysisPanel extends Widget {
     }
 
     return (await response.json()) as AnalyzeResponse;
+  }
+
+  private async _requestSparqlSummary(): Promise<AnalyzeResponse> {
+    const url = URLExt.join(this._settings.baseUrl, "cellscope", "sparql_summary");
+    const response = await ServerConnection.makeRequest(
+      url,
+      {
+        method: "POST",
+        body: JSON.stringify(this._buildIndexConfig()),
+        headers: { "Content-Type": "application/json" }
+      },
+      this._settings
+    );
+    if (!response.ok) {
+      throw new ServerConnection.ResponseError(response);
+    }
+    return (await response.json()) as AnalyzeResponse;
+  }
+
+  private async _requestSparqlGraph(): Promise<string | null> {
+    const url = URLExt.join(this._settings.baseUrl, "cellscope", "sparql_graph");
+    const response = await ServerConnection.makeRequest(
+      url,
+      {
+        method: "POST",
+        body: JSON.stringify(this._buildIndexConfig()),
+        headers: { "Content-Type": "application/json" }
+      },
+      this._settings
+    );
+    if (!response.ok) {
+      return null;
+    }
+    const payload = await response.json();
+    const graphUrl = payload.graph_url as string | undefined;
+    return graphUrl ?? null;
   }
 
   private async _showReviewDialog(graph: GraphSummary): Promise<ReviewResult | null> {
@@ -1632,9 +1686,7 @@ class AnalysisPanel extends Widget {
         this._renderList("Defined vars", cell.var_defs),
         this._renderList("Used vars", cell.var_uses),
         this._renderList("File writes", cell.file_writes),
-        this._renderList("File reads", cell.file_reads),
-        this._renderList("SoS put", cell.sos_put ?? []),
-        this._renderList("SoS get", cell.sos_get ?? [])
+        this._renderList("File reads", cell.file_reads)
       );
       details.appendChild(bodyDiv);
       cellsSection.appendChild(details);
@@ -1791,6 +1843,448 @@ class AnalysisPanel extends Widget {
     }
   }
 
+  private _loadConfig(): CellScopeConfig {
+    const raw = window.localStorage.getItem(CONFIG_STORAGE_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as Partial<CellScopeConfig>;
+        return {
+          endpoint: parsed.endpoint ?? DEFAULT_SPARQL_ENDPOINT,
+          token: parsed.token ?? "",
+          username: parsed.username ?? "",
+          password: parsed.password ?? "",
+          retries: typeof parsed.retries === "number" ? parsed.retries : 2,
+          backoffSeconds: typeof parsed.backoffSeconds === "number" ? parsed.backoffSeconds : 1.5,
+          outputPath: parsed.outputPath ?? "",
+          dataSource: parsed.dataSource === "sparql" ? "sparql" : "local"
+        };
+      } catch (e) {
+        console.warn("Failed to parse CellScope config, resetting", e);
+      }
+    }
+    return {
+      endpoint: DEFAULT_SPARQL_ENDPOINT,
+      token: "",
+      username: "",
+      password: "",
+      retries: 2,
+      backoffSeconds: 1.5,
+      outputPath: "",
+      dataSource: "local"
+    };
+  }
+
+  private _saveConfig(cfg: CellScopeConfig): void {
+    this._config = cfg;
+    window.localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(cfg));
+  }
+
+  private _buildIndexConfig(): any {
+    const cfg = this._config;
+    const index: any = {};
+    if (cfg.endpoint) {
+      index.endpoint = cfg.endpoint;
+    }
+    if (cfg.outputPath) {
+      index.output = cfg.outputPath;
+    }
+    if (cfg.token) {
+      index.auth_token = cfg.token;
+    }
+    if (cfg.username && cfg.password) {
+      index.username = cfg.username;
+      index.password = cfg.password;
+    }
+    if (cfg.retries || cfg.retries === 0) {
+      index.retries = cfg.retries;
+    }
+    if (cfg.backoffSeconds || cfg.backoffSeconds === 0) {
+      index.backoff_seconds = cfg.backoffSeconds;
+    }
+    return index;
+  }
+
+  private _sparqlHeaders(token: string, username: string, password: string): Record<string, string> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/x-www-form-urlencoded"
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else if (username && password) {
+      const encoded = btoa(`${username}:${password}`);
+      headers["Authorization"] = `Basic ${encoded}`;
+    }
+    return headers;
+  }
+
+  private async _sparqlFetch(endpoint: string, query: string, token: string, username: string, password: string): Promise<any> {
+    if (!endpoint) {
+      throw new Error("Endpoint required");
+    }
+    const headers = this._sparqlHeaders(token, username, password);
+    const doQuery = async (url: string) => {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers,
+        body: `query=${encodeURIComponent(query)}`
+      });
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`);
+      }
+      return resp.json();
+    };
+    try {
+      return await doQuery(endpoint);
+    } catch (err: any) {
+      const str = typeof err?.message === "string" ? err.message : "";
+      if (str.includes("HTTP 400") && endpoint.includes("/update")) {
+        const queryEndpoint = endpoint.replace("/update", "/sparql");
+        return await doQuery(queryEndpoint);
+      }
+      throw err;
+    }
+  }
+
+  private async _fetchGraphList(endpoint: string, token: string, username: string, password: string): Promise<string[]> {
+    const query = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
+    const data = await this._sparqlFetch(endpoint, query, token, username, password);
+    const bindings = data?.results?.bindings ?? [];
+    const graphs: string[] = [];
+    bindings.forEach((b: any) => {
+      const val = b?.g?.value;
+      if (typeof val === "string") {
+        graphs.push(val);
+      }
+    });
+    return graphs;
+  }
+
+  private _latestPerNotebook(graphs: string[]): string[] {
+    const byBase = new Map<string, { ver: number; full: string }>();
+    graphs.forEach(g => {
+      let base = g;
+      let ver = -1;
+      if (g.includes("?v=")) {
+        const parts = g.split("?v=");
+        base = parts[0];
+        const parsed = parseInt(parts[1], 10);
+        if (!isNaN(parsed)) {
+          ver = parsed;
+        }
+      }
+      const prev = byBase.get(base);
+      if (!prev || ver > prev.ver) {
+        byBase.set(base, { ver, full: g });
+      }
+    });
+    return Array.from(byBase.values()).map(x => x.full);
+  }
+
+  private async _fetchTriples(graphs: string[], endpoint: string, token: string, username: string, password: string): Promise<Array<[string, string, string, any, any]>> {
+    if (!graphs.length) {
+      return [];
+    }
+    const values = graphs.map(g => `<${g}>`).join(" ");
+    const query = `
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?g ?s ?p ?o WHERE {
+  VALUES ?g { ${values} }
+  GRAPH ?g {
+    ?s ?p ?o .
+    FILTER (?p IN (prov:used, prov:wasGeneratedBy, rdf:type, schema:name))
+  }
+}
+`;
+    const data = await this._sparqlFetch(endpoint, query, token, username, password);
+    const triples: Array<[string, string, string, any, any]> = [];
+    const bindings = data?.results?.bindings ?? [];
+    bindings.forEach((b: any) => {
+      const g = b?.g?.value;
+      const s = b?.s?.value;
+      const p = b?.p?.value;
+      const oObj = b?.o ?? {};
+      if (typeof g === "string" && typeof s === "string" && typeof p === "string") {
+        triples.push([g, s, p, oObj?.value, oObj?.type]);
+      }
+    });
+    return triples;
+  }
+
+  private _buildGraphFromTriples(triples: Array<[string, string, string, any, any]>): GraphSummary {
+    const activities = new Map<string, { id: string; graph: string }>();
+    const dataEntities = new Map<string, { id: string; graph: string }>();
+    const nameMap = new Map<string, string>();
+    const graphLabels = new Map<string, string>();
+
+    triples.forEach(([g, s, p, o]) => {
+      if (!graphLabels.has(g)) {
+        graphLabels.set(g, this._graphLabel(g));
+      }
+      if (p === "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+        if (o === "http://www.w3.org/ns/prov#Activity" || (typeof o === "string" && o.endsWith("ontoflow#Activity"))) {
+          activities.set(s, { id: s, graph: g });
+        } else {
+          dataEntities.set(s, { id: s, graph: g });
+        }
+      }
+      if (p === "http://schema.org/name" && typeof o === "string") {
+        nameMap.set(s, o);
+      }
+    });
+
+    const producedBy = new Map<string, string>();
+    const consumedBy = new Map<string, string[]>();
+    const baseProducers = new Map<string, string>();
+
+    triples.forEach(([g, s, p, o]) => {
+      if (p === "http://www.w3.org/ns/prov#wasGeneratedBy" && typeof o === "string") {
+        producedBy.set(s, o);
+        const base = this._baseName(nameMap.get(s) || s);
+        if (base) {
+          if (!baseProducers.has(base)) {
+            baseProducers.set(base, o);
+          }
+        }
+      }
+      if (p === "http://www.w3.org/ns/prov#used" && typeof o === "string") {
+        const arr = consumedBy.get(o) || [];
+        arr.push(s);
+        consumedBy.set(o, arr);
+      }
+    });
+
+    const cells: AnalyzeCell[] = [];
+    const idxMap = new Map<string, number>();
+    Array.from(activities.values()).forEach((act, idx) => {
+      idxMap.set(act.id, idx);
+      cells.push({
+        idx,
+        name: nameMap.get(act.id) || act.id,
+        kernel: graphLabels.get(act.graph) ?? "sparql",
+        graph: graphLabels.get(act.graph) ?? act.graph,
+        funcs: [],
+        var_defs: [],
+        var_uses: [],
+        file_writes: [],
+        file_reads: []
+      });
+    });
+
+    const edges: AnalyzeEdge[] = [];
+    producedBy.forEach((prod, dataId) => {
+      const consumers = consumedBy.get(dataId) || [];
+      if (!idxMap.has(prod)) {
+        return;
+      }
+      consumers.forEach(cons => {
+        if (!idxMap.has(cons)) {
+          return;
+        }
+        edges.push({
+          source: idxMap.get(prod),
+          target: idxMap.get(cons),
+          type: "uses",
+          via: "sparql",
+          vars: [nameMap.get(dataId) || dataId]
+        });
+      });
+    });
+
+    consumedBy.forEach((consumers, dataId) => {
+      const base = this._baseName(nameMap.get(dataId) || dataId);
+      const prod = baseProducers.get(base);
+      if (!prod || !idxMap.has(prod)) {
+        return;
+      }
+      consumers.forEach(cons => {
+        if (!idxMap.has(cons)) {
+          return;
+        }
+        edges.push({
+          source: idxMap.get(prod),
+          target: idxMap.get(cons),
+          type: "uses",
+          via: "sparql",
+          vars: [base]
+        });
+      });
+    });
+
+    return { cells, edges };
+  }
+
+  private _baseName(value: string): string {
+    const parts = value.replace(/\\/g, "/").split("/");
+    return parts[parts.length - 1] || value;
+  }
+
+  private _graphLabel(uri: string): string {
+    if (!uri) {
+      return "unknown";
+    }
+    const cleaned = uri.split("?")[0];
+    const base = this._baseName(cleaned);
+    return base || uri;
+  }
+
+  private async _showSettingsDialog(): Promise<void> {
+    const cfg = this._config;
+    const body = document.createElement("div");
+    body.className = "jp-CellScopeSettings";
+
+    const makeField = (labelText: string, input: HTMLElement) => {
+      const row = document.createElement("label");
+      row.className = "jp-CellScopeSettings-row";
+      const span = document.createElement("span");
+      span.textContent = labelText;
+      row.appendChild(span);
+      row.appendChild(input);
+      return row;
+    };
+
+    const endpointInput = document.createElement("input");
+    endpointInput.type = "text";
+    endpointInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    endpointInput.placeholder = "SPARQL endpoint (query/update)";
+    endpointInput.value = cfg.endpoint;
+
+    const tokenInput = document.createElement("input");
+    tokenInput.type = "text";
+    tokenInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    tokenInput.placeholder = "Auth token (optional)";
+    tokenInput.value = cfg.token;
+
+    const userInput = document.createElement("input");
+    userInput.type = "text";
+    userInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    userInput.placeholder = "Username (optional)";
+    userInput.value = cfg.username;
+
+    const passInput = document.createElement("input");
+    passInput.type = "password";
+    passInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    passInput.placeholder = "Password (optional)";
+    passInput.value = cfg.password;
+
+    const retriesInput = document.createElement("input");
+    retriesInput.type = "number";
+    retriesInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    retriesInput.min = "0";
+    retriesInput.step = "1";
+    retriesInput.value = String(cfg.retries ?? 2);
+
+    const backoffInput = document.createElement("input");
+    backoffInput.type = "number";
+    backoffInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    backoffInput.min = "0";
+    backoffInput.step = "0.5";
+    backoffInput.value = String(cfg.backoffSeconds ?? 1.5);
+
+    const outputInput = document.createElement("input");
+    outputInput.type = "text";
+    outputInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    outputInput.placeholder = "Index output file (optional)";
+    outputInput.value = cfg.outputPath;
+
+    const dataSourceSelect = document.createElement("select");
+    dataSourceSelect.className = "jp-CellScopeReview-input jp-mod-styled";
+    const optLocal = document.createElement("option");
+    optLocal.value = "local";
+    optLocal.textContent = "Local (capture JSON)";
+    const optSparql = document.createElement("option");
+    optSparql.value = "sparql";
+    optSparql.textContent = "SPARQL (triplestore)";
+    dataSourceSelect.append(optLocal, optSparql);
+    dataSourceSelect.value = cfg.dataSource === "sparql" ? "sparql" : "local";
+
+    const dataSourceRow = document.createElement("div");
+    dataSourceRow.className = "jp-CellScopeSettings-row";
+    const dsLabel = document.createElement("span");
+    dsLabel.textContent = "Data source";
+    dataSourceRow.appendChild(dsLabel);
+    dataSourceRow.appendChild(dataSourceSelect);
+
+    const testButton = document.createElement("button");
+    testButton.className = "jp-mod-styled";
+    testButton.textContent = "Test SPARQL (list graphs)";
+    const testStatus = document.createElement("div");
+    testStatus.className = "jp-CellScopeSettings-status";
+    testButton.addEventListener("click", async () => {
+      testStatus.textContent = "Querying…";
+      try {
+        const graphs = await this._fetchGraphList(
+          endpointInput.value.trim() || DEFAULT_SPARQL_ENDPOINT,
+          tokenInput.value.trim(),
+          userInput.value.trim(),
+          passInput.value
+        );
+        if (!graphs.length) {
+          testStatus.textContent = "No graphs returned.";
+        } else {
+          testStatus.textContent = `Graphs (${graphs.length}): ${graphs.slice(0, 5).join(", ")}${graphs.length > 5 ? " …" : ""}`;
+        }
+      } catch (err) {
+        testStatus.textContent = `Error: ${this._stringifyError(err)}`;
+      }
+    });
+
+    body.appendChild(makeField("SPARQL endpoint", endpointInput));
+    body.appendChild(makeField("Auth token", tokenInput));
+    body.appendChild(makeField("Username", userInput));
+    body.appendChild(makeField("Password", passInput));
+    body.appendChild(makeField("Retries", retriesInput));
+    body.appendChild(makeField("Backoff (s)", backoffInput));
+    body.appendChild(makeField("Index output file", outputInput));
+    body.appendChild(dataSourceRow);
+    body.appendChild(testButton);
+    body.appendChild(testStatus);
+
+    const dialog = new Dialog({
+      title: "CellScope Settings",
+      body: new Widget({ node: body }),
+      buttons: [Dialog.cancelButton({ label: "Cancel" }), Dialog.okButton({ label: "Save" })]
+    });
+
+    const result = await dialog.launch();
+    if (!result.button.accept) {
+      return;
+    }
+    const nextCfg: CellScopeConfig = {
+      endpoint: endpointInput.value.trim(),
+      token: tokenInput.value.trim(),
+      username: userInput.value.trim(),
+      password: passInput.value,
+      retries: Number(retriesInput.value) || 0,
+      backoffSeconds: Number(backoffInput.value) || 0,
+      outputPath: outputInput.value.trim(),
+      dataSource: dataSourceSelect.value === "sparql" ? "sparql" : "local"
+    };
+
+    if (nextCfg.dataSource === "sparql") {
+      if (!nextCfg.endpoint) {
+        nextCfg.endpoint = DEFAULT_SPARQL_ENDPOINT;
+      }
+      try {
+        await this._fetchGraphList(
+          nextCfg.endpoint,
+          nextCfg.token,
+          nextCfg.username,
+          nextCfg.password
+        );
+      } catch (err) {
+        this._setStatus(
+          `SPARQL check failed (${this._stringifyError(err)}); falling back to local.`,
+          "warn"
+        );
+        nextCfg.dataSource = "local";
+      }
+    }
+
+    this._saveConfig(nextCfg);
+  }
+
   private readonly _statusNode = (() => {
     const div = document.createElement("div");
     div.className = "jp-CellScopePanel-status";
@@ -1867,6 +2361,8 @@ class AnalysisPanel extends Widget {
   private _rerunAfterCurrent = false;
   private _filtersVisible = false;
   private _lastFilterSignature = "";
+  private _config: CellScopeConfig;
+  private _settingsBtn!: HTMLButtonElement;
 }
 class WorkflowCaptureForm extends Widget {
   private _workflow: HTMLInputElement;

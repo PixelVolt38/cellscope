@@ -4,6 +4,7 @@ from typing import Dict, Any
 
 DEFAULT_METADATA_CONFIG: Dict[str, Any] = {
     "file_fields": [
+        {"key": "https://cellscope.dev/terms/localPath", "predicate": "https://cellscope.dev/terms/localPath"},
         {"key": "encodingFormat", "predicate": "schema:encodingFormat"},
         {"key": "keywords", "predicate": "schema:keywords"},
         {"key": "accessURL", "predicate": "dcat:accessURL"},

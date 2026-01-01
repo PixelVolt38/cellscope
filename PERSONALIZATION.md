@@ -37,7 +37,7 @@ Structure:
   "variable_fields": []
 }
 ```
-Defaults cover `encodingFormat`, `keywords`, `accessURL`, `etag`, `retrievedAt`, `dateModified`; any additional `file_fields` will be emitted as triples using the provided predicates.
+Defaults cover `encodingFormat`, `keywords`, `accessURL`, `etag`, `retrievedAt`, `dateModified`, and the local file pointer (`https://cellscope.dev/terms/localPath`); any additional `file_fields` will be emitted as triples using the provided predicates.
 
 ## JupyterLab settings panel
 The CellScope panel includes a Settings dialog where you can set:

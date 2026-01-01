@@ -18,6 +18,7 @@ from rocrate.model.contextentity import ContextEntity
 OFLOW = "https://example.org/ontology/ontoflow#"
 ONTODT = "https://example.org/ontology/ontodt#"
 PROV = "http://www.w3.org/ns/prov#"
+LOCAL_PATH_IRI = "https://cellscope.dev/terms/localPath"
 
 try:
     from .visualize import visualize_rocrate
@@ -91,6 +92,44 @@ def _remote_metadata(url: str) -> Dict[str, Any]:
         props["dateModified"] = last_modified
     props["retrievedAt"] = datetime.utcnow().isoformat() + "Z"
     return props
+
+
+def _should_fetch_remote_artifacts() -> bool:
+    return bool(os.environ.get("CELLSCOPE_FETCH_REMOTE_ARTIFACTS")) and requests is not None
+
+
+def _download_remote_artifact(url: str, dest_path: str) -> bool:
+    if not _should_fetch_remote_artifacts():
+        return False
+    if requests is None:
+        return False
+    max_bytes_raw = os.environ.get("CELLSCOPE_REMOTE_MAX_BYTES")
+    max_bytes = int(max_bytes_raw) if max_bytes_raw and max_bytes_raw.isdigit() else None
+    try:
+        resp = requests.get(url, stream=True, timeout=10)
+    except Exception:
+        return False
+    if resp is None or resp.status_code >= 400:
+        return False
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    total = 0
+    try:
+        with open(dest_path, "wb") as handle:
+            for chunk in resp.iter_content(chunk_size=65536):
+                if not chunk:
+                    continue
+                total += len(chunk)
+                if max_bytes is not None and total > max_bytes:
+                    raise RuntimeError("remote artifact exceeds size limit")
+                handle.write(chunk)
+    except Exception:
+        try:
+            if os.path.exists(dest_path):
+                os.remove(dest_path)
+        except Exception:
+            pass
+        return False
+    return True
 
 
 def _add_usage_with_role(crate: ROCrate, activity, data_entity, role: Optional[str]):
@@ -246,6 +285,30 @@ def build_rocrate(capture: Dict[str, Any],
         used_dest_names.add(candidate)
         return candidate
 
+    has_part_ids: Set[str] = set()
+    def _add_has_part(entity: ContextEntity) -> None:
+        entity_id = entity.id
+        if entity_id in has_part_ids:
+            return
+        has_part_ids.add(entity_id)
+        crate.root_dataset.append_to("hasPart", entity)
+
+    nb_path = capture.get("nb_path")
+    if nb_path:
+        nb_abs = os.path.abspath(nb_path)
+        if os.path.exists(nb_abs):
+            nb_base = os.path.basename(nb_abs)
+            nb_dest = f"notebook/{_unique_dest(nb_base)}"
+            nb_props = {
+                "@type": ["File"],
+                "name": nb_base,
+                "encodingFormat": "application/x-ipynb+json",
+                "isPartOf": "./",
+                LOCAL_PATH_IRI: nb_abs,
+            }
+            nb_entity = crate.add_file(nb_abs, dest_path=nb_dest, properties=nb_props)
+            _add_has_part(nb_entity)
+
     for c in cells:
         for fpath in c.file_writes:
             if _is_url(fpath):
@@ -263,18 +326,25 @@ def build_rocrate(capture: Dict[str, Any],
             if _is_url(absf):
                 props['accessURL'] = absf
                 props.update(_remote_metadata(absf))
+                dest_abs = os.path.join(crate_root, dest_rel)
+                if _download_remote_artifact(absf, dest_abs):
+                    h = _b2_hash(dest_abs)
+                    if h:
+                        props['contentHash'] = f'blake2b-256:{h}'
                 fe = ContextEntity(crate, dest_rel, properties=props)
                 crate.add(fe)
             elif os.path.exists(absf):
                 h = _b2_hash(absf)
                 if h:
                     props['contentHash'] = f'blake2b-256:{h}'
+                props[LOCAL_PATH_IRI] = os.path.abspath(absf)
                 fe = crate.add_file(absf, dest_path=dest_rel, properties=props)
             else:
+                props[LOCAL_PATH_IRI] = os.path.abspath(absf)
                 fe = ContextEntity(crate, dest_rel, properties=props)
                 crate.add(fe)
             file_entities[absf] = fe
-            crate.root_dataset.append_to("hasPart", fe)
+            _add_has_part(fe)
             activities[c.idx].append_to(f'{OFLOW}hasOutput', fe)
             fe.append_to(f'{PROV}wasGeneratedBy', activities[c.idx])
             dh = _domain_hints_for(base, hints or {})
@@ -299,18 +369,25 @@ def build_rocrate(capture: Dict[str, Any],
                 if _is_url(absf):
                     props['accessURL'] = absf
                     props.update(_remote_metadata(absf))
+                    dest_abs = os.path.join(crate_root, dest_rel)
+                    if _download_remote_artifact(absf, dest_abs):
+                        h = _b2_hash(dest_abs)
+                        if h:
+                            props['contentHash'] = f'blake2b-256:{h}'
                     fe = ContextEntity(crate, dest_rel, properties=props)
                     crate.add(fe)
                 elif os.path.exists(absf):
                     h = _b2_hash(absf)
                     if h:
                         props['contentHash'] = f'blake2b-256:{h}'
+                    props[LOCAL_PATH_IRI] = os.path.abspath(absf)
                     fe = crate.add_file(absf, dest_path=dest_rel, properties=props)
                 else:
+                    props[LOCAL_PATH_IRI] = os.path.abspath(absf)
                     fe = ContextEntity(crate, dest_rel, properties=props)
                     crate.add(fe)
                 file_entities[absf] = fe
-            crate.root_dataset.append_to("hasPart", fe)
+            _add_has_part(fe)
             activities[c.idx].append_to(f'{OFLOW}hasInput', fe)
             activities[c.idx].append_to(f'{PROV}used', fe)
             role = _role_for_input(_basename_for_path(absf), hints or {}) or 'dataset'
@@ -354,14 +431,26 @@ def build_rocrate(capture: Dict[str, Any],
     graph_path = os.path.join(crate_root, 'cell_graph.graphml')
     nx.write_graphml(G, graph_path)
 
-    crate.add_file(graph_path, dest_path='cell_graph.graphml',
-                   properties={'@type': ['File', 'https://example.org/ontology/graph#Graph'], 'name': 'cell_graph'})
+    graph_entity = crate.add_file(
+        graph_path,
+        dest_path='cell_graph.graphml',
+        properties={'@type': ['File', 'https://example.org/ontology/graph#Graph'], 'name': 'cell_graph'}
+    )
+    _add_has_part(graph_entity)
 
     crate.write(crate_root)
 
     if visualize_rocrate is not None:
         try:
             visualize_rocrate(crate_root, panel=True)
+            html_path = os.path.join(crate_root, 'cell_graph.html')
+            if os.path.exists(html_path):
+                html_entity = crate.add_file(
+                    html_path,
+                    dest_path='cell_graph.html',
+                    properties={'@type': ['File', 'https://example.org/ontology/graph#Graph'], 'name': 'cell_graph_html'}
+                )
+                _add_has_part(html_entity)
         except Exception as exc:
             print(f"[cellscope] Failed to generate PyVis HTML: {exc}")
     else:

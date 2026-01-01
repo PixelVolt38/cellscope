@@ -2,6 +2,7 @@
 Jupyter Server extension: exposes CellScope endpoints
  - POST /cellscope/analyze
  - POST /cellscope/export
+ - POST /cellscope/export_cached
  - POST /cellscope/index
  - POST /cellscope/workflow/capture
  - POST /cellscope/sparql_summary
@@ -12,6 +13,7 @@ adding to jupyter_server_config.d.
 """
 import os
 import time
+import shutil
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from jupyter_server.base.handlers import APIHandler
@@ -453,6 +455,10 @@ class ExportHandler(APIHandler):
     def post(self):
         data = self.get_json_body() or {}
         nb_path = data.get("notebook")
+        if not nb_path:
+            self.set_status(400)
+            self.finish({"error": "missing 'notebook' path"})
+            return
         out_dir = data.get("out_dir") or "output"
         aliases = data.get("aliases") or {}
         hints = data.get("hints") or {}
@@ -575,6 +581,35 @@ class ExportHandler(APIHandler):
         raise RuntimeError("Unknown indexing failure")
 
 
+class ExportCachedHandler(APIHandler):
+    def post(self):
+        data = self.get_json_body() or {}
+        source_crate = data.get("source_crate")
+        out_dir = data.get("out_dir") or "output"
+        if not source_crate:
+            self.set_status(400)
+            self.finish({"error": "missing 'source_crate' path"})
+            return
+        src = Path(source_crate)
+        if not src.exists() or not src.is_dir():
+            self.set_status(400)
+            self.finish({"error": f"source_crate not found: {source_crate}"})
+            return
+        dest_root = Path(out_dir) / "ro-crate"
+        dest_root.parent.mkdir(parents=True, exist_ok=True)
+        if dest_root.exists():
+            self.set_status(409)
+            self.finish({"error": f"destination already exists: {dest_root}"})
+            return
+        try:
+            shutil.copytree(src, dest_root)
+        except Exception as exc:
+            self.set_status(500)
+            self.finish({"error": f"failed to copy crate: {exc}"})
+            return
+        self.finish({"crate": str(dest_root)})
+
+
 class IndexHandler(APIHandler):
     def post(self):
         data = self.get_json_body() or {}
@@ -625,6 +660,7 @@ def _merge_index_configs(defaults: IndexConfig, override: IndexConfig) -> IndexC
         if value is not None:
             merged[key] = value
     return merged
+
 
 class WorkflowCaptureHandler(APIHandler):
     def post(self):
@@ -709,6 +745,7 @@ def setup_handlers(server_app):
     host_app.add_handlers(".*$", [
         (url_path_join(pattern, "analyze"), AnalyzeHandler),
         (url_path_join(pattern, "export"), ExportHandler),
+        (url_path_join(pattern, "export_cached"), ExportCachedHandler),
         (url_path_join(pattern, "index"), IndexHandler),
         (url_path_join(pattern, "workflow", "capture"), WorkflowCaptureHandler),
         (url_path_join(pattern, "sparql_summary"), SparqlSummaryHandler),

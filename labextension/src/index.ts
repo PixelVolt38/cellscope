@@ -312,45 +312,18 @@ class AnalysisPanel extends Widget {
       this._setStatus("Open a notebook to export.", "warn");
       return;
     }
+    if (!this._lastAnalysis || !this._lastReview || !this._analysisCrateDir) {
+      this._setStatus("Run Analyze and confirm metadata before exporting.", "warn");
+      return;
+    }
 
-    this._setBusy(true, "Preparing review…");
+    this._setBusy(true, "Exporting RO-Crate…");
     try {
-      const analysis = await this._requestAnalysis(notebookPath);
-      this._renderAnalysis(analysis);
-      this._setBusy(false);
-      const review = await this._showReviewDialog(analysis.graph);
-      if (!review) {
-        this._setStatus("Export cancelled.", "warn");
-        return;
-      }
-
-      this._setBusy(true, "Exporting RO-Crate…");
       const outDir = `out-lab/${Date.now()}`;
-      const url = URLExt.join(this._settings.baseUrl, "cellscope", "export");
-      const response = await ServerConnection.makeRequest(
-        url,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            notebook: notebookPath,
-            out_dir: outDir,
-            hints: review.hints,
-            index: this._buildIndexConfig()
-          }),
-          headers: { "Content-Type": "application/json" }
-        },
-        this._settings
-      );
-
-      if (!response.ok) {
-        throw new ServerConnection.ResponseError(response);
-      }
-
-      const payload = await response.json();
+      const payload = await this._requestExportCached(this._analysisCrateDir, outDir);
       const crateDir = payload.crate as string;
       this._latestGraphUrl = this._buildGraphUrl(crateDir);
       this._renderExportSummary(crateDir, payload.index ?? null);
-      this._lastReview = review;
       this._graphBtn.disabled = !this._latestGraphUrl;
       if (this._lastAnalysis) {
         this._syncFilterOptions(this._lastAnalysis);
@@ -417,6 +390,9 @@ class AnalysisPanel extends Widget {
     if (this._config.dataSource === "sparql") {
       this._latestGraphUrl = null;
     }
+    if (source === "manual") {
+      this._analysisCrateDir = null;
+    }
 
     this._analyzeInFlight = true;
     this._rerunAfterCurrent = false;
@@ -428,8 +404,8 @@ class AnalysisPanel extends Widget {
     }
 
     try {
-      let payload: AnalyzeResponse;
-      if (this._config.dataSource === "sparql") {
+      let payload: AnalyzeResponse | null = null;
+      if (this._config.dataSource === "sparql" && source !== "manual") {
         payload = await this._requestSparqlSummary();
         this._latestGraphUrl = await this._requestSparqlGraph();
       } else {
@@ -440,9 +416,41 @@ class AnalysisPanel extends Widget {
           }
           return;
         }
-        payload = await this._requestAnalysis(notebookPath);
+        const localPayload = await this._requestAnalysis(notebookPath);
+        if (source === "manual") {
+          const review = await this._showReviewDialog(localPayload.graph);
+          if (!review) {
+            this._setStatus("Analysis cancelled.", "warn");
+            return;
+          }
+          const analysisDir = `out-lab/.analysis-cache/${Date.now()}`;
+          const indexCfg = this._buildIndexConfig();
+          const shouldIndex = this._config.dataSource === "sparql" && Boolean(indexCfg.endpoint);
+          const exportPayload = await this._requestExport(
+            notebookPath,
+            analysisDir,
+            review.hints,
+            !shouldIndex
+          );
+          this._analysisCrateDir = exportPayload.crate as string;
+
+          if (this._config.dataSource === "sparql" && shouldIndex) {
+            payload = await this._requestSparqlSummary();
+            this._latestGraphUrl = await this._requestSparqlGraph();
+          } else {
+            payload = localPayload;
+            this._latestGraphUrl = this._buildGraphUrl(exportPayload.crate as string);
+            if (this._config.dataSource === "sparql" && !shouldIndex) {
+              this._setStatus("SPARQL endpoint not configured; showing local analysis.", "warn");
+            }
+          }
+        } else {
+          payload = localPayload;
+        }
       }
-      this._renderAnalysis(payload);
+      if (payload) {
+        this._renderAnalysis(payload);
+      }
       if (source === "manual") {
         this._setStatus("Analysis complete.", "info");
       } else if (!(this._statusNode.textContent ?? "").trim()) {
@@ -1470,6 +1478,54 @@ class AnalysisPanel extends Widget {
     return (await response.json()) as AnalyzeResponse;
   }
 
+  private async _requestExport(
+    notebookPath: string,
+    outDir: string,
+    hints: ReviewHints,
+    skipIndex: boolean
+  ): Promise<any> {
+    const url = URLExt.join(this._settings.baseUrl, "cellscope", "export");
+    const payload: any = {
+      notebook: notebookPath,
+      out_dir: outDir,
+      hints,
+      index: this._buildIndexConfig()
+    };
+    if (skipIndex) {
+      payload.no_index = true;
+    }
+    const response = await ServerConnection.makeRequest(
+      url,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }
+      },
+      this._settings
+    );
+    if (!response.ok) {
+      throw new ServerConnection.ResponseError(response);
+    }
+    return response.json();
+  }
+
+  private async _requestExportCached(sourceCrate: string, outDir: string): Promise<any> {
+    const url = URLExt.join(this._settings.baseUrl, "cellscope", "export_cached");
+    const response = await ServerConnection.makeRequest(
+      url,
+      {
+        method: "POST",
+        body: JSON.stringify({ source_crate: sourceCrate, out_dir: outDir }),
+        headers: { "Content-Type": "application/json" }
+      },
+      this._settings
+    );
+    if (!response.ok) {
+      throw new ServerConnection.ResponseError(response);
+    }
+    return response.json();
+  }
+
   private async _requestSparqlSummary(): Promise<AnalyzeResponse> {
     const url = URLExt.join(this._settings.baseUrl, "cellscope", "sparql_summary");
     const response = await ServerConnection.makeRequest(
@@ -2342,6 +2398,7 @@ SELECT ?g ?s ?p ?o WHERE {
   private _filtersBtn!: HTMLButtonElement;
   private _filterOverlay!: HTMLElement;
   private _latestGraphUrl: string | null = null;
+  private _analysisCrateDir: string | null = null;
   private _lastAnalysis: GraphSummary | null = null;
   private _lastReview: ReviewResult | null = null;
   private _storedHints: ReviewHints | null = null;

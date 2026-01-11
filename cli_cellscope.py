@@ -17,7 +17,7 @@ def cmd_build(args):
         alias_map=aliases.get('aliases') if aliases else None,
         collect_materialized=True
     )
-    # infer cross-kernel edges (SoS %get/%put) + file hand-offs
+    # infer cross-cell edges via file hand-offs
     xk_edges = infer_cross_kernel_edges(capture)
     # build RO-Crate (cells/variables/files; roles & domain hints; hashes)
     crate_dir = build_rocrate(

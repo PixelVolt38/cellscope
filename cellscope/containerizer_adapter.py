@@ -15,8 +15,9 @@ import re
 from typing import Iterable, List, Optional, Sequence, Set, Tuple
 
 IDENT_RE = re.compile(r"\b[.A-Za-z][\w.]*\b")
-LEFT_ASSIGN_RE = re.compile(r"\b([.A-Za-z][\w.]*)\s*(?:<-|(?<![<>=!])=)")
-RIGHT_ASSIGN_RE = re.compile(r"([.A-Za-z][\w.]*)\s*->\s*([.A-Za-z][\w.]*)")
+LEFT_ASSIGN_RE = re.compile(r"\b([.A-Za-z][\w.]*)\s*(?:<<-|<-|(?<![<>=!])=)")
+RIGHT_ASSIGN_RE = re.compile(r"([.A-Za-z][\w.]*)\s*->>?\s*([.A-Za-z][\w.]*)")
+FUNC_DEF_RE = re.compile(r"\b([.A-Za-z][\w.]*)\s*(?:<<-|<-|(?<![<>=!])=)\s*function\s*\(")
 FUNC_CALL_RE = re.compile(r"([A-Za-z.][\w.]*)\s*\(")
 
 KEYWORDS = {
@@ -65,13 +66,22 @@ READ_CALLS = {
     "read.csv2": {"fallback_index": 0},
     "read.table": {"fallback_index": 0},
     "read.delim": {"fallback_index": 0},
+    "read.fwf": {"fallback_index": 0},
     "read_tsv": {"fallback_index": 0},
     "read_csv": {"fallback_index": 0},
     "read_tsv2": {"fallback_index": 0},
+    "read_delim": {"fallback_index": 0},
+    "read_fwf": {"fallback_index": 0},
+    "read_excel": {"fallback_index": 0},
     "readRDS": {"fallback_index": 0},
     "load": {"fallback_index": 0},
     "readLines": {"fallback_index": 0},
     "read_feather": {"fallback_index": 0},
+    "read_parquet": {"fallback_index": 0},
+    "read_orc": {"fallback_index": 0},
+    "read_fst": {"fallback_index": 0},
+    "fread": {"fallback_index": 0},
+    "fromJSON": {"fallback_index": 0},
     "download.file": {"fallback_index": 0},
 }
 
@@ -82,34 +92,71 @@ WRITE_CALLS = {
     "write.delim": {"fallback_index": 1},
     "write_csv": {"fallback_index": 1},
     "write_tsv": {"fallback_index": 1},
+    "write_delim": {"fallback_index": 1},
+    "write_fwf": {"fallback_index": 1},
     "writeLines": {"fallback_index": 1},
     "saveRDS": {"fallback_index": 1},
     "save": {"fallback_index": 1},
     "write_feather": {"fallback_index": 1},
+    "write_parquet": {"fallback_index": 1},
+    "write_orc": {"fallback_index": 1},
+    "write_fst": {"fallback_index": 1},
+    "fwrite": {"fallback_index": 1},
+    "toJSON": {"fallback_index": 0},
+    "write_xlsx": {"fallback_index": 1},
+    "write.xlsx": {"fallback_index": 1},
     "download.file": {"fallback_index": 1},
 }
 
-FILE_ARG_NAMES = ("file", "path", "con", "destfile")
+FILE_ARG_NAMES = ("file", "path", "con", "destfile", "filename", "url")
 
 
-def analyze_r_cell(code: str, timeout: int = 10) -> Tuple[Set[str], Set[str], Set[str], Set[str]]:
-    """Return (defs, uses, writes, reads) for a block of R code."""
+def analyze_r_cell(
+    code: str, timeout: int = 10
+) -> Tuple[Set[str], Set[str], Set[str], Set[str], Set[str], Set[str]]:
+    """Return (defs, uses, writes, reads, func_defs, func_calls) for a block of R code."""
     scrubbed = _strip_comments(code or "")
-    defs = _extract_definitions(scrubbed)
+    func_defs = _extract_function_defs(scrubbed)
+    defs = _extract_definitions(scrubbed) | func_defs
     uses = _extract_uses(scrubbed, defs)
+    func_calls = _extract_function_calls(scrubbed)
+    func_calls = {c for c in func_calls if c not in func_defs and c not in KEYWORDS}
+    func_calls &= uses
     writes = _extract_file_operations(scrubbed, WRITE_CALLS)
     reads = _extract_file_operations(scrubbed, READ_CALLS)
-    return defs, uses, writes, reads
+    return defs, uses, writes, reads, func_defs, func_calls
 
 
 def _strip_comments(code: str) -> str:
     lines = []
     for line in code.splitlines():
-        idx = line.find("#")
-        if idx >= 0:
-            lines.append(line[:idx])
-        else:
-            lines.append(line)
+        out = []
+        in_string: Optional[str] = None
+        i = 0
+        while i < len(line):
+            ch = line[i]
+            if in_string:
+                if ch == "\\":
+                    out.append(ch)
+                    if i + 1 < len(line):
+                        out.append(line[i + 1])
+                        i += 2
+                        continue
+                if ch == in_string:
+                    in_string = None
+                out.append(ch)
+                i += 1
+                continue
+            if ch in ("'", '"'):
+                in_string = ch
+                out.append(ch)
+                i += 1
+                continue
+            if ch == "#":
+                break
+            out.append(ch)
+            i += 1
+        lines.append("".join(out))
     return "\n".join(lines)
 
 
@@ -120,7 +167,11 @@ def _extract_definitions(code: str) -> Set[str]:
             continue
         defs.add(match.group(1))
     defs.update(match.group(2) for match in RIGHT_ASSIGN_RE.finditer(code))
+    defs.update(_extract_function_defs(code))
     return {d for d in defs if d and d not in KEYWORDS}
+
+def _extract_function_defs(code: str) -> Set[str]:
+    return {match.group(1) for match in FUNC_DEF_RE.finditer(code)}
 
 
 def _extract_uses(code: str, defs: Set[str]) -> Set[str]:
@@ -132,8 +183,30 @@ def _extract_uses(code: str, defs: Set[str]) -> Set[str]:
             continue
         if _is_named_argument(sanitized, match.start()):
             continue
+        if _is_member_access(sanitized, match.start()):
+            continue
+        if _is_package_prefix(sanitized, match.start(), match.end()):
+            continue
         tokens.add(token)
     return {tok for tok in tokens if tok not in defs and tok not in KEYWORDS}
+
+def _extract_function_calls(code: str) -> Set[str]:
+    sanitized = _remove_string_literals(code)
+    calls: Set[str] = set()
+    for match in FUNC_CALL_RE.finditer(sanitized):
+        name = match.group(1)
+        if not name:
+            continue
+        if name in KEYWORDS:
+            continue
+        token_start = match.start(1)
+        token_end = match.end(1)
+        if _is_member_access(sanitized, token_start):
+            continue
+        if _is_package_prefix(sanitized, token_start, token_end):
+            continue
+        calls.add(name)
+    return calls
 
 
 def _extract_file_operations(code: str, call_specs: Optional[dict]) -> Set[str]:
@@ -302,3 +375,15 @@ def _is_named_argument(code: str, index: int) -> bool:
         return False
     # Treat assignments that immediately follow "(" or "," as named arguments in a call.
     return code[i] in {"(", ","}
+
+
+def _is_member_access(code: str, index: int) -> bool:
+    if index <= 0:
+        return False
+    return code[index - 1] in {"$", "@"}
+
+
+def _is_package_prefix(code: str, start: int, end: int) -> bool:
+    if end + 1 >= len(code):
+        return False
+    return code[end:end + 2] == "::" or code[end:end + 3] == ":::"

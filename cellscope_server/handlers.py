@@ -14,6 +14,7 @@ adding to jupyter_server_config.d.
 import os
 import time
 import shutil
+import html
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from jupyter_server.base.handlers import APIHandler
@@ -57,11 +58,16 @@ PREFIXES = """
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX schema: <http://schema.org/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX cellscope: <https://cellscope.dev/terms/>
 """
 
 PROV = "http://www.w3.org/ns/prov#"
 SCHEMA = "http://schema.org/"
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+DCAT = "http://www.w3.org/ns/dcat#"
+ONTODT = "https://example.org/ontology/ontodt#"
+CELLSCOPE = "https://cellscope.dev/terms/"
 
 
 def _resolve_graph_uri(nb_path: Optional[str]) -> Optional[str]:
@@ -199,8 +205,20 @@ SELECT ?g ?s ?p ?o WHERE {{
       prov:wasGeneratedBy,
       rdf:type,
       schema:name,
+      schema:text,
+      schema:roles,
       schema:programmingLanguage,
       schema:position,
+      schema:version,
+      schema:category,
+      schema:encodingFormat,
+      schema:keywords,
+      schema:identifier,
+      schema:dateModified,
+      prov:generatedAtTime,
+      dcat:accessURL,
+      cellscope:fileHints,
+      cellscope:funcCalls,
       schema:isPartOf,
       schema:checksum
     ))
@@ -224,31 +242,71 @@ SELECT ?g ?s ?p ?o WHERE {{
     def _build_graph_summary(self, triples: List[tuple]) -> Dict[str, Any]:
         activities: Dict[str, Dict[str, Any]] = {}
         data_entities: Dict[str, Dict[str, Any]] = {}
+        dataset_ids: Dict[str, List[str]] = {}
         name_map: Dict[str, str] = {}
+        type_map: Dict[str, set] = {}
+        category_map: Dict[str, set] = {}
         kernel_map: Dict[str, str] = {}
         position_map: Dict[str, int] = {}
         is_part_of: Dict[str, str] = {}
         hash_map: Dict[str, str] = {}
+        snippet_map: Dict[str, str] = {}
+        roles_map: Dict[str, set] = {}
+        version_map: Dict[str, str] = {}
+        func_calls_map: Dict[str, set] = {}
+        activity_file_hints: Dict[str, set] = {}
+        file_meta_tokens: Dict[str, set] = {}
 
         for g, s, p, o, otype in triples:
             if p == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
                 if o == PROV + "Activity" or o.endswith("ontoflow#Activity"):
                     activities.setdefault(s, {"id": s, "graph": g})
+                elif o == SCHEMA + "Dataset":
+                    dataset_ids.setdefault(g, []).append(s)
                 else:
                     data_entities.setdefault(s, {"id": s, "graph": g})
+                if isinstance(o, str):
+                    type_map.setdefault(s, set()).add(o)
             if p == "http://schema.org/name" and isinstance(o, str):
                 name_map[s] = o
+            if p == "http://schema.org/category" and isinstance(o, str):
+                category_map.setdefault(s, set()).add(o)
             if p == "http://schema.org/programmingLanguage" and isinstance(o, str):
                 kernel_map[s] = o
+            if p == "http://schema.org/text" and isinstance(o, str):
+                snippet_map[s] = o
             if p == "http://schema.org/position":
                 try:
                     position_map[s] = int(o)
                 except Exception:
                     pass
+            if p == "http://schema.org/roles" and isinstance(o, str):
+                role_label = o.split(":", 1)[-1].strip() if ":" in o else o.strip()
+                if role_label:
+                    roles_map.setdefault(s, set()).add(role_label)
+            if p == "http://schema.org/version" and isinstance(o, str):
+                version_map[s] = o
+            if p == CELLSCOPE + "funcCalls" and isinstance(o, str):
+                func_calls_map.setdefault(s, set()).add(o)
+            if p == CELLSCOPE + "fileHints" and isinstance(o, str):
+                activity_file_hints.setdefault(s, set()).add(o)
             if p == "http://schema.org/isPartOf" and isinstance(o, str):
                 is_part_of[s] = o
             if p == "http://schema.org/checksum" and isinstance(o, str):
                 hash_map[s] = o
+            if isinstance(o, str):
+                if p == "http://schema.org/encodingFormat":
+                    file_meta_tokens.setdefault(s, set()).add(f"encodingFormat: {o}")
+                elif p == "http://schema.org/keywords":
+                    file_meta_tokens.setdefault(s, set()).add(f"keywords: {o}")
+                elif p == DCAT + "accessURL":
+                    file_meta_tokens.setdefault(s, set()).add(f"accessURL: {o}")
+                elif p == "http://schema.org/identifier":
+                    file_meta_tokens.setdefault(s, set()).add(f"etag: {o}")
+                elif p == PROV + "generatedAtTime":
+                    file_meta_tokens.setdefault(s, set()).add(f"retrievedAt: {o}")
+                elif p == "http://schema.org/dateModified":
+                    file_meta_tokens.setdefault(s, set()).add(f"dateModified: {o}")
 
         # build producer/consumers
         produced_by: Dict[str, str] = {}
@@ -257,53 +315,105 @@ SELECT ?g ?s ?p ?o WHERE {{
         for g, s, p, o, otype in triples:
             if p == PROV + "wasGeneratedBy" and isinstance(o, str):
                 produced_by[s] = o
-                base = os.path.basename(name_map.get(s, s))
-                if base:
-                    base_producers.setdefault(base, o)
+                name_value = name_map.get(s, s)
+                if isinstance(name_value, str) and (s in hash_map or self._looks_like_file(name_value)):
+                    base = os.path.basename(name_value)
+                    if base:
+                        base_producers.setdefault(base, o)
             if p == PROV + "used" and isinstance(o, str):
                 consumed_by.setdefault(o, []).append(s)
+
+        graph_name_map: Dict[str, str] = {}
+        for graph_uri, ids in dataset_ids.items():
+            root_id = next((did for did in ids if did.endswith("/./") or did.endswith("./")), None)
+            if root_id and name_map.get(root_id):
+                graph_name_map[graph_uri] = name_map[root_id]
+                continue
+            for did in ids:
+                name = name_map.get(did)
+                if name:
+                    graph_name_map[graph_uri] = name
+                    break
 
         cells = []
         idx_map: Dict[str, int] = {}
         for idx, (aid, info) in enumerate(activities.items()):
             idx_map[aid] = idx
-            produced_names = []
+            produced_files: List[str] = []
+            produced_vars: List[str] = []
+            produced_func_names: List[str] = []
+            produced_file_ids: List[str] = []
+            produced_var_ids: List[str] = []
             for data_id, producer in produced_by.items():
-                if producer == aid:
-                    produced_names.append(name_map.get(data_id, data_id))
-            consumed_names = []
+                if producer != aid:
+                    continue
+                label = name_map.get(data_id, data_id)
+                if data_id in hash_map or self._looks_like_file(label):
+                    produced_files.append(label)
+                    produced_file_ids.append(data_id)
+                else:
+                    produced_vars.append(label)
+                    produced_var_ids.append(data_id)
+
+            consumed_files: List[str] = []
+            consumed_vars: List[str] = []
+            consumed_file_ids: List[str] = []
             for data_id, consumers in consumed_by.items():
-                if aid in consumers:
-                    consumed_names.append(name_map.get(data_id, data_id))
+                if aid not in consumers:
+                    continue
+                label = name_map.get(data_id, data_id)
+                if data_id in hash_map or self._looks_like_file(label):
+                    consumed_files.append(label)
+                    consumed_file_ids.append(data_id)
+                else:
+                    consumed_vars.append(label)
 
-            def _split_files(values: List[str]) -> Tuple[List[str], List[str]]:
-                files: List[str] = []
-                others: List[str] = []
-                for v in values:
-                    if any(ch in v for ch in ("/", "\\")) or v.lower().startswith("http"):
-                        files.append(v)
-                    else:
-                        others.append(v)
-                return files, others
+            for data_id in produced_var_ids:
+                types = type_map.get(data_id, set())
+                categories = category_map.get(data_id, set())
+                if ONTODT + "Symbol" in types or "function" in {c.lower() for c in categories}:
+                    produced_func_names.append(name_map.get(data_id, data_id))
 
-            writes_files, writes_vars = _split_files(produced_names)
-            reads_files, reads_vars = _split_files(consumed_names)
+            graph_uri = info.get("graph")
+            graph_label = graph_name_map.get(graph_uri) or self._label_for_graph(graph_uri, is_part_of.get(aid))
+            position = position_map.get(aid)
+            func_calls = sorted(func_calls_map.get(aid, set()) - set(produced_func_names))
+            file_hint_tokens: set = set()
+            for hint_entry in activity_file_hints.get(aid, set()):
+                if not isinstance(hint_entry, str):
+                    continue
+                if "(" in hint_entry and ")" in hint_entry:
+                    inner = hint_entry[hint_entry.find("(") + 1 : hint_entry.rfind(")")]
+                    for part in inner.split(";"):
+                        token = part.strip()
+                        if token:
+                            file_hint_tokens.add(token)
+                else:
+                    file_hint_tokens.add(hint_entry.strip())
+            for file_id in produced_file_ids + consumed_file_ids:
+                file_hint_tokens.update(file_meta_tokens.get(file_id, set()))
 
             cells.append(
                 {
                     "idx": idx,
                     "name": name_map.get(aid) or aid,
                     "kernel": kernel_map.get(aid) or "sparql",
-                    "graph": self._label_for_graph(info.get("graph"), is_part_of.get(aid)),
-                    "funcs": [],
-                    "var_defs": writes_vars,
-                    "var_uses": reads_vars,
-                    "file_writes": writes_files,
-                    "file_reads": reads_files,
+                    "graph": graph_label,
+                    "funcs": sorted(set(produced_func_names)),
+                    "func_calls": func_calls,
+                    "var_defs": sorted(set(produced_vars)),
+                    "var_uses": sorted(set(consumed_vars)),
+                    "file_writes": sorted(set(produced_files)),
+                    "file_reads": sorted(set(consumed_files)),
+                    "position": position,
+                    "roles": sorted(set(roles_map.get(aid, set()))),
+                    "fileHints": sorted(file_hint_tokens),
+                    "version": version_map.get(aid),
+                    "snippet": snippet_map.get(aid),
                 }
             )
 
-        edges = []
+        edges_map: Dict[Tuple[int, int], Dict[str, Any]] = {}
         for data_id, prod in produced_by.items():
             consumers = consumed_by.get(data_id, [])
             if prod not in idx_map:
@@ -311,15 +421,18 @@ SELECT ?g ?s ?p ?o WHERE {{
             for cons in consumers:
                 if cons not in idx_map:
                     continue
-                edges.append(
+                key = (idx_map[prod], idx_map[cons])
+                entry = edges_map.setdefault(
+                    key,
                     {
                         "source": idx_map[prod],
                         "target": idx_map[cons],
                         "type": "uses",
                         "via": "sparql",
-                        "vars": [name_map.get(data_id) or data_id],
-                    }
+                        "vars": set(),
+                    },
                 )
+                entry["vars"].add(name_map.get(data_id) or data_id)
 
         # Cross-notebook heuristic: link by shared basename when producer known
         for data_id, consumers in consumed_by.items():
@@ -330,15 +443,34 @@ SELECT ?g ?s ?p ?o WHERE {{
             for cons in consumers:
                 if cons not in idx_map:
                     continue
-                edges.append(
+                if activities.get(prod, {}).get("graph") == activities.get(cons, {}).get("graph"):
+                    continue
+                key = (idx_map[prod], idx_map[cons])
+                entry = edges_map.setdefault(
+                    key,
                     {
                         "source": idx_map[prod],
                         "target": idx_map[cons],
                         "type": "uses",
                         "via": "sparql",
-                        "vars": [base],
-                    }
+                        "vars": set(),
+                    },
                 )
+                entry["vars"].add(base)
+
+        edges = []
+        for entry in edges_map.values():
+            vars_list = sorted(entry.get("vars") or [])
+            edge = {
+                "source": entry["source"],
+                "target": entry["target"],
+                "type": entry.get("type") or "uses",
+            }
+            if entry.get("via"):
+                edge["via"] = entry["via"]
+            if vars_list:
+                edge["vars"] = vars_list
+            edges.append(edge)
 
         return {"cells": cells, "edges": edges}
 
@@ -354,6 +486,14 @@ SELECT ?g ?s ?p ?o WHERE {{
                 return base
             return graph_uri
         return "notebook"
+
+    def _looks_like_file(self, value: Any) -> bool:
+        if not isinstance(value, str):
+            return False
+        if any(ch in value for ch in ("/", "\\")) or value.lower().startswith("http"):
+            return True
+        base = os.path.basename(value)
+        return "." in base
 
 
 class SparqlGraphHandler(APIHandler):
@@ -407,16 +547,33 @@ class SparqlGraphHandler(APIHandler):
             group = cell.get("graph") or "notebook"
             meta_parts = []
             if cell.get("kernel"):
-                meta_parts.append(f"Kernel: {cell.get('kernel')}")
+                meta_parts.append(f"<div><b>Kernel:</b> {html.escape(str(cell.get('kernel')))}</div>")
+            if cell.get("position") is not None:
+                meta_parts.append(f"<div><b>Position:</b> {html.escape(str(cell.get('position')))}</div>")
+            if cell.get("version"):
+                meta_parts.append(f"<div><b>Version:</b> {html.escape(str(cell.get('version')))}</div>")
+            if cell.get("roles"):
+                meta_parts.append("<div><b>Roles:</b> " + html.escape(", ".join(cell["roles"])) + "</div>")
             if cell.get("var_defs"):
-                meta_parts.append("Defines: " + ", ".join(cell["var_defs"]))
+                meta_parts.append("<div><b>Defines:</b> " + html.escape(", ".join(cell["var_defs"])) + "</div>")
             if cell.get("var_uses"):
-                meta_parts.append("Uses: " + ", ".join(cell["var_uses"]))
+                meta_parts.append("<div><b>Uses:</b> " + html.escape(", ".join(cell["var_uses"])) + "</div>")
+            if cell.get("funcs"):
+                meta_parts.append("<div><b>Functions:</b> " + html.escape(", ".join(cell["funcs"])) + "</div>")
+            if cell.get("func_calls"):
+                meta_parts.append("<div><b>Function calls:</b> " + html.escape(", ".join(cell["func_calls"])) + "</div>")
             if cell.get("file_writes"):
-                meta_parts.append("Writes: " + ", ".join(cell["file_writes"]))
+                meta_parts.append("<div><b>Writes:</b> " + html.escape(", ".join(cell["file_writes"])) + "</div>")
             if cell.get("file_reads"):
-                meta_parts.append("Reads: " + ", ".join(cell["file_reads"]))
-            title = "<b>" + group + "</b><br/>" + "<br/>".join(meta_parts) if meta_parts else group
+                meta_parts.append("<div><b>Reads:</b> " + html.escape(", ".join(cell["file_reads"])) + "</div>")
+            if cell.get("fileHints"):
+                meta_parts.append("<div><b>File metadata:</b> " + html.escape(", ".join(cell["fileHints"])) + "</div>")
+            meta_html = "".join(meta_parts) or "<div><i>(none)</i></div>"
+            snippet_text = cell.get("snippet")
+            if isinstance(snippet_text, str) and snippet_text.strip():
+                snippet_html = "<pre class='roshow-code'>" + html.escape(snippet_text) + "</pre>"
+            else:
+                snippet_html = "<div><i>(no code available)</i></div>"
             # add a soft group parent to keep cells together
             if group not in group_nodes:
                 group_nodes[group] = str(group_idx)
@@ -436,7 +593,9 @@ class SparqlGraphHandler(APIHandler):
                 label=label,
                 shape="box",
                 group=group,
-                title=title,
+                shapeProperties={"borderRadius": 6},
+                snippet=snippet_html,
+                meta=meta_html,
             )
             net.add_edge(group_nodes[group], str(cell.get("idx")), hidden=False, color="rgba(0,0,0,0.05)")
         for edge in summary.get("edges", []):
@@ -445,9 +604,21 @@ class SparqlGraphHandler(APIHandler):
             if src is None or tgt is None:
                 continue
             label = ",".join(edge.get("vars") or [])
-            net.add_edge(str(src), str(tgt), label=label, title=edge.get("via") or "sparql")
+            edge_kwargs: Dict[str, Any] = {}
+            if label:
+                edge_kwargs["label"] = label
+                edge_kwargs["dep_label"] = label
+            if edge.get("via"):
+                edge_kwargs["via"] = edge["via"]
+            net.add_edge(str(src), str(tgt), **edge_kwargs)
         html_path = os.path.join(out_dir, "cell_graph.html")
         net.write_html(html_path, notebook=False)
+        try:
+            from cellscope.visualize import _inject_roshow_panel  # type: ignore
+        except Exception:
+            _inject_roshow_panel = None  # type: ignore
+        if _inject_roshow_panel is not None:
+            _inject_roshow_panel(html_path)
         return f"/files/{html_path}"
 
 
@@ -463,6 +634,7 @@ class ExportHandler(APIHandler):
         aliases = data.get("aliases") or {}
         hints = data.get("hints") or {}
         sidecars = data.get("sidecars") or []
+        config_files = _normalise_string_list(data.get("config_files")) or []
         alias_map = aliases.get("aliases") if isinstance(aliases, dict) else aliases
 
         capture = parse_notebook(
@@ -476,6 +648,7 @@ class ExportHandler(APIHandler):
             infer_cross_kernel_edges(capture),
             hints=hints,
             sidecars=sidecars,
+            config_files=config_files,
         )
 
         request_index_cfg = data.get("index") or {}

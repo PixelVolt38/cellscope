@@ -83,6 +83,7 @@ def cmd_build(args):
     alias_map = _load_alias_map(args.aliases)
     hints = _load_dict(args.hints, "--hints")
     sidecars = load_sidecars(args.sidecars) if args.sidecars else []
+    config_files = args.config_files or []
 
     capture = parse_notebook(
         args.notebook,
@@ -96,6 +97,7 @@ def cmd_build(args):
         xkernel_edges=xk_edges,
         hints=hints,
         sidecars=sidecars,
+        config_files=config_files,
     )
     print(f"RO-Crate written to {crate_dir}")
 
@@ -208,6 +210,7 @@ def main():
     pb.add_argument("--aliases", help="YAML file mapping equivalent variable names")
     pb.add_argument("--hints", help="YAML file with roles/domain hints")
     pb.add_argument("--sidecars", nargs="*", help="JSON sidecar files with bridge hints")
+    pb.add_argument("--config-file", dest="config_files", action="append", help="Environment/config file to include (repeatable)")
     pb.add_argument("--no-index", action="store_true", help="Skip index delta generation")
     pb.add_argument("--index-endpoint", help="SPARQL endpoint URL")
     pb.add_argument("--index-output", help="Override path for SPARQL update payload")

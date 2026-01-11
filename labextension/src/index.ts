@@ -1,5 +1,6 @@
 import { JupyterFrontEnd, JupyterFrontEndPlugin } from "@jupyterlab/application";
 import { ICommandPalette, MainAreaWidget, Dialog, showErrorMessage } from "@jupyterlab/apputils";
+import { FileDialog } from "@jupyterlab/filebrowser";
 import { INotebookTracker, NotebookPanel } from "@jupyterlab/notebook";
 import { URLExt, PageConfig } from "@jupyterlab/coreutils";
 import { DocumentRegistry } from "@jupyterlab/docregistry";
@@ -34,6 +35,7 @@ interface CellScopeConfig {
   backoffSeconds: number;
   outputPath: string;
   dataSource: "local" | "sparql";
+  configFiles: string[];
 }
 
 
@@ -43,10 +45,16 @@ interface AnalyzeCell {
   kernel: string;
   graph?: string;
   funcs: string[];
+  func_calls?: string[];
   var_defs: string[];
   var_uses: string[];
   file_writes: string[];
   file_reads: string[];
+  roles?: string[];
+  fileHints?: string[];
+  position?: number;
+  version?: string;
+  snippet?: string;
 }
 
 interface AnalyzeEdge {
@@ -153,7 +161,11 @@ const basename = (value: string): string => {
 };
 
 class AnalysisPanel extends Widget {
-  constructor(private readonly app: JupyterFrontEnd, private readonly tracker: INotebookTracker | null) {
+  constructor(
+    private readonly app: JupyterFrontEnd,
+    private readonly tracker: INotebookTracker | null,
+    docManager: IDocumentManager | null
+  ) {
     super();
     this.id = "cellscope-analysis-panel";
     this.title.label = "CellScope";
@@ -163,6 +175,7 @@ class AnalysisPanel extends Widget {
     this.node.style.flexDirection = "column";
     this.node.style.height = "100%";
 
+    this._docManager = docManager;
     this._settings = this.app.serviceManager.serverSettings;
     this._config = this._loadConfig();
 
@@ -640,6 +653,13 @@ class AnalysisPanel extends Widget {
         }
       });
     }
+    graph.cells.forEach(cell => {
+      (cell.roles ?? []).forEach(role => {
+        if (role) {
+          roleSet.add(String(role));
+        }
+      });
+    });
     this._roleOptions = Array.from(roleSet).sort((a, b) => a.localeCompare(b));
     this._filterState.roles = this._sanitizeFacet(this._filterState.roles, this._roleOptions);
 
@@ -658,6 +678,13 @@ class AnalysisPanel extends Widget {
         });
       });
     }
+    graph.cells.forEach(cell => {
+      (cell.fileHints ?? []).forEach(token => {
+        if (token) {
+          hintSet.add(String(token));
+        }
+      });
+    });
     this._fileHintOptions = Array.from(hintSet).sort((a, b) => a.localeCompare(b));
     this._filterState.fileHints = this._sanitizeFacet(this._filterState.fileHints, this._fileHintOptions);
   }
@@ -881,6 +908,7 @@ class AnalysisPanel extends Widget {
         body.className = "jp-CellScopePanel-cellBody";
         body.append(
           this._renderList("Functions", cell.funcs),
+          this._renderList("Function calls", cell.func_calls ?? []),
           this._renderList("Defined Vars", cell.var_defs),
           this._renderList("Used Vars", cell.var_uses),
           this._renderList("File Writes", cell.file_writes),
@@ -966,6 +994,7 @@ class AnalysisPanel extends Widget {
       `cell ${cell.idx}`,
       cell.kernel,
       ...cell.funcs,
+      ...(cell.func_calls ?? []),
       ...cell.var_defs,
       ...cell.var_uses,
       ...cell.file_writes,
@@ -1147,7 +1176,13 @@ class AnalysisPanel extends Widget {
 
   private _roleTokensForCell(cell: AnalyzeCell, hints: ReviewHints | null): string[] {
     if (!hints?.roles) {
-      return [];
+      const roles = cell.roles ?? [];
+      return roles
+        .map(role => {
+          const parts = role.split(":", 2);
+          return parts.length === 2 ? parts[1].trim() : role.trim();
+        })
+        .filter(role => role.length > 0);
     }
     const seen = new Set<string>();
     const tokens: string[] = [];
@@ -1163,7 +1198,7 @@ class AnalysisPanel extends Widget {
 
   private _fileHintTokensForCell(cell: AnalyzeCell, hints: ReviewHints | null): string[] {
     if (!hints?.domains) {
-      return [];
+      return (cell.fileHints ?? []).filter(token => token.length > 0);
     }
     const tokens = new Set<string>();
     const domains = hints.domains ?? {};
@@ -1186,10 +1221,7 @@ class AnalysisPanel extends Widget {
   }
 
   private _hintTokensForCell(cell: AnalyzeCell, hints?: ReviewHints | null): string[] {
-    const effective = hints ?? this._effectiveHints();
-    if (!effective) {
-      return [];
-    }
+    const effective = hints ?? this._effectiveHints() ?? null;
     const tokens = new Set<string>();
     this._roleTokensForCell(cell, effective).forEach(token => tokens.add(token));
     this._fileHintTokensForCell(cell, effective).forEach(token => tokens.add(token));
@@ -1489,6 +1521,7 @@ class AnalysisPanel extends Widget {
       notebook: notebookPath,
       out_dir: outDir,
       hints,
+      config_files: this._config.configFiles,
       index: this._buildIndexConfig()
     };
     if (skipIndex) {
@@ -1739,6 +1772,7 @@ class AnalysisPanel extends Widget {
       const bodyDiv = document.createElement("div");
       bodyDiv.append(
         this._renderList("Functions", cell.funcs),
+        this._renderList("Function calls", cell.func_calls ?? []),
         this._renderList("Defined vars", cell.var_defs),
         this._renderList("Used vars", cell.var_uses),
         this._renderList("File writes", cell.file_writes),
@@ -1912,7 +1946,10 @@ class AnalysisPanel extends Widget {
           retries: typeof parsed.retries === "number" ? parsed.retries : 2,
           backoffSeconds: typeof parsed.backoffSeconds === "number" ? parsed.backoffSeconds : 1.5,
           outputPath: parsed.outputPath ?? "",
-          dataSource: parsed.dataSource === "sparql" ? "sparql" : "local"
+          dataSource: parsed.dataSource === "sparql" ? "sparql" : "local",
+          configFiles: Array.isArray(parsed.configFiles)
+            ? parsed.configFiles.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+            : []
         };
       } catch (e) {
         console.warn("Failed to parse CellScope config, resetting", e);
@@ -1926,7 +1963,8 @@ class AnalysisPanel extends Widget {
       retries: 2,
       backoffSeconds: 1.5,
       outputPath: "",
-      dataSource: "local"
+      dataSource: "local",
+      configFiles: []
     };
   }
 
@@ -2244,6 +2282,103 @@ SELECT ?g ?s ?p ?o WHERE {
     outputInput.placeholder = "Index output file (optional)";
     outputInput.value = cfg.outputPath;
 
+    const configFiles: string[] = Array.isArray(cfg.configFiles) ? [...cfg.configFiles] : [];
+    const configList = document.createElement("div");
+    configList.className = "jp-CellScopeSettings-configList";
+
+    const renderConfigList = () => {
+      configList.textContent = "";
+      if (!configFiles.length) {
+        const empty = document.createElement("div");
+        empty.className = "jp-CellScopeSettings-configEmpty";
+        empty.textContent = "No config files selected.";
+        configList.appendChild(empty);
+        return;
+      }
+      configFiles.forEach((pathValue, index) => {
+        const row = document.createElement("div");
+        row.className = "jp-CellScopeSettings-configItem";
+        const label = document.createElement("span");
+        label.textContent = this._normalisePath(pathValue);
+        const remove = document.createElement("button");
+        remove.className = "jp-mod-styled";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", () => {
+          configFiles.splice(index, 1);
+          renderConfigList();
+        });
+        row.appendChild(label);
+        row.appendChild(remove);
+        configList.appendChild(row);
+      });
+    };
+
+    const addConfigFile = (value: string) => {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return;
+      }
+      const normalised = trimmed.replace(/\\/g, "/");
+      const exists = configFiles.some(existing => existing.replace(/\\/g, "/") === normalised);
+      if (exists) {
+        return;
+      }
+      configFiles.push(trimmed);
+      renderConfigList();
+    };
+
+    const configInput = document.createElement("input");
+    configInput.type = "text";
+    configInput.className = "jp-CellScopeReview-input jp-mod-styled";
+    configInput.placeholder = "Add config file path (e.g., requirements.txt)";
+
+    const addConfigBtn = document.createElement("button");
+    addConfigBtn.className = "jp-mod-styled";
+    addConfigBtn.textContent = "Add";
+    addConfigBtn.addEventListener("click", () => {
+      addConfigFile(configInput.value);
+      configInput.value = "";
+    });
+
+    const browseConfigBtn = document.createElement("button");
+    browseConfigBtn.className = "jp-mod-styled";
+    browseConfigBtn.textContent = "Browse…";
+    browseConfigBtn.disabled = !this._docManager;
+    browseConfigBtn.addEventListener("click", async () => {
+      if (!this._docManager) {
+        this._setStatus("File browser is unavailable in this environment.", "warn");
+        return;
+      }
+      try {
+        const result = await FileDialog.getOpenFiles({
+          manager: this._docManager,
+          title: "Select environment/config files"
+        });
+        if (result.button.accept && result.value) {
+          result.value.forEach(model => addConfigFile(model.path));
+        }
+      } catch (err) {
+        this._setStatus(`Failed to browse files: ${this._stringifyError(err)}`, "error");
+      }
+    });
+
+    const configControls = document.createElement("div");
+    configControls.className = "jp-CellScopeSettings-configControls";
+    configControls.appendChild(configInput);
+    configControls.appendChild(addConfigBtn);
+    configControls.appendChild(browseConfigBtn);
+
+    const configNote = document.createElement("div");
+    configNote.className = "jp-CellScopeSettings-note";
+    configNote.textContent = "Config files are packaged in the crate and used to extract dependency versions.";
+
+    const configContainer = document.createElement("div");
+    configContainer.className = "jp-CellScopeSettings-config";
+    configContainer.appendChild(configList);
+    configContainer.appendChild(configControls);
+    configContainer.appendChild(configNote);
+    renderConfigList();
+
     const dataSourceSelect = document.createElement("select");
     dataSourceSelect.className = "jp-CellScopeReview-input jp-mod-styled";
     const optLocal = document.createElement("option");
@@ -2293,6 +2428,7 @@ SELECT ?g ?s ?p ?o WHERE {
     body.appendChild(makeField("Retries", retriesInput));
     body.appendChild(makeField("Backoff (s)", backoffInput));
     body.appendChild(makeField("Index output file", outputInput));
+    body.appendChild(makeField("Env/config files", configContainer));
     body.appendChild(dataSourceRow);
     body.appendChild(testButton);
     body.appendChild(testStatus);
@@ -2315,7 +2451,8 @@ SELECT ?g ?s ?p ?o WHERE {
       retries: Number(retriesInput.value) || 0,
       backoffSeconds: Number(backoffInput.value) || 0,
       outputPath: outputInput.value.trim(),
-      dataSource: dataSourceSelect.value === "sparql" ? "sparql" : "local"
+      dataSource: dataSourceSelect.value === "sparql" ? "sparql" : "local",
+      configFiles
     };
 
     if (nextCfg.dataSource === "sparql") {
@@ -2391,6 +2528,7 @@ SELECT ?g ?s ?p ?o WHERE {
     return div;
   })();
   private readonly _settings: ServerConnection.ISettings;
+  private readonly _docManager: IDocumentManager | null;
   private _pathNode!: HTMLElement;
   private _analyzeBtn!: HTMLButtonElement;
   private _exportBtn!: HTMLButtonElement;
@@ -2710,7 +2848,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   ) => {
     const serverSettings = app.serviceManager.serverSettings;
     const documentManager = docManager ?? null;
-    const panel = new AnalysisPanel(app, tracker ?? null);
+    const panel = new AnalysisPanel(app, tracker ?? null, documentManager);
     app.shell.add(panel, "left", { rank: 950 });
 
     app.commands.addCommand(LIST_CMD, {

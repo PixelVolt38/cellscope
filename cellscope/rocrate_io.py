@@ -2,10 +2,19 @@ import os
 import json
 import hashlib
 import networkx as nx
+import re
 from typing import Dict, Any, List, Optional, Tuple, Set
 from urllib.parse import urlsplit
 from datetime import datetime
 import os
+try:
+    import tomllib  # type: ignore
+except Exception:  # pragma: no cover - python < 3.11
+    tomllib = None
+try:
+    import yaml  # type: ignore
+except Exception:  # optional
+    yaml = None
 
 try:
     import requests  # type: ignore
@@ -132,6 +141,274 @@ def _download_remote_artifact(url: str, dest_path: str) -> bool:
     return True
 
 
+def _split_requirement(line: str) -> Optional[Dict[str, str]]:
+    raw = line.strip()
+    if not raw or raw.startswith("#"):
+        return None
+    lowered = raw.lower()
+    if lowered.startswith(("-r ", "--requirement", "-c ", "--constraint")):
+        return None
+    if lowered.startswith(("-e ", "--editable")):
+        parts = raw.split(None, 1)
+        raw = parts[1] if len(parts) > 1 else ""
+    if lowered.startswith(("--index-url", "--extra-index-url", "--find-links", "--trusted-host")):
+        return None
+    raw = raw.split(";", 1)[0].strip()
+    if not raw:
+        return None
+    if "://" in raw and raw.startswith(("http://", "https://", "git+")):
+        name = None
+        if "#egg=" in raw:
+            name = raw.split("#egg=")[-1].strip() or None
+        return {"name": name or raw, "version": raw}
+    if "@" in raw and "://" in raw:
+        name, uri = raw.split("@", 1)
+        name = name.strip()
+        uri = uri.strip()
+        if "#egg=" in uri and not name:
+            name = uri.split("#egg=")[-1].strip()
+        return {"name": name or uri, "version": uri}
+    parts = re.split(r"(==|~=|!=|<=|>=|<|>)", raw, maxsplit=1)
+    if len(parts) >= 3:
+        name = parts[0].strip()
+        spec = "".join(parts[1:]).strip()
+    else:
+        name = raw.strip()
+        spec = ""
+    if not name:
+        return None
+    return {"name": name, "version": spec} if spec else {"name": name}
+
+
+def _parse_requirements_text(text: str) -> List[Dict[str, str]]:
+    deps: List[Dict[str, str]] = []
+    for line in text.splitlines():
+        entry = _split_requirement(line)
+        if entry:
+            deps.append(entry)
+    return deps
+
+
+def _parse_requirements_file(path: str) -> List[Dict[str, str]]:
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return _parse_requirements_text(handle.read())
+    except Exception:
+        return []
+
+
+def _parse_conda_dependency(entry: str) -> Optional[Dict[str, str]]:
+    item = entry.strip()
+    if not item or item.startswith("#"):
+        return None
+    if "::" in item:
+        item = item.split("::", 1)[1].strip()
+    if not item:
+        return None
+    if "==" in item or ">=" in item or "<=" in item or "~=" in item or "!=" in item or ">" in item or "<" in item:
+        parsed = _split_requirement(item)
+        return parsed
+    if "=" in item:
+        name, version = item.split("=", 1)
+        name = name.strip()
+        version = version.strip()
+        if not name:
+            return None
+        spec = f"=={version}" if version else ""
+        return {"name": name, "version": spec} if spec else {"name": name}
+    return {"name": item}
+
+
+def _parse_env_yaml(path: str) -> List[Dict[str, str]]:
+    deps: List[Dict[str, str]] = []
+    if yaml is not None:
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                data = yaml.safe_load(handle)
+        except Exception:
+            data = None
+        if isinstance(data, dict):
+            for entry in data.get("dependencies", []) or []:
+                if isinstance(entry, str):
+                    parsed = _parse_conda_dependency(entry)
+                    if parsed:
+                        deps.append(parsed)
+                elif isinstance(entry, dict):
+                    for key, items in entry.items():
+                        if key != "pip" or not isinstance(items, list):
+                            continue
+                        for pip_entry in items:
+                            if isinstance(pip_entry, str):
+                                parsed = _split_requirement(pip_entry)
+                                if parsed:
+                                    deps.append(parsed)
+        return deps
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            lines = handle.readlines()
+    except Exception:
+        return deps
+    in_deps = False
+    in_pip = False
+    pip_indent: Optional[int] = None
+    for line in lines:
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        stripped = line.strip()
+        if stripped.startswith("dependencies:"):
+            in_deps = True
+            in_pip = False
+            pip_indent = None
+            continue
+        if not in_deps:
+            continue
+        if stripped.startswith("-"):
+            item = stripped[1:].strip()
+            if item.startswith("pip:"):
+                in_pip = True
+                pip_indent = indent
+                continue
+            if in_pip and pip_indent is not None and indent > pip_indent:
+                parsed = _split_requirement(item)
+                if parsed:
+                    deps.append(parsed)
+                continue
+            in_pip = False
+            parsed = _parse_conda_dependency(item)
+            if parsed:
+                deps.append(parsed)
+    return deps
+
+
+def _parse_pyproject(path: str) -> List[Dict[str, str]]:
+    if tomllib is None:
+        return []
+    try:
+        with open(path, "rb") as handle:
+            data = tomllib.load(handle)
+    except Exception:
+        return []
+    deps: List[Dict[str, str]] = []
+    project = data.get("project") or {}
+    for dep in project.get("dependencies", []) or []:
+        if isinstance(dep, str):
+            parsed = _split_requirement(dep)
+            if parsed:
+                deps.append(parsed)
+    for opt_list in (project.get("optional-dependencies") or {}).values():
+        if isinstance(opt_list, list):
+            for dep in opt_list:
+                if isinstance(dep, str):
+                    parsed = _split_requirement(dep)
+                    if parsed:
+                        deps.append(parsed)
+    poetry = ((data.get("tool") or {}).get("poetry") or {})
+    for name, value in (poetry.get("dependencies") or {}).items():
+        if name.lower() == "python":
+            continue
+        spec = ""
+        if isinstance(value, str):
+            spec = value
+        elif isinstance(value, dict):
+            spec = value.get("version") or ""
+        deps.append({"name": name, "version": spec} if spec else {"name": name})
+    return deps
+
+
+def _parse_pipfile_lock(path: str) -> List[Dict[str, str]]:
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception:
+        return []
+    deps: List[Dict[str, str]] = []
+    for section in ("default", "develop"):
+        entries = data.get(section) or {}
+        if not isinstance(entries, dict):
+            continue
+        for name, info in entries.items():
+            if not isinstance(info, dict):
+                continue
+            version = info.get("version") or ""
+            deps.append({"name": name, "version": version} if version else {"name": name})
+    return deps
+
+
+def _parse_dependencies_from_config(path: str) -> List[Dict[str, str]]:
+    base = os.path.basename(path).lower()
+    if base in ("requirements.txt", "requirements.in") or "requirements" in base:
+        return _parse_requirements_file(path)
+    if base in ("environment.yml", "environment.yaml") or base.endswith((".yml", ".yaml")):
+        return _parse_env_yaml(path)
+    if base == "pyproject.toml" or base.endswith(".toml"):
+        return _parse_pyproject(path)
+    if base == "pipfile.lock":
+        return _parse_pipfile_lock(path)
+    return []
+
+
+def _dependency_id(name: str, version: Optional[str]) -> str:
+    safe = re.sub(r"[^a-zA-Z0-9]+", "-", name).strip("-").lower() or "dependency"
+    seed = f"{name}|{version or ''}"
+    digest = hashlib.sha1(seed.encode("utf-8")).hexdigest()[:8]
+    return f"#software-{safe}-{digest}"
+
+
+def _add_software_requirements(crate: ROCrate, deps: List[Dict[str, str]]) -> None:
+    seen: Set[str] = set()
+    for dep in deps:
+        name = dep.get("name") or ""
+        if not name:
+            continue
+        version = dep.get("version") or ""
+        sid = _dependency_id(name, version)
+        if sid in seen:
+            continue
+        seen.add(sid)
+        props: Dict[str, Any] = {"@type": "SoftwareApplication", "name": name}
+        if version:
+            props["version"] = version
+        entity = ContextEntity(crate, sid, properties=props)
+        crate.add(entity)
+        crate.root_dataset.append_to("softwareRequirements", entity)
+
+
+def _resolve_config_path(config_path: str, nb_path: Optional[str]) -> str:
+    if not config_path:
+        return config_path
+    if _is_url(config_path):
+        return config_path
+    candidate = config_path
+    if not os.path.isabs(candidate):
+        candidate = os.path.normpath(candidate)
+        if os.path.exists(candidate):
+            return os.path.abspath(candidate)
+        if nb_path:
+            candidate = os.path.normpath(os.path.join(os.path.dirname(nb_path), candidate))
+    return os.path.abspath(candidate)
+
+
+def _resolve_local_path(path: str, nb_path: Optional[str]) -> str:
+    if not path:
+        return path
+    if os.path.isabs(path):
+        return path
+    candidate = os.path.normpath(path)
+    nb_dir = os.path.dirname(nb_path) if nb_path else ""
+    nb_dir_norm = os.path.normpath(nb_dir) if nb_dir else ""
+    nb_dir_base = os.path.basename(nb_dir_norm) if nb_dir_norm else ""
+    if nb_dir_norm and candidate.startswith(nb_dir_norm + os.sep):
+        return os.path.abspath(candidate)
+    if nb_dir_base and candidate.startswith(nb_dir_base + os.sep):
+        return os.path.abspath(candidate)
+    if os.path.exists(candidate):
+        return os.path.abspath(candidate)
+    if nb_dir:
+        return os.path.abspath(os.path.normpath(os.path.join(nb_dir, path)))
+    return os.path.abspath(candidate)
+
+
 def _add_usage_with_role(crate: ROCrate, activity, data_entity, role: Optional[str]):
     if not role:
         return
@@ -149,7 +426,8 @@ def build_rocrate(capture: Dict[str, Any],
                   output_dir: str,
                   xkernel_edges: List[tuple],
                   hints: Optional[Dict[str, Any]] = None,
-                  sidecars: Optional[List[Dict[str, Any]]] = None) -> str:
+                  sidecars: Optional[List[Dict[str, Any]]] = None,
+                  config_files: Optional[List[str]] = None) -> str:
     crate_root = os.path.join(output_dir, 'ro-crate')
     os.makedirs(crate_root, exist_ok=True)
     _, cells_dir = _ensure_dirs(crate_root)
@@ -207,6 +485,18 @@ def build_rocrate(capture: Dict[str, Any],
                 file_hints_for_cell.append(f"{base} ({'; '.join(parts)})")
 
         cell_name = getattr(c, 'label', f'cell_{c.idx}')
+        snippet_lines = 25
+        try:
+            snippet_lines = int(os.environ.get("CELLSCOPE_SNIPPET_LINES", "25") or 25)
+        except Exception:
+            snippet_lines = 25
+        code_lines = c.source.splitlines()
+        truncated = len(code_lines) > snippet_lines
+        snippet_text = "\n".join(code_lines[:snippet_lines])
+        if truncated:
+            snippet_text = snippet_text + "\n..."
+
+        func_calls = sorted(getattr(c, "func_calls", []))
         props = {
             '@type': ['File', f'{OFLOW}Activity'],
             'name': cell_name,
@@ -215,11 +505,14 @@ def build_rocrate(capture: Dict[str, Any],
             'position': c.idx,
             'isPartOf': './',
             'version': '1',
+            'codeSnippet': snippet_text,
         }
         if roles_for_cell:
             props['roles'] = roles_for_cell
         if file_hints_for_cell:
             props['fileHints'] = file_hints_for_cell
+        if func_calls:
+            props['funcCalls'] = func_calls
         act = crate.add_file(abs_path, dest_path=rel_path, properties=props)
         activities[c.idx] = act
 
@@ -309,12 +602,49 @@ def build_rocrate(capture: Dict[str, Any],
             nb_entity = crate.add_file(nb_abs, dest_path=nb_dest, properties=nb_props)
             _add_has_part(nb_entity)
 
+    dependency_records: List[Dict[str, str]] = []
+    for cfg_path in (config_files or []):
+        if not cfg_path:
+            continue
+        resolved = _resolve_config_path(cfg_path, capture.get("nb_path"))
+        base = _basename_for_path(resolved)
+        dest_rel = f"env/{_unique_dest(base)}"
+        props: Dict[str, Any] = {
+            "@type": ["File"],
+            "name": base,
+            "isPartOf": "./",
+            "description": "Environment/config file",
+            "category": "environment-config",
+        }
+        if _is_url(resolved):
+            props["accessURL"] = resolved
+            props.update(_remote_metadata(resolved))
+            dest_abs = os.path.join(crate_root, dest_rel)
+            if _download_remote_artifact(resolved, dest_abs):
+                h = _b2_hash(dest_abs)
+                if h:
+                    props["contentHash"] = f"blake2b-256:{h}"
+            fe = ContextEntity(crate, dest_rel, properties=props)
+            crate.add(fe)
+        elif os.path.exists(resolved):
+            h = _b2_hash(resolved)
+            if h:
+                props["contentHash"] = f"blake2b-256:{h}"
+            props[LOCAL_PATH_IRI] = os.path.abspath(resolved)
+            fe = crate.add_file(resolved, dest_path=dest_rel, properties=props)
+            dependency_records.extend(_parse_dependencies_from_config(resolved))
+        else:
+            props[LOCAL_PATH_IRI] = os.path.abspath(resolved)
+            fe = ContextEntity(crate, dest_rel, properties=props)
+            crate.add(fe)
+        _add_has_part(fe)
+
     for c in cells:
         for fpath in c.file_writes:
             if _is_url(fpath):
                 absf = fpath
             else:
-                absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
+                absf = _resolve_local_path(fpath, capture.get("nb_path"))
             base = _basename_for_path(absf)
             dest_rel = f"files/{_unique_dest(base)}"
             props = {
@@ -355,7 +685,7 @@ def build_rocrate(capture: Dict[str, Any],
             if _is_url(fpath):
                 absf = fpath
             else:
-                absf = fpath if os.path.isabs(fpath) else os.path.normpath(os.path.join(os.path.dirname(capture['nb_path']), fpath))
+                absf = _resolve_local_path(fpath, capture.get("nb_path"))
             fe = file_entities.get(absf)
             if fe is None:
                 base = _basename_for_path(absf)
@@ -409,6 +739,9 @@ def build_rocrate(capture: Dict[str, Any],
                 activities[cons].append_to(f'{OFLOW}hasInput', se)
                 activities[cons].append_to(f'{PROV}used', se)
                 _add_usage_with_role(crate, activities[cons], se, sj.get('role'))
+
+    if dependency_records:
+        _add_software_requirements(crate, dependency_records)
 
     G = nx.DiGraph()
     for c in cells:

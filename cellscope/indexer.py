@@ -17,6 +17,7 @@ DCAT = "http://www.w3.org/ns/dcat#"
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 OFLOW = "https://example.org/ontology/ontoflow#"
 ONTODT = "https://example.org/ontology/ontodt#"
+CELLSCOPE = "https://cellscope.dev/terms/"
 
 PREFIXES = {
     "schema": SCHEMA,
@@ -25,6 +26,7 @@ PREFIXES = {
     "rdf": RDF,
     "oflow": OFLOW,
     "ontodt": ONTODT,
+    "cellscope": CELLSCOPE,
 }
 
 _METADATA_CONFIG = load_metadata_config()
@@ -232,6 +234,14 @@ def _collect_triples(
                 )
             mapped_keys.add("position")
 
+        code_snippet = entity.get("codeSnippet") or entity.get(SCHEMA + "text")
+        if code_snippet:
+            for value in _iter_values(code_snippet):
+                if value is None:
+                    continue
+                triples.add((subject, SCHEMA + "text", str(value), True, None))
+            mapped_keys.add("codeSnippet")
+
         date_modified = entity.get("dateModified") or entity.get(SCHEMA + "dateModified")
         if date_modified:
             for value in _iter_values(date_modified):
@@ -321,6 +331,24 @@ def _collect_triples(
                         triples.add(
                             (var_identifier, SCHEMA + "roleName", role_label, True, None)
                         )
+
+        activity_func_calls = entity.get("funcCalls")
+        if activity_func_calls:
+            for call_entry in _iter_values(activity_func_calls):
+                if not call_entry:
+                    continue
+                triples.add(
+                    (subject, CELLSCOPE + "funcCalls", str(call_entry), True, None)
+                )
+
+        activity_file_hints = entity.get("fileHints")
+        if activity_file_hints:
+            for hint_entry in _iter_values(activity_file_hints):
+                if not hint_entry:
+                    continue
+                triples.add(
+                    (subject, CELLSCOPE + "fileHints", str(hint_entry), True, None)
+                )
 
         for predicate in ("prov:used", "prov:wasGeneratedBy", "prov:wasDerivedFrom", "prov:wasRevisionOf"):
             pred_iri = _resolve_term(predicate)

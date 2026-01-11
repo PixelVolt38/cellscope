@@ -3,7 +3,7 @@ import re
 import ast
 import nbformat
 from .containerizer_adapter import analyze_r_cell
-from typing import Dict, List, Set, Any, Optional
+from typing import Dict, List, Set, Any, Optional, Iterable
 
 class CellInfo:
     def __init__(self, idx: int, kernel: str, source: str):
@@ -15,32 +15,17 @@ class CellInfo:
         self.func_calls: Set[str] = set()
         self.var_defs: Set[str] = set()
         self.var_uses: Set[str] = set()
-        # SoS
-        self.sos_put: Set[str] = set()
-        self.sos_get: Set[str] = set()
         # Materialized I/O (simple heuristics)
         self.file_writes: Set[str] = set()
         self.file_reads: Set[str] = set()
 
 def _kernel_for_cell(nb, cell) -> str:
-    # SoS notebooks put kernel in cell.metadata.kernel
     k = (getattr(cell, 'metadata', {}) or {}).get('kernel')
     if k:
         return str(k)
     # fallback to notebook kernelspec
     ks = (nb.metadata.get('kernelspec') or {}).get('name')
     return str(ks or 'python3')
-
-def _detect_sos_magics(lines: List[str]) -> (Set[str], Set[str]):
-    # VERY simple parser for lines like: %put var1 var2   and %get var1
-    puts, gets = set(), set()
-    for ln in lines:
-        s = ln.strip()
-        if s.startswith('%put '):
-            puts.update(x for x in s[5:].split() if x.isidentifier())
-        elif s.startswith('%get '):
-            gets.update(x for x in s[5:].split() if x.isidentifier())
-    return puts, gets
 
 def _is_string(node):
     return isinstance(node, ast.Constant) and isinstance(node.value, str)
@@ -68,6 +53,12 @@ def _collect_file_io(tree: ast.AST) -> (Set[str], Set[str]):
             right = _resolve_path(node.right)
             if left is not None and right is not None:
                 return left + right
+            return None
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            left = _resolve_path(node.left)
+            right = _resolve_path(node.right)
+            if left is not None and right is not None:
+                return os.path.join(left, right)
             return None
         if isinstance(node, ast.Call):
             # os.path.join(...)
@@ -105,8 +96,16 @@ def _collect_file_io(tree: ast.AST) -> (Set[str], Set[str]):
                 if isinstance(tgt, ast.Name):
                     env[tgt.id] = resolved
 
-    write_methods = {'to_csv', 'to_parquet', 'to_netcdf', 'to_json', 'to_feather', 'to_excel'}
-    read_methods = {'read_csv', 'read_json', 'read_parquet', 'read_excel', 'open_dataset'}
+    write_methods = {
+        'to_csv', 'to_parquet', 'to_netcdf', 'to_json', 'to_feather', 'to_excel',
+        'to_pickle', 'to_hdf', 'to_orc', 'to_stata', 'to_sas', 'to_sql',
+    }
+    read_methods = {
+        'read_csv', 'read_json', 'read_parquet', 'read_excel', 'open_dataset',
+        'read_feather', 'read_table', 'read_fwf', 'read_pickle', 'read_sas',
+        'read_stata', 'read_html', 'read_orc', 'read_hdf',
+        'loadtxt', 'genfromtxt',
+    }
     path_write_methods = {'write_text', 'write_bytes', 'write'}
     path_read_methods = {'read_text', 'read_bytes'}
 
@@ -153,8 +152,8 @@ def _collect_file_io(tree: ast.AST) -> (Set[str], Set[str]):
                     reads.add(fname)
                 continue
 
-            # pandas / xarray read_*
-            if isinstance(node.func.value, ast.Name) and node.func.value.id in {'pd', 'pandas', 'xr', 'xarray'}:
+            # pandas / xarray / numpy read_*
+            if isinstance(node.func.value, ast.Name) and node.func.value.id in {'pd', 'pandas', 'xr', 'xarray', 'np', 'numpy'}:
                 if node.args:
                     fname = _resolve_path(node.args[0])
                     if fname and method in read_methods:
@@ -212,6 +211,48 @@ def _extract_cell_label(source: str) -> Optional[str]:
     return None
 
 
+def _names_from_targets(targets: Iterable[ast.AST]) -> Set[str]:
+    names: Set[str] = set()
+    for target in targets:
+        for node in ast.walk(target):
+            if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                names.add(node.id)
+    return names
+
+
+def _collect_python_defs(tree: ast.AST) -> Set[str]:
+    defs: Set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            defs.add(node.name)
+        elif isinstance(node, ast.ClassDef):
+            defs.add(node.name)
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                name = alias.asname or alias.name.split(".")[0]
+                if name:
+                    defs.add(name)
+        elif isinstance(node, ast.Assign):
+            defs |= _names_from_targets(node.targets)
+        elif isinstance(node, ast.AnnAssign) and node.target is not None:
+            defs |= _names_from_targets([node.target])
+        elif isinstance(node, ast.AugAssign):
+            defs |= _names_from_targets([node.target])
+        elif isinstance(node, (ast.For, ast.AsyncFor)):
+            defs |= _names_from_targets([node.target])
+        elif isinstance(node, (ast.With, ast.AsyncWith)):
+            for item in node.items:
+                if item.optional_vars is not None:
+                    defs |= _names_from_targets([item.optional_vars])
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            defs.add(node.name)
+        elif isinstance(node, ast.NamedExpr):
+            defs |= _names_from_targets([node.target])
+        elif isinstance(node, ast.comprehension):
+            defs |= _names_from_targets([node.target])
+    return defs
+
+
 def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, collect_materialized: bool = True) -> Dict[str, Any]:
     """
     Returns a capture dict:
@@ -242,12 +283,14 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
         info.label = label
         try:
             if str(info.kernel).lower().startswith(('ir', 'r-', 'r')):
-                # Ask containerizer adapter for R cell analysis (defs, uses, writes, reads)
-                defs_r, uses_r, writes_r, reads_r = analyze_r_cell(info.source)
+                # Ask containerizer adapter for R cell analysis (defs, uses, writes, reads, funcs, calls)
+                defs_r, uses_r, writes_r, reads_r, funcs_r, calls_r = analyze_r_cell(info.source)
                 info.var_defs |= set(defs_r)
                 info.var_uses |= set(uses_r)
                 info.file_writes |= set(writes_r)
                 info.file_reads  |= set(reads_r)
+                info.funcs |= set(funcs_r)
+                info.func_calls |= set(calls_r)
                 tree = None
             else:
                 tree = ast.parse(_sanitize_source(info.source))
@@ -258,29 +301,24 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
 
         # function defs (skip when tree is unavailable e.g. R cells)
         if tree is not None:
-            info.funcs = {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+            info.funcs = {n.name for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
             func_calls = set()
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                     func_calls.add(node.func.id)
         else:
-            info.funcs = set()
-            func_calls = set()
+            func_calls = set(info.func_calls)
 
         # variable defs: assignment targets (simple heuristic)
         defs = set(info.var_defs)
-        for n in (ast.walk(tree) if tree is not None else []):
-            if isinstance(n, ast.Assign):
-                for tgt in n.targets:
-                    for nm in ast.walk(tgt):
-                        if isinstance(nm, ast.Name):
-                            defs.add(nm.id)
+        if tree is not None:
+            defs |= _collect_python_defs(tree)
         # uses: Name/Load (excluding same-cell defs/functions)
         if tree is not None:
             uses = {
                 n.id for n in ast.walk(tree)
                 if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load)
-            } - (defs | info.funcs)
+            } - defs
         else:
             uses = set(info.var_uses)
 
@@ -288,12 +326,8 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
         if alias_map:
             defs = {alias_map.get(v, v) for v in defs}
             uses = {alias_map.get(v, v) for v in uses}
-            puts = {alias_map.get(v, v) for v in puts}
-            gets = {alias_map.get(v, v) for v in gets}
             info.funcs = {alias_map.get(v, v) for v in info.funcs}
             func_calls = {alias_map.get(v, v) for v in func_calls}
-            info.sos_put = {alias_map.get(v, v) for v in info.sos_put}
-            info.sos_get = {alias_map.get(v, v) for v in info.sos_get}
 
         func_calls -= info.funcs
         func_calls &= uses

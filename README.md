@@ -1,7 +1,7 @@
 # CellScope
 
 CellScope makes the execution flow inside a Jupyter notebook observable and portable.  
-It inspects every code cell, captures symbol definitions/uses, file hand‑offs, and SoS
+It inspects every code cell, captures symbol definitions/uses, and file hand‑offs
 exchanges, and emits that graph as an RO‑Crate bundle enriched with PROV metadata.
 The accompanying JupyterLab extension surfaces the capture in an interactive analyzer
 panel and can push the resulting provenance graph to a SPARQL endpoint.
@@ -11,7 +11,7 @@ panel and can push the resulting provenance graph to a SPARQL endpoint.
 ## Features
 
 - **Notebook analysis**: track code cell functions, variables, file reads/writes,
-  SoS `put/get`, and inferred cross‑kernel edges.
+  File hand-offs inferred across cells.
 - **Confirm-first export**: review and edit variable roles or per-file metadata before
   building an RO‑Crate. Edits persist for the current session and flow into the export.
 - **RO‑Crate + PROV output**: write `ro-crate-metadata.json`, GraphML,
@@ -20,7 +20,7 @@ panel and can push the resulting provenance graph to a SPARQL endpoint.
   Optional push with configurable endpoint/auth, retries, and backoff.
 - **JupyterLab analyzer panel**:
   - One-click Analyze / Export / Open Graph actions.
-  - Searchable, faceted cell list (kernel, roles, file metadata, SoS).
+  - Searchable, faceted cell list (kernel, roles, file metadata).
   - Filters are presented in a dropdown popover (stays clear of the cell list), and
     the panel auto-refreshes after notebook saves/executions with a “pending” indicator.
   - Quick action buttons jump to notebook cells.
@@ -55,6 +55,9 @@ cd ..
 Inside JupyterLab open the **CellScope Analyzer** panel (left sidebar) and run
 `Analyze` / `Export Crate`. The export summary reports the crate folder and, if a
 SPARQL endpoint is configured, the push status (HTTP result, attempts, duration).
+Use **Settings** to set the SPARQL endpoint/auth and to add environment/config
+files (e.g., `requirements.txt`, `pyproject.toml`, `environment.yml`); selected
+files are bundled into the RO-Crate and parsed for dependency versions.
 
 ---
 
@@ -116,6 +119,16 @@ JupyterLab.
 
 Each export creates a versioned directory under `out-lab/` containing the RO‑Crate,
 GraphML, PyVis HTML, and the SPARQL delta.
+
+## Testing
+
+Automated backend/CLI smoke tests (run from repo root):
+
+```bash
+.venv_linux/bin/python scripts/run_full_test.py --clean
+```
+
+Manual UI checklist: see `docs/testing.md`.
 
 ### Workflows (optional)
 The `.naavrewf` workflow capture/import tooling is disabled by default to keep CellScope portable. Set `CELLSCOPE_ENABLE_WORKFLOWS=1` if you have those assets locally and want to enable the CLI commands and JupyterLab Workflow dialog.

@@ -145,6 +145,33 @@ def visualize_rocrate(crate_dir: str, snippet_lines: int = 25, html_tooltips: bo
 
     crate = ROCrate(crate_dir)
     net = Network(height='600px', width='100%', directed=True)
+    net.set_options(
+        """
+        {
+          "physics": {
+            "solver": "forceAtlas2Based",
+            "forceAtlas2Based": { "gravitationalConstant": -60, "springLength": 140, "springConstant": 0.08 },
+            "minVelocity": 0.75
+          },
+          "interaction": { "hover": true, "tooltipDelay": 80 },
+          "layout": { "improvedLayout": true }
+        }
+        """
+    )
+
+    group_label = crate.root_dataset.get("name") if hasattr(crate, "root_dataset") else "notebook"
+    group_label = group_label or "notebook"
+    group_id = "notebook"
+    net.add_node(
+        group_id,
+        label=group_label,
+        shape="dot",
+        size=60,
+        opacity=0.15,
+        color="rgba(180,180,180,0.25)",
+        font={"size": 14, "color": "#444"},
+        physics=True,
+    )
 
     # Activities (cells)
     for entity in crate.get_entities():
@@ -186,7 +213,7 @@ def visualize_rocrate(crate_dir: str, snippet_lines: int = 25, html_tooltips: bo
 
         esc_code = html.escape("\n".join(shown))
         snippet_html = (
-            "<pre class='roshow-code'>" + esc_code + ("\\n…" if truncated else "") + "</pre>"
+            "<pre class='roshow-code'>" + esc_code + ("\\n..." if truncated else "") + "</pre>"
         )
 
         # metadata (except id/type/name)
@@ -216,7 +243,13 @@ def visualize_rocrate(crate_dir: str, snippet_lines: int = 25, html_tooltips: bo
         else:
             node_kwargs = dict(label=label_value, snippet=snippet_html, meta=meta_html)
 
-        net.add_node(cid, **node_kwargs)
+        net.add_node(
+            cid,
+            shape="box",
+            shapeProperties={"borderRadius": 6},
+            **node_kwargs
+        )
+        net.add_edge(group_id, cid, hidden=False, color="rgba(0,0,0,0.05)")
 
     # Edges (GraphML)
     gpath = os.path.join(crate_dir, 'cell_graph.graphml')

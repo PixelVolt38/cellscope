@@ -199,6 +199,44 @@
   color: var(--jp-ui-font-color2);
 }
 
+.jp-CellScopeSettings {
+  display: grid;
+  gap: 8px;
+}
+
+.jp-CellScopeSettings-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.jp-CellScopeSettings-configList {
+  display: grid;
+  gap: 4px;
+}
+
+.jp-CellScopeSettings-configItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: center;
+}
+
+.jp-CellScopeSettings-configControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.jp-CellScopeSettings-configEmpty,
+.jp-CellScopeSettings-note,
+.jp-CellScopeSettings-status {
+  font-size: var(--jp-content-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
 .jp-CellScopeReview {
   display: flex;
   flex-direction: column;

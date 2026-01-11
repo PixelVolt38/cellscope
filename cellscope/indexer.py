@@ -9,12 +9,15 @@ try:
 except Exception:  # pragma: no cover - optional dep
     requests = None  # type: ignore
 
+from .personalization import load_metadata_config
+
 SCHEMA = "http://schema.org/"
 PROV = "http://www.w3.org/ns/prov#"
 DCAT = "http://www.w3.org/ns/dcat#"
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 OFLOW = "https://example.org/ontology/ontoflow#"
 ONTODT = "https://example.org/ontology/ontodt#"
+CELLSCOPE = "https://cellscope.dev/terms/"
 
 PREFIXES = {
     "schema": SCHEMA,
@@ -23,7 +26,16 @@ PREFIXES = {
     "rdf": RDF,
     "oflow": OFLOW,
     "ontodt": ONTODT,
+    "cellscope": CELLSCOPE,
 }
+
+_METADATA_CONFIG = load_metadata_config()
+CUSTOM_FIELD_PREDICATES: Dict[str, str] = {}
+for field in _METADATA_CONFIG.get("file_fields", []):
+    key = field.get("key")
+    predicate = field.get("predicate")
+    if key and predicate:
+        CUSTOM_FIELD_PREDICATES[str(key)] = str(predicate)
 
 
 def _ensure_trailing_slash(value: str) -> str:
@@ -190,6 +202,8 @@ def _collect_triples(
                     )
                 )
 
+        mapped_keys = set()
+
         encoding_format = entity.get("encodingFormat") or entity.get(SCHEMA + "encodingFormat")
         if encoding_format:
             for value in _iter_values(encoding_format):
@@ -198,6 +212,45 @@ def _collect_triples(
                 triples.add(
                     (subject, SCHEMA + "encodingFormat", str(value), True, None)
                 )
+            mapped_keys.add("encodingFormat")
+
+        prog_lang = entity.get("programmingLanguage") or entity.get(SCHEMA + "programmingLanguage")
+        if prog_lang:
+            for value in _iter_values(prog_lang):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "programmingLanguage", str(value), True, None)
+                )
+            mapped_keys.add("programmingLanguage")
+
+        position = entity.get("position") or entity.get(SCHEMA + "position")
+        if position is not None:
+            for value in _iter_values(position):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "position", str(value), True, None)
+                )
+            mapped_keys.add("position")
+
+        code_snippet = entity.get("codeSnippet") or entity.get(SCHEMA + "text")
+        if code_snippet:
+            for value in _iter_values(code_snippet):
+                if value is None:
+                    continue
+                triples.add((subject, SCHEMA + "text", str(value), True, None))
+            mapped_keys.add("codeSnippet")
+
+        date_modified = entity.get("dateModified") or entity.get(SCHEMA + "dateModified")
+        if date_modified:
+            for value in _iter_values(date_modified):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, SCHEMA + "dateModified", str(value), True, None)
+                )
+            mapped_keys.add("dateModified")
 
         keywords = entity.get("keywords") or entity.get(SCHEMA + "keywords")
         if keywords:
@@ -207,6 +260,7 @@ def _collect_triples(
                 triples.add(
                     (subject, SCHEMA + "keywords", str(kw), True, None)
                 )
+            mapped_keys.add("keywords")
 
         access_url = entity.get("accessURL") or entity.get(DCAT + "accessURL")
         if access_url:
@@ -216,6 +270,7 @@ def _collect_triples(
                 triples.add(
                     (subject, DCAT + "accessURL", str(value), True, None)
                 )
+            mapped_keys.add("accessURL")
 
         retrieved_at = entity.get("retrievedAt") or entity.get(PROV + "generatedAtTime")
         if retrieved_at:
@@ -225,6 +280,7 @@ def _collect_triples(
                 triples.add(
                     (subject, PROV + "generatedAtTime", str(value), True, None)
                 )
+            mapped_keys.add("retrievedAt")
 
         etag = entity.get("etag")
         if etag:
@@ -234,6 +290,29 @@ def _collect_triples(
                 triples.add(
                     (subject, SCHEMA + "identifier", str(value), True, None)
                 )
+            mapped_keys.add("etag")
+
+        is_part_of = entity.get("isPartOf") or entity.get(SCHEMA + "isPartOf")
+        if is_part_of:
+            for val, is_lit in _iter_entity_refs(is_part_of):
+                if is_lit:
+                    triples.add((subject, SCHEMA + "isPartOf", str(val), True, None))
+                else:
+                    triples.add((subject, SCHEMA + "isPartOf", _resolve_identifier(base_uri, str(val)), False, None))
+            mapped_keys.add("isPartOf")
+
+        # Custom fields from metadata config (skip ones already mapped above)
+        for key, predicate in CUSTOM_FIELD_PREDICATES.items():
+            if key in mapped_keys:
+                continue
+            value = entity.get(key)
+            if value is None:
+                continue
+            pred_uri = _resolve_term(predicate)
+            for val in _iter_values(value):
+                if val is None:
+                    continue
+                triples.add((subject, pred_uri, str(val), True, None))
 
         activity_roles = entity.get("roles")
         if activity_roles:
@@ -252,6 +331,24 @@ def _collect_triples(
                         triples.add(
                             (var_identifier, SCHEMA + "roleName", role_label, True, None)
                         )
+
+        activity_func_calls = entity.get("funcCalls")
+        if activity_func_calls:
+            for call_entry in _iter_values(activity_func_calls):
+                if not call_entry:
+                    continue
+                triples.add(
+                    (subject, CELLSCOPE + "funcCalls", str(call_entry), True, None)
+                )
+
+        activity_file_hints = entity.get("fileHints")
+        if activity_file_hints:
+            for hint_entry in _iter_values(activity_file_hints):
+                if not hint_entry:
+                    continue
+                triples.add(
+                    (subject, CELLSCOPE + "fileHints", str(hint_entry), True, None)
+                )
 
         for predicate in ("prov:used", "prov:wasGeneratedBy", "prov:wasDerivedFrom", "prov:wasRevisionOf"):
             pred_iri = _resolve_term(predicate)

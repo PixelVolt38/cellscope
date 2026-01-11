@@ -19,13 +19,17 @@
         "singleton": true,
         "strictVersion": false
       },
+      "@jupyterlab/filebrowser": {
+        "singleton": true,
+        "strictVersion": false
+      },
       "@lumino/widgets": {
         "singleton": true,
         "strictVersion": false
       }
     },
     "_build": {
-      "load": "static/remoteEntry.9154e89cfc6c2f0ec5cf.js",
+      "load": "static/remoteEntry.a44089f84aec97c4241f.js",
       "extension": "./extension"
     }
   },
@@ -39,6 +43,7 @@
   "dependencies": {
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",
+    "@jupyterlab/filebrowser": "^4.0.0",
     "@jupyterlab/services": "^4.0.0",
     "@lumino/widgets": "^2.0.0",
     "@jupyterlab/notebook": "^4.0.0"

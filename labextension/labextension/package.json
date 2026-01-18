@@ -29,7 +29,7 @@
       }
     },
     "_build": {
-      "load": "static/remoteEntry.a44089f84aec97c4241f.js",
+      "load": "static/remoteEntry.71da9ddcda9e6574dec6.js",
       "extension": "./extension"
     }
   },
@@ -44,12 +44,13 @@
     "@jupyterlab/application": "^4.0.0",
     "@jupyterlab/apputils": "^4.0.0",
     "@jupyterlab/filebrowser": "^4.0.0",
+    "@jupyterlab/notebook": "^4.0.0",
     "@jupyterlab/services": "^4.0.0",
-    "@lumino/widgets": "^2.0.0",
-    "@jupyterlab/notebook": "^4.0.0"
+    "@lumino/widgets": "^2.0.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.4.9",
+    "baseline-browser-mapping": "^2.9.15",
     "fs-extra": "^11.2.0",
     "rimraf": "^5.0.10",
     "typescript": "~5.4.0"

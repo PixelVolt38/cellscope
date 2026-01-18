@@ -41,6 +41,8 @@ def capture_to_json(capture: Dict[str, Any]) -> Dict[str, Any]:
         cells_json.append(
             {
                 "idx": cell.idx,
+                "position": getattr(cell, "position", None),
+                "notebook": capture.get("nb_path"),
                 "label": label,
                 "name": label,
                 "kernel": getattr(cell, "kernel", "python"),

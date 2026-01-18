@@ -218,6 +218,7 @@ SELECT ?g ?s ?p ?o WHERE {{
       prov:generatedAtTime,
       dcat:accessURL,
       cellscope:fileHints,
+      cellscope:localPath,
       cellscope:funcCalls,
       schema:isPartOf,
       schema:checksum
@@ -256,6 +257,8 @@ SELECT ?g ?s ?p ?o WHERE {{
         func_calls_map: Dict[str, set] = {}
         activity_file_hints: Dict[str, set] = {}
         file_meta_tokens: Dict[str, set] = {}
+        local_path_map: Dict[str, str] = {}
+        encoding_map: Dict[str, str] = {}
 
         for g, s, p, o, otype in triples:
             if p == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
@@ -292,10 +295,13 @@ SELECT ?g ?s ?p ?o WHERE {{
                 activity_file_hints.setdefault(s, set()).add(o)
             if p == "http://schema.org/isPartOf" and isinstance(o, str):
                 is_part_of[s] = o
+            if p == CELLSCOPE + "localPath" and isinstance(o, str):
+                local_path_map[s] = o
             if p == "http://schema.org/checksum" and isinstance(o, str):
                 hash_map[s] = o
             if isinstance(o, str):
                 if p == "http://schema.org/encodingFormat":
+                    encoding_map[s] = o
                     file_meta_tokens.setdefault(s, set()).add(f"encodingFormat: {o}")
                 elif p == "http://schema.org/keywords":
                     file_meta_tokens.setdefault(s, set()).add(f"keywords: {o}")
@@ -335,6 +341,77 @@ SELECT ?g ?s ?p ?o WHERE {{
                     graph_name_map[graph_uri] = name
                     break
 
+        root_dir = getattr(self.contents_manager, "root_dir", None)
+
+        def _find_notebook_path(candidates: List[str]) -> Optional[str]:
+            if not root_dir or not candidates:
+                return None
+            normalized_candidates = {c.lower(): c for c in candidates if c}
+            matches: List[str] = []
+            for current_root, _, files in os.walk(root_dir):
+                for fname in files:
+                    if fname.lower() in normalized_candidates:
+                        rel = os.path.relpath(os.path.join(current_root, fname), root_dir)
+                        matches.append(rel.replace("\\", "/"))
+            if not matches:
+                return None
+            preferred_prefixes = ("out-validation/user_study", "examples")
+            for prefix in preferred_prefixes:
+                for match in matches:
+                    if match.startswith(prefix):
+                        return match
+            matches.sort(key=lambda p: (len(p), p))
+            return matches[0]
+
+        def _relpath(path_value: str) -> str:
+            if not path_value:
+                return path_value
+            normalized = path_value.replace("\\", "/")
+            if root_dir:
+                try:
+                    rel = os.path.relpath(path_value, root_dir)
+                    if not rel.startswith(".."):
+                        return rel.replace("\\", "/")
+                except Exception:
+                    return normalized
+            return normalized
+
+        def _file_label(data_id: str, fallback: str) -> str:
+            local_path = local_path_map.get(data_id)
+            if local_path:
+                return _relpath(local_path)
+            return fallback
+
+        graph_notebook_map: Dict[str, str] = {}
+        for entity_id, info in data_entities.items():
+            graph_uri = info.get("graph")
+            if not graph_uri:
+                continue
+            name_value = name_map.get(entity_id, "")
+            encoding = encoding_map.get(entity_id, "")
+            looks_like_nb = (
+                isinstance(name_value, str) and name_value.lower().endswith(".ipynb")
+            ) or ("ipynb" in encoding.lower())
+            if not looks_like_nb:
+                continue
+            local_path = local_path_map.get(entity_id)
+            candidate = _relpath(local_path) if local_path else name_value
+            if candidate and graph_uri not in graph_notebook_map:
+                graph_notebook_map[graph_uri] = candidate
+
+        for graph_uri in set(info.get("graph") for info in activities.values() if info.get("graph")):
+            if graph_uri in graph_notebook_map:
+                continue
+            label = graph_name_map.get(graph_uri) or self._label_for_graph(graph_uri, None)
+            if not label:
+                continue
+            candidates = [label]
+            if not label.lower().endswith(".ipynb"):
+                candidates.append(f"{label}.ipynb")
+            found = _find_notebook_path(candidates)
+            if found:
+                graph_notebook_map[graph_uri] = found
+
         cells = []
         idx_map: Dict[str, int] = {}
         for idx, (aid, info) in enumerate(activities.items()):
@@ -347,7 +424,8 @@ SELECT ?g ?s ?p ?o WHERE {{
             for data_id, producer in produced_by.items():
                 if producer != aid:
                     continue
-                label = name_map.get(data_id, data_id)
+                raw_label = name_map.get(data_id, data_id)
+                label = _file_label(data_id, raw_label)
                 if data_id in hash_map or self._looks_like_file(label):
                     produced_files.append(label)
                     produced_file_ids.append(data_id)
@@ -361,7 +439,8 @@ SELECT ?g ?s ?p ?o WHERE {{
             for data_id, consumers in consumed_by.items():
                 if aid not in consumers:
                     continue
-                label = name_map.get(data_id, data_id)
+                raw_label = name_map.get(data_id, data_id)
+                label = _file_label(data_id, raw_label)
                 if data_id in hash_map or self._looks_like_file(label):
                     consumed_files.append(label)
                     consumed_file_ids.append(data_id)
@@ -376,6 +455,7 @@ SELECT ?g ?s ?p ?o WHERE {{
 
             graph_uri = info.get("graph")
             graph_label = graph_name_map.get(graph_uri) or self._label_for_graph(graph_uri, is_part_of.get(aid))
+            notebook_path = graph_notebook_map.get(graph_uri)
             position = position_map.get(aid)
             func_calls = sorted(func_calls_map.get(aid, set()) - set(produced_func_names))
             file_hint_tokens: set = set()
@@ -392,6 +472,9 @@ SELECT ?g ?s ?p ?o WHERE {{
                     file_hint_tokens.add(hint_entry.strip())
             for file_id in produced_file_ids + consumed_file_ids:
                 file_hint_tokens.update(file_meta_tokens.get(file_id, set()))
+                local_path = local_path_map.get(file_id)
+                if local_path:
+                    file_hint_tokens.add(f"localPath: {_relpath(local_path)}")
 
             cells.append(
                 {
@@ -399,6 +482,8 @@ SELECT ?g ?s ?p ?o WHERE {{
                     "name": name_map.get(aid) or aid,
                     "kernel": kernel_map.get(aid) or "sparql",
                     "graph": graph_label,
+                    "graphUri": graph_uri,
+                    "notebook": notebook_path,
                     "funcs": sorted(set(produced_func_names)),
                     "func_calls": func_calls,
                     "var_defs": sorted(set(produced_vars)),
@@ -436,7 +521,7 @@ SELECT ?g ?s ?p ?o WHERE {{
 
         # Cross-notebook heuristic: link by shared basename when producer known
         for data_id, consumers in consumed_by.items():
-            base = os.path.basename(name_map.get(data_id, data_id))
+            base = os.path.basename(_file_label(data_id, name_map.get(data_id, data_id)))
             prod = base_producers.get(base)
             if not prod or prod not in idx_map:
                 continue

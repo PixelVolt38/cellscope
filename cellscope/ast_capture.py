@@ -6,11 +6,13 @@ from .containerizer_adapter import analyze_r_cell
 from typing import Dict, List, Set, Any, Optional, Iterable
 
 class CellInfo:
-    def __init__(self, idx: int, kernel: str, source: str):
+    def __init__(self, idx: int, kernel: str, source: str, position: Optional[int] = None):
         self.idx = idx
         self.kernel = kernel or "python"
         self.source = source or ""
         self.label = f"cell_{idx}"
+        # index within the full notebook cell list (includes markdown)
+        self.position = position
         self.funcs: Set[str] = set()
         self.func_calls: Set[str] = set()
         self.var_defs: Set[str] = set()
@@ -263,15 +265,15 @@ def parse_notebook(nb_path: str, alias_map: Optional[Dict[str, str]] = None, col
     }
     """
     nb = nbformat.read(nb_path, as_version=4)
-    code_cells = [c for c in nb.cells if c.cell_type == 'code']
+    code_cells = [(pos, c) for pos, c in enumerate(nb.cells) if c.cell_type == 'code']
 
     cells: List[CellInfo] = []
     last_def: Dict[str, int] = {}
     edges: List[tuple] = []
     used_labels: Set[str] = set()
 
-    for i, c in enumerate(code_cells):
-        info = CellInfo(i, _kernel_for_cell(nb, c), c.source or "")
+    for i, (pos, c) in enumerate(code_cells):
+        info = CellInfo(i, _kernel_for_cell(nb, c), c.source or "", position=pos)
         base_label = _extract_cell_label(info.source) or f"cell_{i}"
         label = base_label
         if label in used_labels:

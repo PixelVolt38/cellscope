@@ -44,6 +44,8 @@ interface AnalyzeCell {
   name?: string;
   kernel: string;
   graph?: string;
+  graphUri?: string;
+  notebook?: string;
   funcs: string[];
   func_calls?: string[];
   var_defs: string[];
@@ -71,6 +73,20 @@ interface AnalyzeResponse {
     cells: AnalyzeCell[];
     edges: AnalyzeEdge[];
   };
+}
+
+type ObjectKind = "variable" | "function" | "file";
+
+interface ObjectMatch {
+  name: string;
+  kinds: Set<ObjectKind>;
+  varDefs: AnalyzeCell[];
+  varUses: AnalyzeCell[];
+  funcDefs: AnalyzeCell[];
+  funcCalls: AnalyzeCell[];
+  fileWrites: AnalyzeCell[];
+  fileReads: AnalyzeCell[];
+  filePaths: string[];
 }
 
 type ReviewRoleMap = Record<string, string>;
@@ -204,12 +220,12 @@ class AnalysisPanel extends Widget {
   }
 
   openGraphView(): boolean {
-    if (!this._latestGraphUrl) {
-      this._setStatus("Run an export before opening the graph viewer.", "warn");
+    if (!this._analysisGraphUrl) {
+      this._setStatus("Run Analyze before opening the graph viewer.", "warn");
       return false;
     }
     const iframe = document.createElement("iframe");
-    iframe.src = this._latestGraphUrl;
+    iframe.src = this._analysisGraphUrl;
     iframe.style.width = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "none";
@@ -316,28 +332,61 @@ class AnalysisPanel extends Widget {
   }
 
   private async _analyze(): Promise<void> {
-    await this._runAnalysis("manual");
+    const notebooks = await this._promptNotebookSelection();
+    if (!notebooks) {
+      return;
+    }
+    if (!notebooks.length) {
+      this._setStatus("Select at least one notebook to analyze.", "warn");
+      return;
+    }
+    await this._runAnalysis("manual", notebooks);
   }
 
   private async _export(): Promise<void> {
-    const notebookPath = this._currentNotebookPath();
-    if (!notebookPath) {
+    const notebookPaths =
+      this._analysisNotebookPaths.length > 0
+        ? this._analysisNotebookPaths
+        : this._currentNotebookPath()
+        ? [this._currentNotebookPath() as string]
+        : [];
+    if (!notebookPaths.length) {
       this._setStatus("Open a notebook to export.", "warn");
       return;
     }
-    if (!this._lastAnalysis || !this._lastReview || !this._analysisCrateDir) {
+    if (!this._lastAnalysis || !this._lastReview) {
       this._setStatus("Run Analyze and confirm metadata before exporting.", "warn");
       return;
     }
 
-    this._setBusy(true, "Exporting RO-Crate…");
+    this._setBusy(true, `Exporting ${notebookPaths.length} crate${notebookPaths.length > 1 ? "s" : ""}…`);
     try {
-      const outDir = `out-lab/${Date.now()}`;
-      const payload = await this._requestExportCached(this._analysisCrateDir, outDir);
-      const crateDir = payload.crate as string;
-      this._latestGraphUrl = this._buildGraphUrl(crateDir);
-      this._renderExportSummary(crateDir, payload.index ?? null);
-      this._graphBtn.disabled = !this._latestGraphUrl;
+      const outBase = `out-lab/${Date.now()}`;
+      const exportResponses: any[] = [];
+      let lastCrate: string | null = null;
+      if (this._analysisCrateDir && notebookPaths.length === 1) {
+        const payload = await this._requestExportCached(this._analysisCrateDir, outBase);
+        exportResponses.push(payload);
+        lastCrate = payload.crate as string;
+      } else {
+        const indexCfg = this._buildIndexConfig();
+        const shouldIndex = this._config.dataSource === "sparql" && Boolean(indexCfg.endpoint);
+        for (const path of notebookPaths) {
+          const slug = basename(path).replace(/\.ipynb$/i, "");
+          const outDir = `${outBase}-${slug}`;
+          const payload = await this._requestExport(path, outDir, this._lastReview.hints, !shouldIndex);
+          exportResponses.push(payload);
+          lastCrate = payload.crate as string;
+        }
+      }
+      if (this._graphBtn) {
+        this._graphBtn.disabled = !this._analysisGraphUrl;
+      }
+      const summaryLines = exportResponses.map(payload => {
+        const crateDir = payload.crate as string;
+        return `Crate written to ${this._normalisePath(crateDir)}`;
+      });
+      this._exportNode.textContent = summaryLines.join(" • ");
       if (this._lastAnalysis) {
         this._syncFilterOptions(this._lastAnalysis);
         this._renderFilterControls();
@@ -387,7 +436,7 @@ class AnalysisPanel extends Widget {
     return pathValue.replace(/\\/g, "/");
   }
 
-  private async _runAnalysis(source: "manual" | "auto"): Promise<void> {
+  private async _runAnalysis(source: "manual" | "auto", notebooks?: string[]): Promise<void> {
     if (this._analyzeInFlight) {
       if (source === "auto") {
         this._rerunAfterCurrent = true;
@@ -401,10 +450,12 @@ class AnalysisPanel extends Widget {
       this._pendingTimeout = null;
     }
     if (this._config.dataSource === "sparql") {
-      this._latestGraphUrl = null;
+      this._analysisGraphUrl = null;
     }
     if (source === "manual") {
       this._analysisCrateDir = null;
+    } else {
+      this._analysisNotebookPaths = [];
     }
 
     this._analyzeInFlight = true;
@@ -420,45 +471,70 @@ class AnalysisPanel extends Widget {
       let payload: AnalyzeResponse | null = null;
       if (this._config.dataSource === "sparql" && source !== "manual") {
         payload = await this._requestSparqlSummary();
-        this._latestGraphUrl = await this._requestSparqlGraph();
+        this._analysisGraphUrl = await this._requestSparqlGraph();
       } else {
-        const notebookPath = this._currentNotebookPath();
-        if (!notebookPath) {
+        const selectedNotebooks = (notebooks ?? []).filter(path => path.trim().length > 0);
+        const notebookPaths =
+          source === "manual" && selectedNotebooks.length > 0
+            ? selectedNotebooks
+            : this._currentNotebookPath()
+            ? [this._currentNotebookPath() as string]
+            : [];
+        if (!notebookPaths.length) {
           if (source === "manual") {
             this._setStatus("Open a notebook to analyze.", "warn");
           }
           return;
         }
-        const localPayload = await this._requestAnalysis(notebookPath);
         if (source === "manual") {
-          const review = await this._showReviewDialog(localPayload.graph);
+          this._analysisNotebookPaths = notebookPaths;
+        }
+        const localPayloads: AnalyzeResponse[] = [];
+        for (const path of notebookPaths) {
+          localPayloads.push(await this._requestAnalysis(path));
+        }
+        const combinedGraph = this._mergeGraphs(localPayloads.map(p => p.graph));
+        if (source === "manual") {
+          const review = await this._showReviewDialog(combinedGraph);
           if (!review) {
             this._setStatus("Analysis cancelled.", "warn");
             return;
           }
-          const analysisDir = `out-lab/.analysis-cache/${Date.now()}`;
           const indexCfg = this._buildIndexConfig();
           const shouldIndex = this._config.dataSource === "sparql" && Boolean(indexCfg.endpoint);
-          const exportPayload = await this._requestExport(
-            notebookPath,
-            analysisDir,
-            review.hints,
-            !shouldIndex
-          );
-          this._analysisCrateDir = exportPayload.crate as string;
-
+          const isMulti = notebookPaths.length > 1;
+          let lastCrate: string | null = null;
+          if (this._config.dataSource === "sparql" || !isMulti) {
+            for (const path of notebookPaths) {
+              const analysisDir = `out-lab/.analysis-cache/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+              const exportPayload = await this._requestExport(
+                path,
+                analysisDir,
+                review.hints,
+                !shouldIndex
+              );
+              lastCrate = exportPayload.crate as string;
+            }
+          }
           if (this._config.dataSource === "sparql" && shouldIndex) {
             payload = await this._requestSparqlSummary();
-            this._latestGraphUrl = await this._requestSparqlGraph();
+            this._analysisGraphUrl = await this._requestSparqlGraph();
+            this._analysisCrateDir = !isMulti ? lastCrate : null;
           } else {
-            payload = localPayload;
-            this._latestGraphUrl = this._buildGraphUrl(exportPayload.crate as string);
+            payload = { graph: combinedGraph };
+            if (!isMulti && lastCrate) {
+              this._analysisCrateDir = lastCrate;
+              this._analysisGraphUrl = this._buildGraphUrl(lastCrate);
+            } else {
+              this._analysisCrateDir = null;
+              this._analysisGraphUrl = null;
+            }
             if (this._config.dataSource === "sparql" && !shouldIndex) {
               this._setStatus("SPARQL endpoint not configured; showing local analysis.", "warn");
             }
           }
         } else {
-          payload = localPayload;
+          payload = { graph: combinedGraph };
         }
       }
       if (payload) {
@@ -488,15 +564,48 @@ class AnalysisPanel extends Widget {
   private _renderAnalysis(data: AnalyzeResponse): void {
     this._lastAnalysis = data.graph;
     this._cellLabelMap.clear();
+    this._cellPositionMap.clear();
     data.graph.cells.forEach(cell => {
       this._cellLabelMap.set(cell.idx, this._cellLabel(cell));
+      this._cellPositionMap.set(cell.idx, this._cellDisplayIndex(cell));
     });
     this._syncFilterOptions(data.graph);
     this._renderFilterControls();
-    this._graphBtn.disabled = !this._latestGraphUrl;
+    if (this._exportBtn) {
+      this._exportBtn.disabled = !this._analysisCrateDir;
+    }
+    this._graphBtn.disabled = !this._analysisGraphUrl;
     this._toggleFilters(false);
     this._saveFilterState();
     this._renderFilteredView(true);
+  }
+
+  private _mergeGraphs(graphs: GraphSummary[]): GraphSummary {
+    const mergedCells: AnalyzeCell[] = [];
+    const mergedEdges: AnalyzeEdge[] = [];
+    let offset = 0;
+    graphs.forEach(graph => {
+      graph.cells.forEach(cell => {
+        const mergedCell: AnalyzeCell = {
+          ...cell,
+          idx: cell.idx + offset,
+          graph: cell.graph ?? (cell.notebook ? basename(cell.notebook) : cell.graph)
+        };
+        mergedCells.push(mergedCell);
+      });
+      graph.edges.forEach(edge => {
+        const mergedEdge: AnalyzeEdge = { ...edge };
+        if (typeof mergedEdge.source === "number") {
+          mergedEdge.source = mergedEdge.source + offset;
+        }
+        if (typeof mergedEdge.target === "number") {
+          mergedEdge.target = mergedEdge.target + offset;
+        }
+        mergedEdges.push(mergedEdge);
+      });
+      offset += graph.cells.length;
+    });
+    return { cells: mergedCells, edges: mergedEdges };
   }
 
   private _handleNotebookChange(reason: NotebookChangeReason): void {
@@ -865,13 +974,19 @@ class AnalysisPanel extends Widget {
     const filteredCells = graph.cells.filter(cell => this._matchesCell(cell));
     const filteredEdges = this._edgeList(graph).filter(edge => this._matchesEdge(edge));
     const hints = this._effectiveHints();
+    const exactMatch = this._findExactObjectMatch(graph, this._filterState.search);
+    if (exactMatch) {
+      this._resultsNode.appendChild(this._renderObjectMatch(exactMatch));
+    }
 
     if (!filteredCells.length) {
-      this._resultsNode.textContent = "No cells match the current filters.";
+      const empty = document.createElement("p");
+      empty.textContent = "No cells match the current filters.";
+      this._resultsNode.appendChild(empty);
     } else {
       const groups = new Map<string, AnalyzeCell[]>();
       filteredCells.forEach(cell => {
-        const label = cell.graph ?? "Notebook";
+        const label = cell.graph ?? (cell.notebook ? basename(cell.notebook) : "Notebook");
         const arr = groups.get(label) ?? [];
         arr.push(cell);
         groups.set(label, arr);
@@ -889,20 +1004,8 @@ class AnalysisPanel extends Widget {
         details.className = "jp-CellScopePanel-cell";
         details.open = filteredCells.length <= 4;
         const summary = document.createElement("summary");
-        summary.textContent = this._cellSummary(cell);
+        summary.appendChild(this._highlightText(this._cellSummary(cell)));
         details.appendChild(summary);
-
-        const quickActions = document.createElement("div");
-        quickActions.className = "jp-CellScopePanel-quickActions";
-        const activateBtn = document.createElement("button");
-        activateBtn.textContent = "Activate cell";
-        activateBtn.className = "jp-mod-styled";
-        activateBtn.disabled = !this.tracker || !this.tracker.currentWidget;
-        activateBtn.addEventListener("click", () => {
-          this._activateCell(cell.idx);
-        });
-        quickActions.appendChild(activateBtn);
-        details.appendChild(quickActions);
 
         const body = document.createElement("div");
         body.className = "jp-CellScopePanel-cellBody";
@@ -988,10 +1091,11 @@ class AnalysisPanel extends Widget {
     if (!term) {
       return true;
     }
+    const displayIndex = this._cellDisplayIndex(cell);
     const hintTokens = this._hintTokensForCell(cell, hints);
     const haystack = [
       this._cellLabel(cell),
-      `cell ${cell.idx}`,
+      `cell ${displayIndex}`,
       cell.kernel,
       ...cell.funcs,
       ...(cell.func_calls ?? []),
@@ -1017,8 +1121,16 @@ class AnalysisPanel extends Widget {
     }
     const parts: string[] = [];
     if (typeof edge.source !== "undefined" && typeof edge.target !== "undefined") {
-      parts.push(`cell ${edge.source}`);
-      parts.push(`cell ${edge.target}`);
+      const sourceIdx =
+        typeof edge.source === "number"
+          ? this._cellPositionMap.get(edge.source) ?? edge.source
+          : edge.source;
+      const targetIdx =
+        typeof edge.target === "number"
+          ? this._cellPositionMap.get(edge.target) ?? edge.target
+          : edge.target;
+      parts.push(`cell ${sourceIdx}`);
+      parts.push(`cell ${targetIdx}`);
       const sourceLabel = this._formatCellReference(edge.source);
       const targetLabel = this._formatCellReference(edge.target);
       if (sourceLabel) {
@@ -1104,31 +1216,53 @@ class AnalysisPanel extends Widget {
     return wrapper;
   }
 
-  private _activateCell(idx: number): void {
-    const panel = this.tracker?.currentWidget;
+  private async _activateCell(cell: AnalyzeCell): Promise<void> {
+    const targetPath = this._notebookPathForCell(cell);
+    let panel = this.tracker?.currentWidget ?? null;
+    if (targetPath && (!panel || panel.context.path !== targetPath)) {
+      if (!this._docManager) {
+        this._setStatus("Notebook manager unavailable; cannot open target notebook.", "warn");
+        return;
+      }
+      const opened = this._docManager.openOrReveal(targetPath, "Notebook") as NotebookPanel | undefined;
+      if (!opened) {
+        this._setStatus(`Could not open notebook ${targetPath}.`, "warn");
+        return;
+      }
+      panel = opened;
+    }
     if (!panel) {
       this._setStatus("Open a notebook to activate cells.", "warn");
       return;
     }
+    await panel.context.ready;
     const { content } = panel;
     if (!content) {
       return;
     }
-    let codeIndex = -1;
     let targetIndex = -1;
-    const total = content.widgets.length;
-    for (let i = 0; i < total; i++) {
-      const cell = content.widgets[i];
-      if (cell?.model?.type === "code") {
-        codeIndex += 1;
-        if (codeIndex === idx) {
-          targetIndex = i;
-          break;
+    if (typeof cell.position === "number") {
+      targetIndex = cell.position;
+    } else {
+      let codeIndex = -1;
+      const total = content.widgets.length;
+      for (let i = 0; i < total; i++) {
+        const widget = content.widgets[i];
+        if (widget?.model?.type === "code") {
+          codeIndex += 1;
+          if (codeIndex === cell.idx) {
+            targetIndex = i;
+            break;
+          }
         }
       }
     }
     if (targetIndex === -1) {
-      this._setStatus(`Could not locate code cell ${idx}.`, "warn");
+      this._setStatus(`Could not locate cell ${cell.idx}.`, "warn");
+      return;
+    }
+    if (targetIndex < 0 || targetIndex >= content.widgets.length) {
+      this._setStatus(`Cell index ${targetIndex} is out of bounds.`, "warn");
       return;
     }
     content.activeCellIndex = targetIndex;
@@ -1142,14 +1276,63 @@ class AnalysisPanel extends Widget {
     return raw || `Cell ${cell.idx}`;
   }
 
+  private _cellDisplayIndex(cell: AnalyzeCell): number {
+    return typeof cell.position === "number" ? cell.position : cell.idx;
+  }
+
+  private _notebookPathForCell(cell: AnalyzeCell): string | null {
+    const raw = cell.notebook ?? null;
+    if (!raw) {
+      return null;
+    }
+    const lower = raw.toLowerCase();
+    if (!raw.startsWith("file://") && !lower.endsWith(".ipynb")) {
+      return null;
+    }
+    if (raw.startsWith("file://")) {
+      return this._normaliseNotebookPath(this._uriToPath(raw));
+    }
+    return this._normaliseNotebookPath(raw);
+  }
+
+  private _uriToPath(uri: string): string {
+    try {
+      const url = new URL(uri);
+      if (url.protocol !== "file:") {
+        return uri;
+      }
+      const decoded = decodeURIComponent(url.pathname);
+      if (/^\/[A-Za-z]:\//.test(decoded)) {
+        return decoded.slice(1);
+      }
+      return decoded;
+    } catch {
+      return uri;
+    }
+  }
+
+  private _normaliseNotebookPath(pathValue: string): string {
+    const normalised = pathValue.replace(/\\/g, "/");
+    const root =
+      (PageConfig.getOption("serverRoot") || PageConfig.getOption("rootDir") || "").replace(/\\/g, "/");
+    if (root) {
+      const rootTrimmed = root.replace(/\/+$/, "");
+      if (normalised.startsWith(rootTrimmed)) {
+        return normalised.slice(rootTrimmed.length).replace(/^\/+/, "");
+      }
+    }
+    return normalised.replace(/^\/+/, "");
+  }
+
   private _cellSummary(cell: AnalyzeCell): string {
-    return `${this._cellLabel(cell)} (cell ${cell.idx}, ${cell.kernel})`;
+    return `${this._cellLabel(cell)} (cell ${this._cellDisplayIndex(cell)}, ${cell.kernel})`;
   }
 
   private _formatCellReference(value: number | string | undefined): string | null {
     if (typeof value === "number") {
       const label = this._cellLabelMap.get(value);
-      return label ? `${label} (cell ${value})` : `Cell ${value}`;
+      const position = this._cellPositionMap.get(value) ?? value;
+      return label ? `${label} (cell ${position})` : `Cell ${position}`;
     }
     if (typeof value === "string") {
       return value;
@@ -1318,10 +1501,7 @@ class AnalysisPanel extends Widget {
   }
 
   private _filterStorageKey(): string | null {
-    if (!this._activeNotebookPath) {
-      return null;
-    }
-    return `cellscope:filters:${encodeURIComponent(this._activeNotebookPath)}`;
+    return "cellscope:filters:global";
   }
 
   private _hintsStorageKey(): string | null {
@@ -1375,13 +1555,250 @@ class AnalysisPanel extends Widget {
     this._lastFilterSignature = signature;
     document.dispatchEvent(new CustomEvent("cellscope:filters-changed", { detail }));
   }
+
+  private _searchTokens(): string[] {
+    const raw = this._filterState.search.trim();
+    if (!raw) {
+      return [];
+    }
+    return raw.split(/\s+/).map(token => token.trim()).filter(token => token.length > 0);
+  }
+
+  private _escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  private _highlightText(text: string): DocumentFragment {
+    const fragment = document.createDocumentFragment();
+    const tokens = this._searchTokens();
+    if (!tokens.length) {
+      fragment.appendChild(document.createTextNode(text));
+      return fragment;
+    }
+    const pattern = new RegExp(tokens.map(token => this._escapeRegExp(token)).join("|"), "gi");
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+      const start = match.index;
+      if (start > lastIndex) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+      }
+      const mark = document.createElement("mark");
+      mark.className = "jp-CellScopeHighlight";
+      mark.textContent = match[0];
+      fragment.appendChild(mark);
+      lastIndex = start + match[0].length;
+    }
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+    return fragment;
+  }
+
+  private _findExactObjectMatch(graph: GraphSummary, query: string): ObjectMatch | null {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const lowered = trimmed.toLowerCase();
+    const hasSeparator = /[\\/]/.test(trimmed);
+    const match: ObjectMatch = {
+      name: trimmed,
+      kinds: new Set<ObjectKind>(),
+      varDefs: [],
+      varUses: [],
+      funcDefs: [],
+      funcCalls: [],
+      fileWrites: [],
+      fileReads: [],
+      filePaths: []
+    };
+
+    const seen = new Set<string>();
+    const addCell = (list: AnalyzeCell[], cell: AnalyzeCell) => {
+      const key = `${cell.graph ?? ""}:${cell.idx}`;
+      if (seen.has(key)) {
+        return;
+      }
+      seen.add(key);
+      list.push(cell);
+    };
+
+    const filePaths = new Set<string>();
+    const matchToken = (value: string) => value.toLowerCase() === lowered;
+    const matchFile = (value: string) => {
+      const normalized = value.toLowerCase();
+      if (hasSeparator) {
+        return normalized === lowered;
+      }
+      const base = basename(value).toLowerCase();
+      return base === lowered || normalized === lowered;
+    };
+
+    graph.cells.forEach(cell => {
+      cell.var_defs.forEach(variable => {
+        if (!matchToken(variable)) {
+          return;
+        }
+        match.kinds.add("variable");
+        addCell(match.varDefs, cell);
+      });
+      cell.var_uses.forEach(variable => {
+        if (!matchToken(variable)) {
+          return;
+        }
+        match.kinds.add("variable");
+        addCell(match.varUses, cell);
+      });
+      cell.funcs.forEach(func => {
+        if (!matchToken(func)) {
+          return;
+        }
+        match.kinds.add("function");
+        addCell(match.funcDefs, cell);
+      });
+      (cell.func_calls ?? []).forEach(func => {
+        if (!matchToken(func)) {
+          return;
+        }
+        match.kinds.add("function");
+        addCell(match.funcCalls, cell);
+      });
+      cell.file_writes.forEach(path => {
+        if (!matchFile(path)) {
+          return;
+        }
+        match.kinds.add("file");
+        addCell(match.fileWrites, cell);
+        filePaths.add(path);
+      });
+      cell.file_reads.forEach(path => {
+        if (!matchFile(path)) {
+          return;
+        }
+        match.kinds.add("file");
+        addCell(match.fileReads, cell);
+        filePaths.add(path);
+      });
+    });
+
+    if (!match.kinds.size) {
+      return null;
+    }
+    match.filePaths = Array.from(filePaths);
+    return match;
+  }
+
+  private _renderObjectMatch(match: ObjectMatch): HTMLElement {
+    const container = document.createElement("div");
+    container.className = "jp-CellScopePanel-objectMatch";
+
+    const title = document.createElement("div");
+    title.className = "jp-CellScopePanel-objectMatchTitle";
+    const titleLabel = document.createElement("strong");
+    titleLabel.textContent = "Matched object: ";
+    title.appendChild(titleLabel);
+    title.appendChild(this._highlightText(match.name));
+    container.appendChild(title);
+
+    if (match.kinds.size > 0) {
+      const kinds = document.createElement("div");
+      kinds.className = "jp-CellScopePanel-objectMatchMeta";
+      kinds.textContent = `Type: ${Array.from(match.kinds).join(", ")}`;
+      container.appendChild(kinds);
+    }
+
+    if (match.filePaths.length) {
+      container.appendChild(this._renderObjectTextList("Paths", match.filePaths));
+    }
+    if (match.varDefs.length) {
+      container.appendChild(this._renderObjectCellList("Defined in", match.varDefs));
+    }
+    if (match.varUses.length) {
+      container.appendChild(this._renderObjectCellList("Used in", match.varUses));
+    }
+    if (match.funcDefs.length) {
+      container.appendChild(this._renderObjectCellList("Function defined in", match.funcDefs));
+    }
+    if (match.funcCalls.length) {
+      container.appendChild(this._renderObjectCellList("Function called in", match.funcCalls));
+    }
+    if (match.fileWrites.length) {
+      container.appendChild(this._renderObjectCellList("Written in", match.fileWrites));
+    }
+    if (match.fileReads.length) {
+      container.appendChild(this._renderObjectCellList("Read in", match.fileReads));
+    }
+
+    return container;
+  }
+
+  private _renderObjectCellList(label: string, cells: AnalyzeCell[]): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = "jp-CellScopePanel-objectMatchSection";
+    const header = document.createElement("strong");
+    header.textContent = `${label}: `;
+    wrap.appendChild(header);
+    const list = document.createElement("ul");
+    list.className = "jp-CellScopePanel-objectMatchList";
+    cells.forEach(cell => {
+      const item = document.createElement("li");
+      const notebookLabel = this._cellNotebookLabel(cell);
+      item.appendChild(this._highlightText(`${notebookLabel} — ${this._cellSummary(cell)}`));
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  private _renderObjectTextList(label: string, values: string[]): HTMLElement {
+    const wrap = document.createElement("div");
+    wrap.className = "jp-CellScopePanel-objectMatchSection";
+    const header = document.createElement("strong");
+    header.textContent = `${label}: `;
+    wrap.appendChild(header);
+    const list = document.createElement("ul");
+    list.className = "jp-CellScopePanel-objectMatchList";
+    values.forEach(value => {
+      const item = document.createElement("li");
+      item.appendChild(this._highlightText(value));
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  private _cellNotebookLabel(cell: AnalyzeCell): string {
+    const graphLabel = (cell.graph ?? "").trim();
+    const notebookPath = (cell.notebook ?? "").trim();
+    const base = notebookPath ? basename(notebookPath) : "";
+    if (graphLabel) {
+      if (base && base.toLowerCase() !== graphLabel.toLowerCase()) {
+        return `${graphLabel} (${base})`;
+      }
+      return graphLabel;
+    }
+    return base || "Notebook";
+  }
+
   private _renderList(label: string, items: string[]): HTMLElement {
     const container = document.createElement("div");
     container.className = "jp-CellScopePanel-section";
     const title = document.createElement("strong");
     title.textContent = `${label}: `;
     container.appendChild(title);
-    container.appendChild(document.createTextNode(items.length ? items.join(", ") : "—"));
+    const content = document.createElement("span");
+    if (!items.length) {
+      content.textContent = "—";
+    } else {
+      items.forEach((item, index) => {
+        if (index > 0) {
+          content.appendChild(document.createTextNode(", "));
+        }
+        content.appendChild(this._highlightText(item));
+      });
+    }
+    container.appendChild(content);
     return container;
   }
 
@@ -1395,6 +1812,225 @@ class AnalysisPanel extends Widget {
     return URLExt.join(this._settings.baseUrl, "files", graphPath);
   }
 
+  private async _collectNotebookPaths(path: string): Promise<string[]> {
+    const contents = this.app.serviceManager.contents;
+    const model = await contents.get(path, { content: true });
+    if (!model.content || !Array.isArray(model.content)) {
+      return [];
+    }
+    const results: string[] = [];
+    const skipDirs = new Set([".git", ".venv", "node_modules", "__pycache__", ".ipynb_checkpoints"]);
+    for (const item of model.content as any[]) {
+      if (!item || typeof item.path !== "string") {
+        continue;
+      }
+      const name = typeof item.name === "string" ? item.name : basename(item.path);
+      if (name.startsWith(".") || skipDirs.has(name)) {
+        continue;
+      }
+      if (item.type === "directory") {
+        results.push(...(await this._collectNotebookPaths(item.path)));
+      } else if (item.type === "notebook" || item.path.endsWith(".ipynb")) {
+        results.push(item.path);
+      }
+    }
+    return results;
+  }
+
+  private async _promptNotebookSelection(): Promise<string[] | null> {
+    const folders = await this._promptNotebookFolders();
+    if (!folders) {
+      return null;
+    }
+    if (!folders.length) {
+      this._setStatus("Select at least one folder to scan.", "warn");
+      return [];
+    }
+
+    this._setStatus("Loading notebooks…", "info");
+    let notebooks: string[] = [];
+    try {
+      const unique = new Set<string>();
+      for (const folder of folders) {
+        const found = await this._collectNotebookPaths(folder);
+        found.forEach(path => unique.add(path));
+      }
+      notebooks = Array.from(unique);
+    } catch (error) {
+      this._setStatus(`Failed to list notebooks: ${this._stringifyError(error)}`, "error");
+      return null;
+    }
+    notebooks.sort((a, b) => a.localeCompare(b));
+    if (!notebooks.length) {
+      this._setStatus("No notebooks found in the selected folders.", "warn");
+      return [];
+    }
+
+    const current = this._currentNotebookPath();
+    const body = document.createElement("div");
+    body.className = "jp-CellScopeNotebookPicker";
+    const intro = document.createElement("p");
+    intro.textContent = "Select the notebooks to analyze.";
+    body.appendChild(intro);
+
+    const controls = document.createElement("div");
+    controls.className = "jp-CellScopeNotebookPicker-controls";
+    const selectAll = document.createElement("button");
+    selectAll.className = "jp-mod-styled";
+    selectAll.textContent = "Select all";
+    const clearAll = document.createElement("button");
+    clearAll.className = "jp-mod-styled";
+    clearAll.textContent = "Clear";
+    controls.appendChild(selectAll);
+    controls.appendChild(clearAll);
+    body.appendChild(controls);
+
+    const list = document.createElement("div");
+    list.className = "jp-CellScopeNotebookPicker-list";
+    const inputs = new Map<string, HTMLInputElement>();
+    notebooks.forEach(path => {
+      const row = document.createElement("label");
+      row.className = "jp-CellScopeNotebookPicker-item";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = current === path;
+      const label = document.createElement("span");
+      label.textContent = path;
+      row.appendChild(checkbox);
+      row.appendChild(label);
+      list.appendChild(row);
+      inputs.set(path, checkbox);
+    });
+    body.appendChild(list);
+
+    selectAll.addEventListener("click", () => {
+      inputs.forEach(input => {
+        input.checked = true;
+      });
+    });
+    clearAll.addEventListener("click", () => {
+      inputs.forEach(input => {
+        input.checked = false;
+      });
+    });
+
+    const dialog = new Dialog({
+      title: "Analyze multiple notebooks",
+      body: new Widget({ node: body }),
+      buttons: [Dialog.cancelButton({ label: "Cancel" }), Dialog.okButton({ label: "Analyze" })]
+    });
+
+    const result = await dialog.launch();
+    if (!result.button.accept) {
+      return null;
+    }
+    return Array.from(inputs.entries())
+      .filter(([, input]) => input.checked)
+      .map(([path]) => path);
+  }
+
+  private async _promptNotebookFolders(): Promise<string[] | null> {
+    const contents = this.app.serviceManager.contents;
+    let rootModel: any;
+    try {
+      rootModel = await contents.get("", { content: true });
+    } catch (error) {
+      this._setStatus(`Failed to list folders: ${this._stringifyError(error)}`, "error");
+      return null;
+    }
+    const items = Array.isArray(rootModel?.content) ? rootModel.content : [];
+    const folders = items
+      .filter((item: any) => item && item.type === "directory")
+      .map((item: any) => ({ path: item.path as string, name: item.name as string }))
+      .filter((item: { path: string; name: string }) => {
+        return item.name && !item.name.startsWith(".") && item.name !== ".ipynb_checkpoints";
+      })
+      .sort((a: { path: string }, b: { path: string }) => a.path.localeCompare(b.path));
+
+    const current = this._currentNotebookPath();
+    const currentFolder = current ? current.split("/").slice(0, -1).join("/") : "";
+
+    const body = document.createElement("div");
+    body.className = "jp-CellScopeNotebookPicker";
+    const intro = document.createElement("p");
+    intro.textContent = "Select folders to scan for notebooks.";
+    body.appendChild(intro);
+
+    const controls = document.createElement("div");
+    controls.className = "jp-CellScopeNotebookPicker-controls";
+    const selectAll = document.createElement("button");
+    selectAll.className = "jp-mod-styled";
+    selectAll.textContent = "All folders";
+    const selectCurrent = document.createElement("button");
+    selectCurrent.className = "jp-mod-styled";
+    selectCurrent.textContent = "Current folder";
+    const clearAll = document.createElement("button");
+    clearAll.className = "jp-mod-styled";
+    clearAll.textContent = "Clear";
+    controls.appendChild(selectAll);
+    controls.appendChild(selectCurrent);
+    controls.appendChild(clearAll);
+    body.appendChild(controls);
+
+    const list = document.createElement("div");
+    list.className = "jp-CellScopeNotebookPicker-list";
+    const inputs = new Map<string, HTMLInputElement>();
+
+    const addRow = (labelText: string, pathValue: string, checked: boolean) => {
+      const row = document.createElement("label");
+      row.className = "jp-CellScopeNotebookPicker-item";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = checked;
+      const label = document.createElement("span");
+      label.textContent = labelText;
+      row.appendChild(checkbox);
+      row.appendChild(label);
+      list.appendChild(row);
+      inputs.set(pathValue, checkbox);
+    };
+
+    addRow("(root)", "", !currentFolder);
+    folders.forEach((folder: { path: string; name: string }) => {
+      addRow(folder.path, folder.path, currentFolder === folder.path);
+    });
+    body.appendChild(list);
+
+    selectAll.addEventListener("click", () => {
+      inputs.forEach(input => {
+        input.checked = true;
+      });
+    });
+    selectCurrent.addEventListener("click", () => {
+      inputs.forEach(input => {
+        input.checked = false;
+      });
+      const target = inputs.get(currentFolder ?? "");
+      if (target) {
+        target.checked = true;
+      }
+    });
+    clearAll.addEventListener("click", () => {
+      inputs.forEach(input => {
+        input.checked = false;
+      });
+    });
+
+    const dialog = new Dialog({
+      title: "Select folders to scan",
+      body: new Widget({ node: body }),
+      buttons: [Dialog.cancelButton({ label: "Cancel" }), Dialog.okButton({ label: "Continue" })]
+    });
+
+    const result = await dialog.launch();
+    if (!result.button.accept) {
+      return null;
+    }
+    return Array.from(inputs.entries())
+      .filter(([, input]) => input.checked)
+      .map(([path]) => path);
+  }
+
   private _currentNotebookPath(): string | null {
     const current = this.tracker?.currentWidget;
     return current?.context.path ?? null;
@@ -1405,7 +2041,7 @@ class AnalysisPanel extends Widget {
     this._setupNotebookListeners(panel ?? null);
     const pathVal = panel?.context.path ?? this._currentNotebookPath();
     this._pathNode.textContent = pathVal ?? "(no notebook)";
-    this._latestGraphUrl = null;
+    this._analysisGraphUrl = null;
     if (this._graphBtn) {
       this._graphBtn.disabled = true;
     }
@@ -1418,9 +2054,10 @@ class AnalysisPanel extends Widget {
     this._setPending(false, undefined, true);
     if (pathVal) {
       this._loadStoredHints();
-      this._loadFilterState();
-    } else {
-      this._filterState = this._createDefaultFilterState();
+    }
+    this._loadFilterState();
+    if (this._config.dataSource === "sparql") {
+      void this._runAnalysis("auto");
     }
   }
   private _setBusy(busy: boolean, message?: string, preserveStatus = false): void {
@@ -1767,7 +2404,7 @@ class AnalysisPanel extends Widget {
       const details = document.createElement("details");
       details.open = graph.cells.length <= 3;
       const summary = document.createElement("summary");
-      summary.textContent = this._cellSummary(cell);
+      summary.appendChild(this._highlightText(this._cellSummary(cell)));
       details.appendChild(summary);
       const bodyDiv = document.createElement("div");
       bodyDiv.append(
@@ -2524,7 +3161,7 @@ SELECT ?g ?s ?p ?o WHERE {
   private readonly _helpNode = (() => {
     const div = document.createElement("div");
     div.className = "jp-CellScopePanel-help";
-    div.innerHTML = "Need the graph? Export a crate, then run <code>CellScope: Open Graph Panel</code>.";
+    div.innerHTML = "Need the graph? Run Analyze, then use <code>Open Graph</code>.";
     return div;
   })();
   private readonly _settings: ServerConnection.ISettings;
@@ -2535,11 +3172,12 @@ SELECT ?g ?s ?p ?o WHERE {
   private _graphBtn!: HTMLButtonElement;
   private _filtersBtn!: HTMLButtonElement;
   private _filterOverlay!: HTMLElement;
-  private _latestGraphUrl: string | null = null;
   private _analysisCrateDir: string | null = null;
+  private _analysisGraphUrl: string | null = null;
   private _lastAnalysis: GraphSummary | null = null;
   private _lastReview: ReviewResult | null = null;
   private _storedHints: ReviewHints | null = null;
+  private _analysisNotebookPaths: string[] = [];
   private _activeNotebookPath: string | null = null;
   private _filterState: FilterState = this._createDefaultFilterState();
   private _kernelOptions: string[] = [];
@@ -2547,6 +3185,7 @@ SELECT ?g ?s ?p ?o WHERE {
   private _roleOptions: string[] = [];
   private _fileHintOptions: string[] = [];
   private _cellLabelMap: Map<number, string> = new Map();
+  private _cellPositionMap: Map<number, number> = new Map();
   private _pendingTimeout: number | null = null;
   private _pendingChanges = false;
   private _notebookListeners: Array<() => void> = [];

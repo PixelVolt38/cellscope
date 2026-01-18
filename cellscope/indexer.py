@@ -272,6 +272,16 @@ def _collect_triples(
                 )
             mapped_keys.add("accessURL")
 
+        local_path = entity.get(CELLSCOPE + "localPath") or entity.get("https://cellscope.dev/terms/localPath")
+        if local_path:
+            for value in _iter_values(local_path):
+                if value is None:
+                    continue
+                triples.add(
+                    (subject, CELLSCOPE + "localPath", str(value), True, None)
+                )
+            mapped_keys.add(CELLSCOPE + "localPath")
+
         retrieved_at = entity.get("retrievedAt") or entity.get(PROV + "generatedAtTime")
         if retrieved_at:
             for value in _iter_values(retrieved_at):

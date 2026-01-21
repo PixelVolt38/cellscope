@@ -1,0 +1,290 @@
+{
+  "notebook": "/path/to/repo/examples/multi_kernel_demo.ipynb",
+  "notes": "Manual labels; SoS magics removed; file hand-offs only.",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "climate_data_frame",
+      "kernel": "python3",
+      "source": [
+        "# climate data frame",
+        "import pandas as pd",
+        "from statistics import mean",
+        "",
+        "readings = [22.1, 21.8, 23.4, 24.0, 22.7]",
+        "locations = [\"north\", \"south\", \"east\", \"west\", \"central\"]",
+        "climate = pd.DataFrame({\"location\": locations, \"temperature\": readings})",
+        "climate['temperature_c'] = climate['temperature']",
+        "climate_summary = {",
+        "    'mean_c': mean(readings),",
+        "    'max_c': max(readings),",
+        "    'min_c': min(readings)",
+        "}"
+      ],
+      "defs": [
+        "climate",
+        "climate_summary",
+        "locations",
+        "mean",
+        "pd",
+        "readings"
+      ],
+      "uses": [
+        "max",
+        "min"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "max",
+        "min"
+      ],
+      "file_reads": [],
+      "file_writes": []
+    },
+    {
+      "idx": 1,
+      "label": "materialize_outputs_for_hand_off",
+      "kernel": "python3",
+      "source": [
+        "# materialize outputs for hand-off",
+        "data_dir = 'data_outputs'",
+        "import os",
+        "os.makedirs(data_dir, exist_ok=True)",
+        "",
+        "csv_path = os.path.join(data_dir, 'climate_readings.csv')",
+        "json_path = os.path.join(data_dir, 'climate_summary.json')",
+        "",
+        "climate.to_csv(csv_path, index=False)",
+        "climate_summary_df = pd.DataFrame([climate_summary])",
+        "climate_summary_df.to_json(json_path, orient='records', indent=2)",
+        "print(f\"wrote {csv_path} and {json_path}\")",
+        "",
+        "# share the climate summary via SoS for other kernels"
+      ],
+      "defs": [
+        "climate_summary_df",
+        "csv_path",
+        "data_dir",
+        "json_path",
+        "os"
+      ],
+      "uses": [
+        "climate",
+        "climate_summary",
+        "pd",
+        "print"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "print"
+      ],
+      "file_reads": [],
+      "file_writes": [
+        "data_outputs/climate_readings.csv",
+        "data_outputs/climate_summary.json"
+      ]
+    },
+    {
+      "idx": 2,
+      "label": "reference_external_configuration_for_provenance",
+      "kernel": "python3",
+      "source": [
+        "# reference external configuration for provenance",
+        "config_path = 'config/thresholds.txt'",
+        "with open(config_path) as handle:",
+        "    thresholds = [float(line.strip()) for line in handle if line.strip()]",
+        "",
+        "baseline = thresholds[0] if thresholds else None",
+        "print('baseline threshold:', baseline)"
+      ],
+      "defs": [
+        "baseline",
+        "config_path",
+        "handle",
+        "line",
+        "thresholds"
+      ],
+      "uses": [
+        "float",
+        "open",
+        "print"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "float",
+        "open",
+        "print"
+      ],
+      "file_reads": [
+        "config/thresholds.txt"
+      ],
+      "file_writes": []
+    },
+    {
+      "idx": 3,
+      "label": "consume_sos_hand_off_and_csv_artifact",
+      "kernel": "ir",
+      "source": [
+        "# consume SoS hand-off and CSV artifact",
+        "summary <- climate_summary",
+        "summary[['mean_c', 'max_c', 'min_c']]",
+        "",
+        "# Pretend to load the CSV produced by Python (path kept for provenance capture)",
+        "climate_frame <- read.csv('data_outputs/climate_readings.csv')",
+        "head(climate_frame)"
+      ],
+      "defs": [
+        "climate_frame",
+        "summary"
+      ],
+      "uses": [
+        "climate_summary",
+        "read.csv",
+        "head"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "read.csv",
+        "head"
+      ],
+      "file_reads": [
+        "data_outputs/climate_readings.csv"
+      ],
+      "file_writes": []
+    },
+    {
+      "idx": 4,
+      "label": "downstream_analysis_using_both_shared_data_and_file_reads",
+      "kernel": "python3",
+      "source": [
+        "# downstream analysis using both shared data and file reads",
+        "import json",
+        "from pathlib import Path",
+        "",
+        "json_path = Path('data_outputs/climate_summary.json')",
+        "if json_path.exists():",
+        "    summary_records = json.loads(json_path.read_text())",
+        "else:",
+        "    summary_records = []",
+        "",
+        "report = {",
+        "    'summary': climate_summary,",
+        "    'shared_records': summary_records,",
+        "    'notes': 'Derived in Cell 4'",
+        "}",
+        "report_path = Path('reports/climate_report.txt')",
+        "report_path.parent.mkdir(exist_ok=True)",
+        "report_path.write_text(str(report), encoding='utf-8')",
+        "print('report saved to', report_path)"
+      ],
+      "defs": [
+        "Path",
+        "json",
+        "json_path",
+        "report",
+        "report_path",
+        "summary_records"
+      ],
+      "uses": [
+        "climate_summary",
+        "print",
+        "str"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "print",
+        "str"
+      ],
+      "file_reads": [
+        "data_outputs/climate_summary.json"
+      ],
+      "file_writes": [
+        "reports/climate_report.txt"
+      ]
+    },
+    {
+      "idx": 5,
+      "label": "cell_5",
+      "kernel": "python3",
+      "source": [
+        "def add(x,y):",
+        "    return x+y"
+      ],
+      "defs": [
+        "add"
+      ],
+      "uses": [
+        "x",
+        "y"
+      ],
+      "funcs": [
+        "add"
+      ],
+      "func_calls": [],
+      "file_reads": [],
+      "file_writes": []
+    }
+  ],
+  "edges": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "climate"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "climate_summary"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "pd"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "climate_summary"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "climate_summary"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "climate_readings.csv"
+      ],
+      "via": "file",
+      "file": "data_outputs/climate_readings.csv"
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "climate_summary.json"
+      ],
+      "via": "file",
+      "file": "data_outputs/climate_summary.json"
+    }
+  ]
+}

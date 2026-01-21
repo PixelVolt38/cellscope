@@ -1,0 +1,101 @@
+{
+  "nb_path": "examples/exhaustive_r.ipynb",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "cell_0",
+      "name": "cell_0",
+      "kernel": "ir",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "df"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": [
+        "examples/data_outputs/climate_readings.csv"
+      ]
+    },
+    {
+      "idx": 1,
+      "label": "cell_1",
+      "name": "cell_1",
+      "kernel": "ir",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "temp_f"
+      ],
+      "var_uses": [
+        "df"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 2,
+      "label": "cell_2",
+      "name": "cell_2",
+      "kernel": "ir",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [],
+      "var_uses": [],
+      "file_writes": [
+        "examples/data_outputs/r_output.csv"
+      ],
+      "file_reads": []
+    },
+    {
+      "idx": 3,
+      "label": "cell_3",
+      "name": "cell_3",
+      "kernel": "ir",
+      "funcs": [],
+      "func_calls": [
+        "max",
+        "mean",
+        "toJSON"
+      ],
+      "var_defs": [],
+      "var_uses": [
+        "max",
+        "mean",
+        "toJSON"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 4,
+      "label": "cell_4",
+      "name": "cell_4",
+      "kernel": "ir",
+      "funcs": [],
+      "func_calls": [
+        "download.file"
+      ],
+      "var_defs": [],
+      "var_uses": [
+        "download.file"
+      ],
+      "file_writes": [
+        "examples/data_outputs/http_download.csv"
+      ],
+      "file_reads": [
+        "https://example.com/data.csv"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    }
+  ]
+}

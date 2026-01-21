@@ -1,0 +1,93 @@
+[
+  {
+    "crate": "evaluation/crates/RAVL/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 251,
+      "activities": 16,
+      "datasets": 1,
+      "files": 19,
+      "usages": 1,
+      "data_entities": 0
+    },
+    "validation_output": "Found 16 activities\nValidation: OK"
+  },
+  {
+    "crate": "evaluation/crates/RAVL_R_source/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 43,
+      "activities": 5,
+      "datasets": 1,
+      "files": 7,
+      "usages": 0,
+      "data_entities": 0
+    },
+    "validation_output": "Found 5 activities\nValidation: OK"
+  },
+  {
+    "crate": "evaluation/crates/SecretsProvider_demo/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 12,
+      "activities": 4,
+      "datasets": 1,
+      "files": 6,
+      "usages": 0,
+      "data_entities": 0
+    },
+    "validation_output": "Found 4 activities\nValidation: OK"
+  },
+  {
+    "crate": "evaluation/crates/exhaustive_python/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 34,
+      "activities": 8,
+      "datasets": 1,
+      "files": 15,
+      "usages": 3,
+      "data_entities": 0
+    },
+    "validation_output": "Found 8 activities\nValidation: OK"
+  },
+  {
+    "crate": "evaluation/crates/exhaustive_r/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 17,
+      "activities": 5,
+      "datasets": 1,
+      "files": 11,
+      "usages": 2,
+      "data_entities": 0
+    },
+    "validation_output": "Found 5 activities\nValidation: OK"
+  },
+  {
+    "crate": "evaluation/crates/migrate_secrets/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 19,
+      "activities": 3,
+      "datasets": 1,
+      "files": 6,
+      "usages": 0,
+      "data_entities": 0
+    },
+    "validation_output": "Found 3 activities\nValidation: OK"
+  },
+  {
+    "crate": "evaluation/crates/multi_kernel_demo/ro-crate",
+    "ok": true,
+    "counts": {
+      "entities": 43,
+      "activities": 6,
+      "datasets": 1,
+      "files": 12,
+      "usages": 3,
+      "data_entities": 0
+    },
+    "validation_output": "Found 6 activities\nValidation: OK"
+  }
+]

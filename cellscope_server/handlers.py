@@ -4,7 +4,6 @@ Jupyter Server extension: exposes CellScope endpoints
  - POST /cellscope/export
  - POST /cellscope/export_cached
  - POST /cellscope/index
- - POST /cellscope/workflow/capture
  - POST /cellscope/sparql_summary
  - POST /cellscope/sparql_graph
 
@@ -27,7 +26,6 @@ from cellscope import (
     index_crate,
 )
 from cellscope.serialization import capture_to_json
-from cellscope.workflow import capture_workflow, parse_workflow
 from pathlib import Path
 import importlib
 import urllib.parse
@@ -355,7 +353,7 @@ SELECT ?g ?s ?p ?o WHERE {{
                         matches.append(rel.replace("\\", "/"))
             if not matches:
                 return None
-            preferred_prefixes = ("out-validation/user_study", "examples")
+            preferred_prefixes = ("evaluation/user_study", "examples")
             for prefix in preferred_prefixes:
                 for match in matches:
                     if match.startswith(prefix):
@@ -920,81 +918,6 @@ def _merge_index_configs(defaults: IndexConfig, override: IndexConfig) -> IndexC
     return merged
 
 
-class WorkflowCaptureHandler(APIHandler):
-    def post(self):
-        data = self.get_json_body() or {}
-        workflow_path = data.get("workflow")
-        if not workflow_path:
-            self.set_status(400)
-            self.finish({"error": "missing 'workflow' path"})
-            return
-        out_dir = data.get("out_dir") or "out-lab/workflows"
-        notebook_roots = _normalise_string_list(data.get("notebook_roots"))
-        notebook_map_raw = data.get("notebook_map") or {}
-        if notebook_map_raw and not isinstance(notebook_map_raw, dict):
-            self.set_status(400)
-            self.finish({"error": "'notebook_map' must be an object"})
-            return
-        notebook_map = {str(k): str(v) for k, v in notebook_map_raw.items()}
-        default_notebook = data.get("default_notebook")
-        aliases = data.get("aliases") or {}
-        alias_map = aliases.get("aliases") if isinstance(aliases, dict) else aliases
-        hints = data.get("hints") or {}
-        sidecars = data.get("sidecars") or []
-        skip_crates = bool(data.get("skip_crates"))
-
-        try:
-            plan = parse_workflow(workflow_path)
-        except Exception as exc:
-            self.set_status(400)
-            self.finish({"error": f"failed to parse workflow: {exc}"})
-            return
-
-        try:
-            result = capture_workflow(
-                plan,
-                output_dir=out_dir,
-                notebook_roots=notebook_roots,
-                notebook_overrides=notebook_map,
-                alias_map=alias_map,
-                hints=hints,
-                sidecars=sidecars,
-                build_crates=not skip_crates,
-                default_notebook=default_notebook,
-            )
-        except Exception as exc:
-            self.log.error("Workflow capture failed: %s", exc)
-            self.set_status(500)
-            self.finish({"error": f"workflow capture failed: {exc}"})
-            return
-
-        nodes_summary: List[Dict[str, Any]] = []
-        captured = 0
-        for record in result.records:
-            if record.status == "captured":
-                captured += 1
-            nodes_summary.append({
-                "id": record.node_id,
-                "title": record.title,
-                "status": record.status,
-                "notebook": record.notebook_path,
-                "capture": record.capture_path,
-                "crate": record.crate_dir,
-                "error": record.error,
-            })
-
-        self.finish({
-            "workflow_id": result.plan.workflow_id,
-            "manifest": str(result.manifest_path),
-            "captured": captured,
-            "total": len(result.records),
-            "nodes": nodes_summary,
-        })
-
-
-
-
-
 def setup_handlers(server_app):
     host_app = server_app.web_app
     base_url = host_app.settings.get("base_url", "/")
@@ -1005,7 +928,6 @@ def setup_handlers(server_app):
         (url_path_join(pattern, "export"), ExportHandler),
         (url_path_join(pattern, "export_cached"), ExportCachedHandler),
         (url_path_join(pattern, "index"), IndexHandler),
-        (url_path_join(pattern, "workflow", "capture"), WorkflowCaptureHandler),
         (url_path_join(pattern, "sparql_summary"), SparqlSummaryHandler),
         (url_path_join(pattern, "sparql_graph"), SparqlGraphHandler),
     ])

@@ -1,0 +1,291 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:41+00:00",
+            "description": "CellScope export for migrate_secrets.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.txt"
+                },
+                {
+                    "@id": "cells/cell_1.txt"
+                },
+                {
+                    "@id": "cells/cell_2.txt"
+                },
+                {
+                    "@id": "notebook/migrate_secrets.ipynb"
+                },
+                {
+                    "@id": "notebook/migrate_secrets.ipynb"
+                },
+                {
+                    "@id": "files/.env"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "migrate_secrets.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "!pip install pyyaml",
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "cell_0",
+            "position": 0,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "import yaml\nimport os\n\ndef move_yaml_contents(source_path, destination_path):\n    \"\"\"\n    Moves the contents of a YAML file to a new file with a specific format.\n\n    Args:\n        source_path: The path to the source YAML file.\n        destination_path: The path to the destination file.\n    \"\"\"\n\n    try:\n        with open(source_path, 'r') as source_file:\n            data = yaml.safe_load(source_file)  # Use safe_load for security\n\n        with open(destination_path, 'w') as destination_file:\n            for key, value in data.items():\n                destination_file.write(f\"{key}='{value}'\\n\")  # Format as key='value'\n\n        print(f\"Contents of '{source_path}' moved to '{destination_path}' successfully.\")\n\n    except FileNotFoundError:\n        print(f\"Error: Source file '{source_path}' not found.\")\n    except yaml.YAMLError as e:\n...",
+            "funcCalls": [
+                "open",
+                "print"
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-os"
+                },
+                {
+                    "@id": "#var-source_yaml_file"
+                },
+                {
+                    "@id": "#var-source_file"
+                },
+                {
+                    "@id": "#var-data"
+                },
+                {
+                    "@id": "#var-move_yaml_contents"
+                },
+                {
+                    "@id": "#var-param_secret_file_path"
+                },
+                {
+                    "@id": "#var-value"
+                },
+                {
+                    "@id": "#var-yaml"
+                },
+                {
+                    "@id": "#var-destination_file"
+                },
+                {
+                    "@id": "#var-key"
+                },
+                {
+                    "@id": "#var-e"
+                },
+                {
+                    "@id": "files/.env"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "cell_1",
+            "position": 1,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "",
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "cell_2",
+            "position": 2,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "#var-os",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "os",
+            "version": "1"
+        },
+        {
+            "@id": "#var-source_yaml_file",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "source_yaml_file",
+            "version": "1"
+        },
+        {
+            "@id": "#var-source_file",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "source_file",
+            "version": "1"
+        },
+        {
+            "@id": "#var-data",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "data",
+            "version": "1"
+        },
+        {
+            "@id": "#var-move_yaml_contents",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "move_yaml_contents",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_secret_file_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_secret_file_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-value",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "value",
+            "version": "1"
+        },
+        {
+            "@id": "#var-yaml",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "yaml",
+            "version": "1"
+        },
+        {
+            "@id": "#var-destination_file",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "destination_file",
+            "version": "1"
+        },
+        {
+            "@id": "#var-key",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "key",
+            "version": "1"
+        },
+        {
+            "@id": "#var-e",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "e",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/migrate_secrets.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/RAVL/migrate_secrets.ipynb",
+            "isPartOf": "./",
+            "name": "migrate_secrets.ipynb"
+        },
+        {
+            "@id": "files/.env",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/RAVL/.env",
+            "isPartOf": "./",
+            "name": ".env",
+            "version": "1"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

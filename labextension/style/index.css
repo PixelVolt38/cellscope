@@ -182,12 +182,6 @@
   padding: 4px 0;
 }
 
-.jp-CellScopePanel-quickActions {
-  display: flex;
-  gap: 6px;
-  margin: 4px 0 6px;
-}
-
 .jp-CellScopePanel-cellBody {
   display: grid;
   gap: 6px 12px;

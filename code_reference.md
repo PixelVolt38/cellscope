@@ -1,454 +1,516 @@
-# CellScope Code Reference (Exhaustive)
+# CellScope Code Reference (Deep)
 
-This document is the end-to-end map of the CellScope codebase. It explains
-modules, data contracts, control flow, and configuration so another engineer
-(or thesis author) can reconstruct how the system works without reading code.
-
-Scope covered:
-- Capture (Python and R) -> cross-kernel inference -> RO-Crate build
-- Indexing to SPARQL, graph naming/versioning, dedup rules
-- Visualization (PyVis + GraphML) and the JupyterLab extension flows
-- Personalization hooks, metadata vocabularies, env/config packaging
-- CLI utilities and parity/testing tools
+This document is the definitive, code-accurate map of the CellScope system.
+It is written so another engineer (or thesis author) can reconstruct the
+architecture, data flow, and control logic without reading the source.
 
 All paths are repository-relative unless noted.
 
 ---
 
-## 1) Architecture at a Glance
+## 0) Repository map and module responsibilities
 
-Pipeline steps (shared by CLI and JupyterLab):
-1. **Capture**: `cellscope.ast_capture.parse_notebook(nb_path, collect_materialized=True)` parses notebook code cells, extracts defs/uses, function defs/calls, and file I/O (Python AST + R static parser).
-2. **Cross-cell/file inference**: `cellscope.cross_kernel.infer_cross_kernel_edges(capture)` adds edges for file hand-offs across cells.
-3. **Build RO-Crate**: `cellscope.rocrate_io.build_rocrate(capture, out_dir, xkernel_edges, hints, sidecars, config_files)` writes `ro-crate-metadata.json`, copies cells/files/env configs, emits GraphML and PyVis HTML.
-4. **Index**: `cellscope.indexer.index_crate(crate_dir, endpoint=..., ...)` renders a SPARQL UPDATE (schema.org + PROV + OntoDT/OntoFlow + cellscope terms) and optionally POSTs to a triplestore.
-5. **Visualize**: `cellscope.visualize.visualize_rocrate` (CLI) or `cellscope_server/handlers.py` (UI) renders HTML graphs; list/filters come from the same graph summary.
+Core Python package:
+- `cellscope/ast_capture.py`: parse notebooks, extract defs/uses, I/O, labels.
+- `cellscope/containerizer_adapter.py`: internal static R parser (no external service).
+- `cellscope/cross_kernel.py`: infer file handoff edges across cells.
+- `cellscope/serialization.py`: convert capture to JSON for API/UI.
+- `cellscope/rocrate_io.py`: build RO-Crate, copy artifacts, GraphML/HTML.
+- `cellscope/indexer.py`: map RO-Crate JSON-LD to SPARQL INSERT DATA.
+- `cellscope/visualize.py`: PyVis graph generation + HTML panel injection.
+- `cellscope/personalization.py`: metadata mapping config (file field predicates).
+- `cellscope/utils.py`: YAML/sidecar helpers.
+- `cellscope/validate_crate.py`: minimal RO-Crate structural validation.
 
-Storage layout per export: `out-lab/<ts>/ro-crate/` (cells, files, env, graphml/html, metadata) plus `out-lab/<ts>/index/last_update.sparql` (SPARQL delta). SPARQL pulls write to `out-lab/sparql_<ts>/ro-crate/cell_graph.html`.
+Server extension:
+- `cellscope_server/handlers.py`: Jupyter Server endpoints (`/cellscope/*`).
 
-Minimal end-to-end (CLI-equivalent) call flow:
+JupyterLab extension:
+- `labextension/src/index.ts`: analyzer panel, filters, settings, dialogs.
+- `labextension/style/index.css`: UI styling.
+
+CLI:
+- `cellscope_cli/__main__.py`: `build`, `vis`, `validate` subcommands.
+
+Evaluation assets:
+- `evaluation/`: O1/O2/O3 validation material and results.
+- `exports/`: representative RO-Crates generated from evaluation notebooks.
+
+---
+
+## 1) End-to-end pipeline (shared across CLI and UI)
+
+High-level steps:
+1) Capture notebook cells -> defs/uses/file I/O.
+2) Infer cross-cell file handoffs (read-after-write).
+3) Build RO-Crate with PROV + domain hints + config files.
+4) Generate GraphML + PyVis HTML for visualization.
+5) Render SPARQL UPDATE (optional POST to endpoint).
+
+Reference entry points:
+- CLI: `cellscope_cli/__main__.py` -> `parse_notebook` -> `build_rocrate` -> `index_crate`.
+- Server: `cellscope_server/handlers.py` -> `/cellscope/analyze` and `/cellscope/export`.
+- UI: `labextension/src/index.ts` -> `_runAnalysis()` + `_requestExport()`.
+
+Minimal CLI flow:
 
 ```python
-from pathlib import Path
-from cellscope import ast_capture, cross_kernel, rocrate_io, indexer
+from cellscope.ast_capture import parse_notebook
+from cellscope.cross_kernel import infer_cross_kernel_edges
+from cellscope.rocrate_io import build_rocrate
+from cellscope.indexer import index_crate
 
-nb = Path("examples/multi_kernel_demo.ipynb")
-capture = ast_capture.parse_notebook(nb, collect_materialized=True)
-xedges = cross_kernel.infer_cross_kernel_edges(capture)
-crate_dir = rocrate_io.build_rocrate(
-    capture,
-    Path("out-lab/preview/ro-crate"),
-    xedges,
-    hints={},               # user hints (roles, domains, file overrides)
-    sidecars=[],            # optional extra entities
-    config_files=[],        # env/config files to package
-)
-indexer.index_crate(crate_dir, endpoint="http://localhost:3030/cellscope/update")
+capture = parse_notebook("examples/multi_kernel_demo.ipynb", collect_materialized=True)
+xedges = infer_cross_kernel_edges(capture)
+crate_dir = build_rocrate(capture, "out-lab/demo", xedges, hints={}, sidecars=[], config_files=[])
+index_crate(crate_dir, endpoint="http://localhost:3030/cellscope/update")
 ```
 
 ---
 
-## 2) Data Model and Vocabularies
+## 2) Data contracts
 
-CellScope uses RO-Crate JSON-LD with these namespaces:
-- `schema:` schema.org (name, description, encodingFormat, keywords, accessURL, text, version, position, isPartOf)
-- `prov:` W3C PROV (used, wasGeneratedBy, generatedAtTime)
-- `dcat:` DCAT (accessURL for datasets)
-- `oflow:` OntoFlow (Activity, hasInput, hasOutput)
-- `ontodt:` OntoDT (Data, Symbol)
-- `cellscope:` https://cellscope.dev/terms/ (funcCalls, fileHints, localPath)
+### 2.1 CellInfo (in-memory capture object)
+Defined in `cellscope/ast_capture.py`.
 
-Entity mapping (in `ro-crate-metadata.json`):
-- **Notebook cell**: `cells/cell_<idx>.<ext>` (`.py` or `.R`), `@type`: `["File", oflow:Activity]`, props: `name` (label), `kernel`, `programmingLanguage`, `position`, `version`, `codeSnippet`, optional `roles[]`, `fileHints[]`, `funcCalls[]`.
-- **Variable / function**: `#var-<name>`, `@type`: `ontodt:Symbol` (functions) or `ontodt:Data` (others), `name`, `version`. Linked via `oflow:hasOutput`/`prov:wasGeneratedBy` (defs) and `oflow:hasInput`/`prov:used` (uses). Functions also carry `category=function`.
-- **File artifact**: `files/<name>`, `@type`: `["File", ontodt:Data]`, `name`, optional `contentHash`, `encodingFormat`, `keywords`, `accessURL`, `etag` (identifier), `retrievedAt` (prov:generatedAtTime), `dateModified`. Added to root dataset `hasPart`.
-- **Root Dataset (`./`)**: `name` (notebook filename), `description`, `license`, `softwareRequirements` (dependency list), `hasPart` (cells, files, graphml/html).
-- **Graph files**: `cell_graph.graphml` and `cell_graph.html` entities, `@type`: `["File", graph:Graph]`.
+Fields:
+- `idx`: zero-based index among code cells.
+- `position`: index in full notebook cell list (includes markdown).
+- `kernel`: kernel name (from cell metadata or notebook kernelspec).
+- `source`: raw cell source.
+- `label`: slugified first comment line (auto-deduped).
+- `funcs`: set of function names defined in cell.
+- `func_calls`: set of function names called.
+- `var_defs`: set of variable symbols defined.
+- `var_uses`: set of variable symbols used.
+- `file_writes`, `file_reads`: sets of file paths detected.
 
-Edge semantics:
-- AST edges: `prov:used` + `oflow:hasInput` (uses), `prov:wasGeneratedBy` + `oflow:hasOutput` (defs).
-- File edges are stored only in GraphML/HTML for visualization; the SPARQL summary reconstructs cross-notebook edges by shared basenames.
-
-Graph URIs (SPARQL):
-- Graph name: `https://cellscope.local/graph/<slug>?v=<n>` where `<slug>` is the notebook stem, `<n>` is an export counter. Each export drops and rewrites that graph to avoid duplicates.
-
----
-
-## 3) Capture Subsystem
-
-### 3.1 `cellscope/ast_capture.py`
-- Reads `.ipynb` (nbformat v4) and iterates code cells.
-- Kernel detection: `cell.metadata.kernel` (if provided) else notebook `kernelspec.name`; defaults to `python3`.
-- Labels: first non-empty comment slugged (`# climate step` -> `climate_step`), used as `cell.name/label`.
-- Python parsing:
-  - Sanitizes magics/shell (`%`, `!`, `?`) before `ast.parse`.
-  - Collects definitions from assignments, augassign, annotated assigns, for/with targets, exception handlers, walrus, comprehensions, imports, class/func names (incl. async).
-  - Uses: all `ast.Name` loads minus defs.
-  - Function defs: `FunctionDef` / `AsyncFunctionDef`; calls: any `Call` with `Name` func id, minus defs, intersect with uses.
-  - File I/O: resolves literal paths from constants, names (using env map), `os.path.join`, pathlib, string concat (`+`) and path join (`/`), then inspects `open`, pandas/xarray/numpy `read_*`, `to_*`, `write_*`, `Path.write_*`, `Path.read_*`.
-- R parsing (`ir`, `r-`, `r` kernels) via `containerizer_adapter.analyze_r_cell`:
-  - Strips comments while preserving strings; handles `<-`, `<<-`, `=`, `->`, `>>=` assignments.
-  - Collects defs, uses (skips package prefixes `pkg::fn` and member access `$`/`@`), function defs (`name <- function(...)`), calls, common read/write calls (read.csv/readRDS/read_feather/read_parquet/fread, write.csv/write_parquet/fwrite/saveRDS/download.file, etc.) using named or positional args (`file`, `path`, `destfile`, `url`).
-- Edges: for each use, if `last_def[var]` exists, emit `(def_idx, use_idx, {'type': 'uses', 'vars': {var}})`.
-- Output: `capture = {'nb_path', 'cells': [CellInfo], 'graph': {'edges': [...]}}`.
-
-Key capture loop (Python) in practice:
+### 2.2 Capture dict
+Returned by `parse_notebook()`.
 
 ```python
-def parse_notebook(nb_path: Path, collect_materialized: bool = True) -> Capture:
-    nb = nbformat.read(nb_path, as_version=4)
-    for idx, cell in enumerate(code_cells(nb)):
-        code = sanitize_magics(cell.source)
-        tree = ast.parse(code)
-        defs = collect_defs(tree)
-        uses = collect_uses(tree) - defs
-        files = detect_file_io(tree, code, env_map(build_env(nb_path)))
-        yield CellInfo(
-            idx=idx,
-            kernel=kernel_for(cell),
-            label=label_for(cell),
-            var_defs=sorted(defs),
-            var_uses=sorted(uses),
-            file_reads=files.reads,
-            file_writes=files.writes,
-            func_defs=functions_from(tree),
-            func_calls=function_calls_from(tree, uses),
-        )
-```
-
-### 3.2 `cellscope/containerizer_adapter.py`
-- In-process static R parser (no external service). Tokenizes R code to extract
-  defs/uses/file I/O/function defs/calls. The legacy external containerizer URL
-  is no longer used; the module name is kept for compatibility.
-
-### 3.3 `cellscope/cross_kernel.py`
-- Adds inferred edges beyond AST:
-  - File hand-off: if cell A writes a normalized path also read by cell B, add `(A, B, {'type': 'file', 'vars': {basename}, 'via': 'file'})`.
-
-### 3.4 `cellscope/serialization.py`
-- Normalizes capture to JSON for API/UI: cells get `idx`, `label/name`, `kernel`, `funcs`, `func_calls`, `var_defs`, `var_uses`, `file_reads`, `file_writes`. Edges are flattened with `source/target`.
-
-### 3.5 Workflow capture (`cellscope/workflow.py`)
-- Parses `.naavrewf` (or JSON) describing nodes + edges.
-- Notebook resolution order: explicit map overrides > declared notebook roots > best-effort search by stem/title.
-- `capture_workflow` runs the same per-notebook pipeline, writing `out-lab/<ts>/workflow/<id>/nodes/<slug>/capture.json` and optional crates. Produces `workflow_manifest.json` with node statuses and crate paths.
-
----
-
-## 4) RO-Crate Build (`cellscope/rocrate_io.py`)
-
-Inputs: capture, inferred edges, user hints (roles/domains), sidecars, config files.
-
-Behaviors:
-- **Cells**: copy each cell to `cells/cell_<idx>.<ext>` (`.py` for Python, `.R` for R). Add as `File` + `oflow:Activity` with props: `name`, `kernel`, `programmingLanguage`, `position`, `version` (1), `codeSnippet` (first N lines, env `CELLSCOPE_SNIPPET_LINES`), optional `roles[]`, `fileHints[]`, `funcCalls[]`.
-- **Variables/Functions**: `ContextEntity` `#var-<name>`, type `ontodt:Symbol` if it is in `function_symbols`, else `ontodt:Data`. Link: defs -> `oflow:hasOutput` + `prov:wasGeneratedBy`; uses -> `oflow:hasInput` + `prov:used`. Functions also set `category=function`.
-- **Files**: For every read/write, create `File` entity with `name`, optional hash, and any domain hints. Copy existing local files into `files/` (unique names to avoid clashes). Add to root `hasPart`. Nonexistent paths still get logical `File` entities for provenance.
-- **Edges for graph files**: accumulate AST + xkernel edges, merge duplicate `(u,v,via)` vars, emit GraphML with `label` (vars) and `via`. HTML graph uses same data.
-- **Root dataset**: set `name` (notebook basename), `description`, `license` (CC0 default), `hasPart` (cells, files, graphml/html), `softwareRequirements` (parsed from env/config files). Env/config files are copied to `env/` and added as `File` entities; dependencies parsed from pyproject/requirements/lockfiles into `SoftwareApplication` items.
-- **Sidecars**: optional ad-hoc entities (type/name) linked to producers/consumers with optional roles.
-- **Output tree**: `ro-crate-metadata.json`, `cell_graph.graphml`, `cell_graph.html` (if PyVis), `cells/`, `files/`, `env/`, `index/last_update.sparql` (after indexing).
-
----
-
-## 5) Indexing to SPARQL (`cellscope/indexer.py`)
-
-Function: `index_crate(crate_dir, endpoint=None, output_path=None, base_uri=None, graph_uri=None, drop_legacy_graphs=True, ...)`
-
-Steps:
-1. Load `ro-crate-metadata.json`; determine `base_uri` (file:// of crate dir) and `root_name`.
-2. Graph URI: `https://cellscope.local/graph/<slug>?v=<n>` (export counter). Always issues `DROP SILENT` on the graph and base URI to avoid duplicate graphs.
-3. `_collect_triples` walks every entity and emits:
-   - Types, name, version, checksum, encodingFormat, programmingLanguage, position, dateModified, keywords, accessURL (dcat), generatedAtTime (prov), identifier (etag), isPartOf, roles, roleName on `#var-` entities, funcCalls (cellscope:funcCalls), fileHints (cellscope:fileHints), prov relations (used/wasGeneratedBy/wasDerivedFrom/wasRevisionOf).
-   - Custom predicates from `CELLSCOPE_METADATA_CONFIG` are merged.
-4. `_render_sparql` renders prefixes (schema/prov/dcat/oflow/ontodt/cellscope) and INSERT DATA into the graph.
-5. POST to endpoint if provided, with retries/backoff/timeouts controlled by env vars: `CELLSCOPE_SPARQL_ENDPOINT`, `CELLSCOPE_SPARQL_TOKEN`, `CELLSCOPE_SPARQL_RETRIES`, `CELLSCOPE_SPARQL_BACKOFF`, `CELLSCOPE_SPARQL_TIMEOUT`, `CELLSCOPE_SPARQL_OUTPUT` (write sparql file only).
-
-Example emitted SPARQL (truncated):
-
-```sparql
-PREFIX schema: <https://schema.org/>
-PREFIX prov:   <http://www.w3.org/ns/prov#>
-PREFIX oflow:  <https://example.org/ontology/ontoflow#>
-PREFIX ontodt: <https://example.org/ontology/ontodt#>
-PREFIX cell:   <https://cellscope.dev/terms/>
-
-DROP SILENT GRAPH <https://cellscope.local/graph/exhaustive_python?v=3>;
-INSERT DATA {
-  GRAPH <https://cellscope.local/graph/exhaustive_python?v=3> {
-    <cells/cell_0.py> a schema:File, oflow:Activity ;
-      schema:name "cell_0" ;
-      schema:programmingLanguage "python3" ;
-      schema:position 0 ;
-      cell:funcCalls "compute_stats" .
-
-    <#var-threshold> a ontodt:Data ;
-      schema:name "threshold" ;
-      prov:wasGeneratedBy <cells/cell_0.py> .
-
-    <cells/cell_1.py> a schema:File, oflow:Activity ;
-      prov:used <#var-threshold> .
+{
+  "nb_path": "path/to/notebook.ipynb",
+  "cells": [CellInfo, ...],
+  "graph": {
+    "edges": [ (u, v, {"type": "uses", "vars": {"x"}, "via": "ast"}), ... ]
   }
 }
 ```
 
----
+### 2.3 Graph JSON (API/UI shape)
+Produced by `cellscope.serialization.capture_to_json()`.
 
-## 6) Graph Visualization (`cellscope/visualize.py`)
+```json
+{
+  "nb_path": "...",
+  "cells": [
+    {
+      "idx": 0,
+      "position": 3,
+      "notebook": "...",
+      "label": "climate_input",
+      "name": "climate_input",
+      "kernel": "python3",
+      "funcs": ["compute_stats"],
+      "func_calls": ["read_csv"],
+      "var_defs": ["df"],
+      "var_uses": ["threshold"],
+      "file_writes": ["out/summary.json"],
+      "file_reads": ["data/input.csv"]
+    }
+  ],
+  "edges": [
+    {"source": 0, "target": 1, "type": "uses", "vars": ["df"], "via": "ast"}
+  ]
+}
+```
 
-CLI helper used by `cellscope_cli vis` and the server:
-- Loads crate; adds a notebook group node (dot) plus one box node per `ontoflow:Activity`.
-- Builds snippet from cell file (first N lines), HTML-escapes, stores in `snippet`.
-- Metadata panel is injected via `_inject_roshow_panel`: hover/click shows code + metadata; edges show relation + via.
-- Edges loaded from GraphML; labels become `dep_label`, `via` is retained.
-- Writes `cell_graph.html` and prints path. GraphML is always present for headless use.
+### 2.4 Review hints (export metadata)
+Produced by the UI review dialog and sent to `/cellscope/export`.
 
----
+```json
+{
+  "roles": {
+    "threshold": "parameter",
+    "df": "dataset"
+  },
+  "domains": {
+    "climate_readings.csv": {
+      "encodingFormat": "text/csv",
+      "keywords": ["climate", "sensor"],
+      "accessURL": "https://example.org/...",
+      "etag": "W/\"abc\"",
+      "retrievedAt": "2025-01-20T10:00:00Z",
+      "dateModified": "2025-01-15T12:00:00Z"
+    }
+  }
+}
+```
 
-## 7) Server Extension (`cellscope_server/handlers.py`)
+### 2.5 UI configuration (localStorage)
+Stored under `cellscope:config` in the JupyterLab extension.
 
-Registered under `/cellscope` (see `.venv_linux/etc/jupyter/jupyter_server_config.d/cellscope_server.json`):
-
-| Endpoint | Purpose |
-| --- | --- |
-| `POST /cellscope/analyze` | Capture + cross-kernel inference; returns JSON graph (cells, edges, file metadata). |
-| `POST /cellscope/export` | Analyze + build crate + index (unless `no_index`). Payload accepts `notebook`, `out_dir`, `hints` (roles/domains), `config_files`, `aliases`. |
-| `POST /cellscope/export_cached` | Rebuild crate HTML/graph from an existing crate. |
-| `POST /cellscope/index` | Index an existing crate from disk or provided JSON-LD. |
-| `POST /cellscope/sparql_summary` | Query triplestore for latest graph per notebook, return graph summary (cells/edges) reconstructed from triples. |
-| `POST /cellscope/sparql_graph` | Same as summary but also renders PyVis HTML into `out-lab/sparql_<ts>/ro-crate/cell_graph.html`. |
-| `POST /cellscope/workflow/capture` | Workflow orchestrator (optional feature flag). |
-
-SPARQL summary internals:
-- Lists graphs, groups by base (before `?v=`), selects the highest version.
-- Fetches triples for predicates: type, name, text (snippet), roles, programmingLanguage, position, version, category, encodingFormat, keywords, identifier, dateModified, generatedAtTime, accessURL, fileHints, funcCalls, isPartOf, checksum, prov used/wasGeneratedBy.
-- Reconstructs cells: defs/uses split by file-vs-var (checks checksum or file-like name), functions from `ontodt:Symbol`/category=function, func calls from `cellscope:funcCalls`, file metadata tokens from `fileHints` plus file entities' metadata.
-- Edges: producer->consumer per data entity, deduped per (src,tgt), accumulate vars; cross-notebook heuristic links by shared basename when producer known.
-- Graph labels: prefers dataset `name` in the same graph; else falls back to basename of graph URI.
-
----
-
-## 8) JupyterLab Extension (`labextension/src/index.ts`)
-
-Key UX commands:
-- `cellscope:open-list` - opens the analyzer panel.
-- `cellscope:open-graph` - opens the latest HTML graph in a main area widget.
-- Settings dialog - endpoint, auth, retries/backoff, data source (local vs SPARQL), config file picker.
-
-Panel flow:
-1. **Analyze** (local mode): POST `/cellscope/analyze`. Stores `_lastAnalysis`, populates filters (kernels, via, roles, file hints). Shows list grouped by notebook, with functions, function calls, defs/uses, file reads/writes, roles, file metadata. Filters support search, kernel facet, require file read/write, via facet, roles, file metadata facets.
-2. **Review dialog**: Lets user edit roles (`var -> role`) and file metadata (`encodingFormat`, `keywords`, `accessURL`, `etag`, `retrievedAt`) per basename. The result becomes `hints`.
-3. **Export Crate**: POST `/cellscope/export` with notebook, out_dir, hints, config_files, index settings. Builds crate + SPARQL update (unless `skip index`). Uses analyze results already computed; export does not re-run analysis.
-4. **Open Graph**: Opens `cell_graph.html` from the last export (local) or triggers `/cellscope/sparql_graph` (SPARQL mode). Graph uses the same style in both modes (box nodes + notebook group dot + roshow popup).
-5. **SPARQL mode**: Analyzer/list/graph pull from `/cellscope/sparql_summary`/`sparql_graph`, showing latest version of every notebook in the triplestore. Analyze in SPARQL mode still runs local capture to update SPARQL, then reads back from SPARQL to display merged results.
-6. **Workflow capture**: Optional (flagged by `cellscopeEnableWorkflows`); allows capturing multiple notebooks per workflow graph and staging crates.
-
-Data source toggle:
-- Local: uses `_lastAnalysis` from `/cellscope/analyze`, graph from local crate.
-- SPARQL: uses `/cellscope/sparql_summary`/`sparql_graph`; falls back to local if endpoint fails.
-
-Settings persistence: stored in localStorage (`cellscope:config`) and applied to all requests (`index` payload includes endpoint, auth, retries, backoff, output path).
-
-Panel mechanics:
-- Filter state is stored per-notebook in localStorage; the filter badge shows active counts.
-- Auto-refresh runs on save/execute (debounced) with a pending indicator while results are stale.
-
-Skeleton of the analyze action (TypeScript):
-
-```ts
-async function runAnalyze(notebookPath: string) {
-  const url = URLExt.join(this._settings.baseUrl, "cellscope/analyze");
-  const body = JSON.stringify({ notebook: notebookPath, configFiles: this._configFiles });
-  const resp = await ServerConnection.makeRequest(url, {
-    method: "POST",
-    body,
-    headers: { "Content-Type": "application/json" }
-  }, this._settings);
-  const summary = await resp.json();
-  this._lastAnalysis = summary;
-  this._renderList(summary);
-  this._latestGraphUrl = summary.graph_html ?? null;
+```json
+{
+  "endpoint": "http://localhost:3030/cellscope/update",
+  "token": "...",
+  "username": "...",
+  "password": "...",
+  "retries": 2,
+  "backoffSeconds": 1.5,
+  "outputPath": "",
+  "dataSource": "local" | "sparql",
+  "configFiles": ["requirements.txt", "pyproject.toml"]
 }
 ```
 
 ---
 
-## 9) CLI Utilities
+## 3) Capture subsystem
 
-- `cellscope_cli build <notebook> --out <dir>`: runs capture + crate build (no UI).
-- `cellscope_cli vis <crate>`: renders `cell_graph.html` if missing.
-- `cellscope workflow capture ...` / `cellscope workflow import ...`: optional workflow helpers (only if `CELLSCOPE_ENABLE_WORKFLOWS=1`).
-- `scripts/run_full_test.py --clean`: automated regression covering all sample notebooks (multi_kernel_demo, exhaustive_python, exhaustive_r, file_handoff_a/b, test_http_dataset), crate structure, env packaging, SPARQL delta generation, localPath correctness, R cell extensions.
-- `scripts/check_parity.py`: compares local analyzer graph vs SPARQL summary. Example:
-  ```
-  .venv_linux/bin/python scripts/check_parity.py \
-    --notebook examples/multi_kernel_demo.ipynb \
-    --sparql-endpoint http://localhost:3030/cellscope/update
-  ```
+### 3.1 Python capture (`cellscope/ast_capture.py`)
+Key steps in `parse_notebook()`:
+- Reads the notebook with `nbformat.read(..., as_version=4)`.
+- Kernel for a cell is `cell.metadata.kernel` if available, else notebook kernelspec name.
+- Labels are derived from the first non-empty comment in the cell; duplicates are
+  disambiguated by suffixing `_2`, `_3`, etc.
+- Python AST parsing removes magics and shell escapes before `ast.parse`.
 
----
+Def/Use heuristics:
+- Definitions include assignment targets, augmented assigns, annotated assigns,
+  `for` and `with` targets, exception handler names, walrus assignments, and
+  comprehension targets.
+- Uses are `ast.Name` nodes in Load context minus defs in the same cell.
 
-## 10) Personalization / Extensibility
+File I/O heuristics:
+- Maintains a mini env map for literal path assignments in the same cell.
+- Resolves paths from literals, simple string concatenation, `os.path.join`,
+  and `Path(...)`.
+- Recognizes reads and writes by common method names (`read_csv`, `to_parquet`,
+  `open_dataset`, `open`, etc.).
 
-- **Metadata config**: `cellscope/personalization.py` loads `CELLSCOPE_METADATA_CONFIG` (JSON) to add custom file/variable predicates. Defaults include `localPath`, `encodingFormat`, `keywords`, `accessURL`, `etag`, `retrievedAt`, `dateModified`.
-- **Adding new fields**: Extend the review dialog (labextension) to collect values, pass them in `hints`, propagate through `build_rocrate` (store on entities, add `@context` if you need RDF), and map to triples in `indexer.py`. Add display/filter tokens in the panel if needed.
-- **Graph naming/versioning**: slug is derived from notebook stem; version is an export counter to avoid overwriting historical HTML files while SPARQL drops/replaces the same graph.
-- **Data source parity**: local and SPARQL summaries carry the same fields (funcs, func_calls, roles, file hints, snippets, position, kernel, file reads/writes, vars). If you add a new field, update both the crate (and indexer) and the SPARQL summary builder so the UI sees it in both modes.
-- **Full guide**: see `PERSONALIZATION.md` for step-by-step recipes and customization checklists.
+Alias normalization:
+- Optional `alias_map` (YAML or dict) rewrites variable/function names so
+  equivalent symbols unify in the graph.
 
----
+Edge creation:
+- Uses a `last_def` mapping. For each use of `v`, if a prior definition exists,
+  add edge `(last_def[v] -> current_cell)` with `vars={v}`.
 
-## 11) Testing and Quality
+### 3.2 R capture (`cellscope/containerizer_adapter.py`)
+A built-in R parser replaces any external containerizer dependency.
+It is regex-based and static (no execution):
+- Definitions from `<-`, `<<-`, `=`, and right assignment (`->`, `->>`).
+- Uses from identifier tokens minus defs, keywords, member access, and
+  package prefix (`pkg::fun`).
+- Function defs: `name <- function(...)`.
+- Function calls: `name(...)` minus defs/keywords, intersected with uses.
+- File I/O: common read/write calls (`read.csv`, `readRDS`, `write.csv`,
+  `saveRDS`, `download.file`, etc.) and named args like `file`, `path`, `url`.
 
-- Automated: `scripts/run_full_test.py --clean` (backend/CLI, no JupyterLab).
-- Manual checklist: see `docs/testing.md` (panel flow, settings/env capture, R kernels, HTTP datasets, SPARQL mode, cross-notebook hand-off, error handling).
-- Parity: `scripts/check_parity.py` to ensure SPARQL summaries reflect local analysis.
+### 3.3 Cross-kernel file handoff (`cellscope/cross_kernel.py`)
+`infer_cross_kernel_edges()` links cells when a later cell reads a file that
+an earlier cell wrote.
+- Edge data: `{type: "uses", vars: {basename}, via: "file", file: full_path}`.
 
----
-
-## 12) Key Paths and Files
-
-Repository layout (top-level):
-
-```
-cellscope_platform/
-- cellscope/                 # Python capture/export modules
-- cellscope_cli/             # CLI entry point
-- cellscope_server/          # Jupyter server extension
-- labextension/              # TypeScript + staged labextension assets
-- docs/                      # Architecture notes, history, thesis context
-- examples/                  # Demo notebooks (ignored in git)
-- out-lab/                   # Default output root for crates + workflow manifests
-- virtual_labs/              # NaaVRE sample workflows + notebooks
-```
-
-Coding conventions:
-
-- Python follows PEP8-ish style with type hints and small helpers.
-- TypeScript uses ES2020 modules, Lumino widgets, and the JupyterLab plugin pattern.
-- Configuration flows env vars -> CLI/UI flags -> hard-coded defaults.
-
-- Core: `cellscope/ast_capture.py`, `cellscope/cross_kernel.py`, `cellscope/rocrate_io.py`, `cellscope/indexer.py`, `cellscope/visualize.py`, `cellscope_server/handlers.py`
-- UI: `labextension/src/index.ts`, `labextension/buildutils/stage-to-venv.js`
-- Docs: `docs/architecture/code_reference.md` (this file), `docs/architecture/multi_notebook_exports.md`, `docs/testing.md`
-- Examples: `examples/*.ipynb`, `examples/data_outputs/*`
-- Outputs: `out-lab/<ts>/ro-crate/*`, `out-lab/sparql_<ts>/ro-crate/cell_graph.html`
+### 3.4 JSON serialization (`cellscope/serialization.py`)
+`capture_to_json()` flattens `CellInfo` into the UI/API contract, ensuring
+set fields are sorted and edges are JSON-safe.
 
 ---
 
-## 13) Minimal Code Landmarks
+## 4) RO-Crate build (`cellscope/rocrate_io.py`)
 
-Capture entry point:
-```python
-from cellscope import parse_notebook, infer_cross_kernel_edges
+### 4.1 Output layout
+Each export builds:
 
-capture = parse_notebook("examples/multi_kernel_demo.ipynb", collect_materialized=True)
-capture["graph"]["edges"].extend(infer_cross_kernel_edges(capture))
+```
+<out_dir>/ro-crate/
+  ro-crate-metadata.json
+  cell_graph.graphml
+  cell_graph.html        # if pyvis is installed
+  cells/
+    cell_0.py
+    cell_1.R
+    ...
+  files/
+    <data artifacts>
+  env/
+    requirements.txt
+    pyproject.toml
+  index/
+    last_update.sparql
 ```
 
-Build + index:
-```python
-from cellscope import build_rocrate, index_crate
+### 4.2 Cells as Activities
+Each code cell is written to `cells/cell_<idx>.<ext>`:
+- Extension rules: `.R` for R kernels (`ir`, `r-`, `r`), `.py` for Python,
+  otherwise `.txt`.
+- RO-Crate entity: `@type = ["File", "ontoflow:Activity"]`.
+- Properties include: `name`, `kernel`, `programmingLanguage`, `position`,
+  `version`, `codeSnippet` (first `CELLSCOPE_SNIPPET_LINES`, default 25).
+- Optional properties populated from hints: `roles`, `fileHints`, `funcCalls`.
 
-crate_dir = build_rocrate(capture, out_dir="out-lab/1234/ro-crate",
-                          xkernel_edges=infer_cross_kernel_edges(capture),
-                          hints={"roles": {"threshold": "parameter"}}, config_files=["pyproject.toml"])
-index_crate(crate_dir, endpoint="http://localhost:3030/cellscope/update")
+### 4.3 Variables and functions
+Variables become `#var-<name>` context entities:
+- `@type = ontodt:Data` for data symbols.
+- `@type = ontodt:Symbol` if the symbol is in the set of function defs.
+
+Edges are added both ways:
+- Definitions: Activity -> `oflow:hasOutput` and Variable -> `prov:wasGeneratedBy`.
+- Uses: Activity -> `oflow:hasInput` and Activity -> `prov:used`.
+
+### 4.4 File artifacts and packaging
+For each `file_writes` or `file_reads` entry:
+- Resolve to a local path relative to the notebook if possible.
+- If the path is a URL, create a `File` entity with `accessURL` and optional
+  metadata from HEAD requests.
+- If a local file exists, copy into `files/` and compute blake2b hash.
+- If the local file does not exist, still create a logical `File` entity and
+  attach the original path via `cellscope:localPath`.
+
+Environment/config files follow the same strategy and are stored under `env/`.
+
+Remote file support (opt-in):
+- `CELLSCOPE_FETCH_REMOTE_METADATA=1` enables HEAD requests to fill `etag` and
+  `dateModified` (no download).
+- `CELLSCOPE_FETCH_REMOTE_ARTIFACTS=1` downloads remote artifacts into the crate.
+- `CELLSCOPE_REMOTE_MAX_BYTES` caps download size.
+
+### 4.5 Environment/config parsing
+Config files are parsed into `softwareRequirements` entries:
+- `requirements.txt` / `requirements.in` (pip format).
+- `environment.yml` / `.yaml` (conda dependencies).
+- `pyproject.toml` (PEP 621 dependencies).
+- `Pipfile.lock` (JSON lockfile).
+
+Each dependency becomes a `SoftwareApplication` entity linked to the root dataset.
+
+### 4.6 GraphML + PyVis
+- GraphML is generated with NetworkX; nodes are cells, edges carry
+  `label` (vars), `via`, and `type`.
+- If PyVis is available, `visualize_rocrate()` generates HTML and injects
+  the hover/click panel (`_inject_roshow_panel`).
+
+---
+
+## 5) SPARQL indexer (`cellscope/indexer.py`)
+
+### 5.1 Graph URIs and dedup
+- Default graph URI: `https://cellscope.local/graph/<slug>?v=<n>`.
+- `<slug>` is derived from notebook stem; `<n>` is counted from sibling crates.
+- Indexing drops the graph before re-inserting to avoid duplicates.
+
+### 5.2 Triple mapping
+The indexer walks `ro-crate-metadata.json` and emits:
+- `rdf:type` for each entity type.
+- `schema:name`, `schema:version`, `schema:position`, `schema:programmingLanguage`.
+- `prov:used`, `prov:wasGeneratedBy`, `prov:wasDerivedFrom`, `prov:wasRevisionOf`.
+- File metadata: `schema:encodingFormat`, `schema:keywords`, `schema:identifier` (etag),
+  `schema:dateModified`, `prov:generatedAtTime`, `dcat:accessURL`.
+- Custom fields from `CELLSCOPE_METADATA_CONFIG` (file fields only).
+- `cellscope:localPath`, `cellscope:fileHints`, `cellscope:funcCalls`.
+- Roles: activity `schema:roles` plus variable `schema:roleName` when role strings
+  are `"var: role"`.
+
+### 5.3 Configuration and env vars
+Indexing supports:
+- `CELLSCOPE_SPARQL_ENDPOINT`
+- `CELLSCOPE_SPARQL_TOKEN`
+- `CELLSCOPE_SPARQL_USER` / `CELLSCOPE_SPARQL_PASSWORD`
+- `CELLSCOPE_SPARQL_OUTPUT`
+- `CELLSCOPE_SPARQL_RETRIES`, `CELLSCOPE_SPARQL_BACKOFF`, `CELLSCOPE_SPARQL_TIMEOUT`
+
+---
+
+## 6) Visualization (`cellscope/visualize.py`)
+
+- Uses PyVis with ForceAtlas2 physics.
+- Adds a group node for the notebook (dot) and box nodes for cells.
+- Each node stores `snippet` and `meta` fields used by the panel injection.
+- `_inject_roshow_panel()` appends a floating HTML panel that shows:
+  - Code snippet
+  - Metadata list
+  - Edge relation and `via` on edge click
+
+The SPARQL graph handler (`/cellscope/sparql_graph`) uses the same panel injection
+so local and SPARQL graph views match.
+
+---
+
+## 7) Jupyter Server extension (`cellscope_server/handlers.py`)
+
+Endpoints:
+- `POST /cellscope/analyze`
+- `POST /cellscope/export`
+- `POST /cellscope/export_cached`
+- `POST /cellscope/index`
+- `POST /cellscope/sparql_summary`
+- `POST /cellscope/sparql_graph`
+
+### 7.1 Analyze
+Request:
+```json
+{"notebook": "path/to/notebook.ipynb", "aliases": {"aliases": {"a":"b"}}}
+```
+Response:
+```json
+{"graph": {"nb_path": "...", "cells": [...], "edges": [...]}}
 ```
 
-Server endpoints (see `cellscope_server/handlers.py`):
-```python
-@web.post("/cellscope/analyze")
-def analyze(): parse_notebook(...); infer_cross_kernel_edges(...);
-
-@web.post("/cellscope/export")
-def export(): analyze(); build_rocrate(); index_crate();
+### 7.2 Export
+Request:
+```json
+{
+  "notebook": "...",
+  "out_dir": "out-lab/123",
+  "hints": {"roles": {...}, "domains": {...}},
+  "config_files": ["requirements.txt"],
+  "index": {"endpoint": "http://...", "retries": 2}
+}
 ```
-
-JupyterLab data source toggle (simplified):
-```ts
-if (config.dataSource === "sparql") {
-  const summary = await _requestSparqlSummary(); // POST /cellscope/sparql_summary
-  this._render(summary.graph);
-} else {
-  const local = await _requestAnalysis(notebookPath); // POST /cellscope/analyze
-  this._render(local.graph);
+Response:
+```json
+{
+  "crate": "out-lab/123/ro-crate",
+  "index": {"triples": 123, "status": 200, "attempts": 1}
 }
 ```
 
-## 14) Key Environment Variables
+### 7.3 Export cached
+`/cellscope/export_cached` copies a previously built crate to a new output
+folder. The UI uses this when a single-notebook analysis already generated
+a crate in `out-lab/.analysis-cache`.
 
-| Variable | Purpose |
-| --- | --- |
-| `CELLSCOPE_METADATA_CONFIG` | JSON mapping for custom predicates (see `cellscope/personalization.py`). |
-| `CELLSCOPE_SNIPPET_LINES` | Number of code lines stored in `codeSnippet`. |
-| `CELLSCOPE_FETCH_REMOTE_METADATA` | If set, attempt HTTP HEAD to capture ETag/Last-Modified for remote URLs. |
-| `CELLSCOPE_FETCH_REMOTE_ARTIFACTS` | If set, download remote artifacts into `files/`. |
-| `CELLSCOPE_REMOTE_MAX_BYTES` | Max bytes for remote downloads (default is conservative). |
-| `CELLSCOPE_SPARQL_ENDPOINT` | SPARQL `update` URL (e.g., `http://localhost:3030/cellscope/update`). |
-| `CELLSCOPE_SPARQL_TOKEN` / `CELLSCOPE_SPARQL_USER/PASSWORD` | Authentication for SPARQL pushes. |
-| `CELLSCOPE_SPARQL_OUTPUT` | Path to dump the last SPARQL delta (`index/last_update.sparql`). |
-| `CELLSCOPE_SPARQL_RETRIES`, `CELLSCOPE_SPARQL_BACKOFF`, `CELLSCOPE_SPARQL_TIMEOUT` | Retry policy for the exporter. |
-| `CELLSCOPE_ENABLE_WORKFLOWS` | Enables workflow CLI commands (default off). |
-| `JUPYTER_CONFIG_DIR` (server) | Point to the active venv to avoid permission conflicts. |
+### 7.4 SPARQL summary
+`/cellscope/sparql_summary` runs a SPARQL query to list graphs and pull only
+a small predicate subset, then rebuilds a graph summary for the UI.
+The handler normalizes:
+- cell names, kernel, position, version
+- defs/uses, file reads/writes, roles
+- file metadata tokens (encodingFormat, keywords, accessURL, localPath)
 
----
+Cross-notebook edges are inferred by shared file basenames.
 
-## 15) Workflow Notes (optional)
-
-- Workflow capture/import is optional and gated by `CELLSCOPE_ENABLE_WORKFLOWS=1`
-  (CLI) plus the `cellscopeEnableWorkflows` JupyterLab page config (UI).
-- `.naavrewf` files reference workflow nodes; capture resolves them to local
-  notebooks when possible and writes manifests under
-  `out-lab/workflows/<workflow-id>/workflow_manifest.json`.
-- Use `--skip-crates` for metadata-only capture, then re-run with crates when
-  notebooks are available.
+### 7.5 SPARQL graph
+`/cellscope/sparql_graph` renders a PyVis HTML graph from the SPARQL summary.
+The HTML is written under `out-lab/sparql_<ts>/ro-crate/cell_graph.html`.
 
 ---
 
-## 16) Design Trade-offs (why it looks this way)
+## 8) JupyterLab extension (`labextension/src/index.ts`)
 
-- **RO-Crate + PROV + DCAT**: uses standard JSON-LD so crates remain portable,
-  queryable, and compatible with triple stores; OntoDT/OntoFlow carry symbols
-  and activities.
-- **Static analysis only**: avoids executing user notebooks for safety and
-  reproducibility; relies on path/value heuristics plus optional user hints.
-- **Graph rewrite per version**: each export drops and rewrites the named graph
-  `https://cellscope.local/graph/<slug>?v=<n>` to prevent duplicate triples; a
-  simple counter keeps ordering without diffing SPARQL.
-- **Dual render assets**: PyVis HTML for interactive review in JupyterLab, plus
-  GraphML for downstream tooling; both live in the crate for offline use.
-- **Local vs SPARQL data sources**: local mode is fast/offline; SPARQL mode
-  mirrors the same schema to support multi-notebook aggregation. The UI falls
-  back to local on remote errors.
-- **In-Python R parsing**: keeps dependencies minimal (no external R runtime or
-  containerizer), using a tokenizer to reach parity with Python where possible.
-- **Persist cell sources**: saves each cell as `.py`/`.R` inside the crate so
-  previews and provenance stay self-contained.
+### 8.1 Plugin wiring
+The plugin registers commands:
+- `cellscope:open-list` (analyzer panel)
+- `cellscope:open-graph` (graph view)
 
-## 17) Known Limitations and Future Work
+The panel lives in the left sidebar and contains:
+- header with Analyze / Export / Open Graph
+- status and pending banners
+- filter + results sections
+- export summary
 
-- **Static parsing gaps**: runtime-computed paths, dynamic imports, or
-  download-to-temp flows may be missed; a future guarded tracer could improve
-  IO coverage.
-- **R coverage**: tidy-eval, NSE-heavy code, and complex data.table chains are
-  only partially captured.
-- **Mixed kernels**: links rely on shared files; cross-kernel magics are not
-  supported. Mixed-kernel links mostly rely on files.
-- **Workflow scope**: workflow capture assumes `.naavrewf` inputs and is not a
-  general workflow engine; use it when those assets are present.
-- **Dataset versioning**: we record hashes/etag/timestamps when available but do
-  not cache remote payloads; reproducibility depends on source stability.
-- **Graph scale/readability**: dense notebooks/workflows can produce crowded
-  PyVis layouts; auto-clustering and filtering in-graph are future work.
-- **Triple store availability**: SPARQL mode requires a reachable endpoint;
-  fallback to local cannot merge partial remote data.
-- **Build toolchain**: Node is required to rebuild the labextension; staging
-  copies into the venv is still manual via `npm run stage`.
-- **Testing depth**: sample notebooks cover common IO; broader R notebooks and
-  exotic Python IO libraries would improve confidence.
+### 8.2 Analyze flow
+`_analyze()` -> `_promptNotebookSelection()` -> `_runAnalysis("manual", notebooks)`.
+
+Notebook selection is two-stage:
+1) Folder picker: select root or specific folders to scan.
+2) Notebook picker: choose notebooks from recursive scan.
+
+Notebook scanning uses `contents.get(path, {content: true})` and skips:
+`.git`, `.venv`, `node_modules`, `__pycache__`, `.ipynb_checkpoints`.
+
+### 8.3 Manual vs auto analysis
+- Manual: combines selected notebooks, shows review dialog, and (optionally)
+  writes analysis crates to `out-lab/.analysis-cache` for export reuse.
+- Auto: triggered on save/execution; debounced (400-1000ms) and uses the
+  currently open notebook only.
+
+When `dataSource = "sparql"`, auto analysis pulls from the SPARQL endpoint
+instead of local parsing.
+
+### 8.4 Review dialog
+The review dialog builds a draft from the combined graph:
+- Variables: from `var_defs` across all cells.
+- Files: union of `file_reads` + `file_writes` basenames.
+
+Users can edit:
+- Variable roles (string labels).
+- File metadata fields: encodingFormat, keywords, accessURL, etag,
+  retrievedAt, dateModified.
+
+Hints are stored in localStorage per notebook:
+- `cellscope:hints:<encoded notebook path>`.
+
+### 8.5 Export flow
+- Export uses the *last analysis* + *last review*; if missing, export is blocked.
+- For single-notebook analysis with cached crate, `/export_cached` is used.
+- For multiple notebooks, each is exported to `out-lab/<ts>-<slug>`.
+- When dataSource is `sparql` and endpoint configured, indexing is enabled.
+
+### 8.6 Filters and search
+- Filter state is stored globally: `cellscope:filters:global`.
+- Filter dropdown includes kernel, roles, file metadata tokens, edge via,
+  and read/write toggles.
+- Search terms are highlighted in list results; exact object matches are
+  pinned at the top with a summary of defs/uses and file paths.
+- Filter changes emit `cellscope:filters-changed` with the serialized filter
+  state plus `filteredCells` and `filteredEdges` counts.
+
+### 8.7 Settings dialog
+Settings are stored in `cellscope:config`:
+- endpoint, auth token or basic auth, retries, backoff, output path
+- data source (local vs sparql)
+- env/config files to bundle (requirements.txt, pyproject.toml, etc.)
 
 ---
 
-This reference is intentionally exhaustive. If you keep it nearby while working
-on CellScope, you should be able to trace any feature, module, or triple back to
-its spot in the repository and extend the system with confidence.
+## 9) CLI (`cellscope_cli/__main__.py`)
+
+Commands:
+- `build <notebook>`: parse, build crate, optionally index.
+- `vis <crate>`: generate HTML graph for existing crate.
+- `validate <crate>`: run structural checks on RO-Crate JSON-LD.
+
+Key flags for `build`:
+- `--aliases`: YAML map of equivalent variable names.
+- `--hints`: YAML file for roles/domains.
+- `--sidecars`: JSON sidecar entities.
+- `--config-file`: env/config file to include (repeatable).
+- `--no-index`: skip SPARQL delta.
+
+---
+
+## 10) Configuration knobs
+
+Environment variables:
+- `CELLSCOPE_SPARQL_ENDPOINT`, `CELLSCOPE_SPARQL_TOKEN`, `CELLSCOPE_SPARQL_USER`, `CELLSCOPE_SPARQL_PASSWORD`
+- `CELLSCOPE_SPARQL_OUTPUT`, `CELLSCOPE_SPARQL_RETRIES`, `CELLSCOPE_SPARQL_BACKOFF`, `CELLSCOPE_SPARQL_TIMEOUT`
+- `CELLSCOPE_METADATA_CONFIG` (JSON config for file field -> predicate mapping)
+- `CELLSCOPE_SNIPPET_LINES` (code snippet length)
+- `CELLSCOPE_FETCH_REMOTE_METADATA` (HEAD remote artifacts)
+- `CELLSCOPE_FETCH_REMOTE_ARTIFACTS` + `CELLSCOPE_REMOTE_MAX_BYTES`
+
+---
+
+## 11) Known limitations (code-level)
+
+- Static analysis only; dynamic runtime behavior is not captured.
+- Variable-driven file paths are under-approximated (unless literals
+  or simple joins are used in a single cell).
+- R parsing is regex-based and best-effort; unusual constructs may be missed.
+- Cross-notebook links in SPARQL mode are inferred by basename, not by full path.
+- File metadata hints in the review dialog apply to basenames, not full paths.
+
+---
+
+## 12) Where to extend
+
+For full extension recipes, see `PERSONALIZATION.md`. Key extension points:
+- Capture rules: `cellscope/ast_capture.py`, `cellscope/containerizer_adapter.py`.
+- Metadata fields: review dialog + `cellscope/rocrate_io.py` + `cellscope/indexer.py`.
+- SPARQL projection: `cellscope/indexer.py`.
+- UI filters: `labextension/src/index.ts`.
+- Graph styling: `cellscope/visualize.py`.

@@ -1,0 +1,58 @@
+[
+  {
+    "triples": 1340,
+    "output": "evaluation/crates/RAVL/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/RAVL/RAVL.ipynb",
+    "crate": "evaluation/crates/RAVL/ro-crate"
+  },
+  {
+    "triples": 186,
+    "output": "evaluation/crates/RAVL_R_source/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/RAVL/RAVL_R_source.ipynb",
+    "crate": "evaluation/crates/RAVL_R_source/ro-crate"
+  },
+  {
+    "triples": 63,
+    "output": "evaluation/crates/SecretsProvider_demo/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/RAVL/SecretsProvider_demo.ipynb",
+    "crate": "evaluation/crates/SecretsProvider_demo/ro-crate"
+  },
+  {
+    "triples": 87,
+    "output": "evaluation/crates/migrate_secrets/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/RAVL/migrate_secrets.ipynb",
+    "crate": "evaluation/crates/migrate_secrets/ro-crate"
+  },
+  {
+    "triples": 186,
+    "output": "evaluation/crates/exhaustive_python/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/exhaustive_python.ipynb",
+    "crate": "evaluation/crates/exhaustive_python/ro-crate"
+  },
+  {
+    "triples": 93,
+    "output": "evaluation/crates/exhaustive_r/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/exhaustive_r.ipynb",
+    "crate": "evaluation/crates/exhaustive_r/ro-crate"
+  },
+  {
+    "triples": 211,
+    "output": "evaluation/crates/multi_kernel_demo/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "notebook": "examples/multi_kernel_demo.ipynb",
+    "crate": "evaluation/crates/multi_kernel_demo/ro-crate"
+  }
+]

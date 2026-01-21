@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d4" for="node" attr.name="var_uses" attr.type="string" />
+  <key id="d3" for="node" attr.name="var_defs" attr.type="string" />
+  <key id="d2" for="node" attr.name="func_calls" attr.type="string" />
+  <key id="d1" for="node" attr.name="funcs" attr.type="string" />
+  <key id="d0" for="node" attr.name="kernel" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="0">
+      <data key="d0">conda-env-vol2bird-py</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">[]</data>
+      <data key="d4">[]</data>
+    </node>
+    <node id="1">
+      <data key="d0">conda-env-vol2bird-py</data>
+      <data key="d1">["move_yaml_contents"]</data>
+      <data key="d2">["open", "print"]</data>
+      <data key="d3">["data", "destination_file", "e", "key", "move_yaml_contents", "os", "param_secret_file_path", "source_file", "source_yaml_file", "value", "yaml"]</data>
+      <data key="d4">["Exception", "FileNotFoundError", "destination_path", "open", "print", "source_path"]</data>
+    </node>
+    <node id="2">
+      <data key="d0">conda-env-vol2bird-py</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">[]</data>
+      <data key="d4">[]</data>
+    </node>
+  </graph>
+</graphml>

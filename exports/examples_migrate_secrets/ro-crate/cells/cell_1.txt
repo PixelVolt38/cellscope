@@ -1,0 +1,34 @@
+import yaml
+import os
+
+def move_yaml_contents(source_path, destination_path):
+    """
+    Moves the contents of a YAML file to a new file with a specific format.
+
+    Args:
+        source_path: The path to the source YAML file.
+        destination_path: The path to the destination file.
+    """
+
+    try:
+        with open(source_path, 'r') as source_file:
+            data = yaml.safe_load(source_file)  # Use safe_load for security
+
+        with open(destination_path, 'w') as destination_file:
+            for key, value in data.items():
+                destination_file.write(f"{key}='{value}'\n")  # Format as key='value'
+
+        print(f"Contents of '{source_path}' moved to '{destination_path}' successfully.")
+
+    except FileNotFoundError:
+        print(f"Error: Source file '{source_path}' not found.")
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML in '{source_path}': {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+param_secret_file_path = "/path/to/jovyan/secrets.yaml"
+source_yaml_file = param_secret_file_path
+destination_file = ".env"
+
+move_yaml_contents(source_yaml_file, destination_file)

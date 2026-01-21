@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d4" for="node" attr.name="var_uses" attr.type="string" />
+  <key id="d3" for="node" attr.name="var_defs" attr.type="string" />
+  <key id="d2" for="node" attr.name="func_calls" attr.type="string" />
+  <key id="d1" for="node" attr.name="funcs" attr.type="string" />
+  <key id="d0" for="node" attr.name="kernel" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="0">
+      <data key="d0">conda-env-ravl-r</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">[]</data>
+      <data key="d4">[]</data>
+    </node>
+    <node id="1">
+      <data key="d0">conda-env-ravl-r</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">["param_clean_knmi_input", "param_clean_pvol_output", "param_clean_vp_output", "param_concurrency", "param_country", "param_day", "param_dtype", "param_elevation", "param_imtype", "param_interval", "param_jupyterhub_user", "param_month", "param_param", "param_prefix", "param_radar", "param_upload_results", "param_year"]</data>
+      <data key="d4">[]</data>
+    </node>
+    <node id="2">
+      <data key="d0">conda-env-ravl-r</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">["conf_local_conf", "conf_local_knmi", "conf_local_odim", "conf_local_ppi", "conf_local_radar_db", "conf_local_root", "conf_local_visualization_input", "conf_local_visualization_output", "conf_local_vp", "conf_local_vpts", "conf_minio_endpoint", "conf_minio_public_bucket_name", "conf_minio_user_bucket_name", "conf_ppi_output_prefix", "conf_pvol_output_prefix", "conf_vp_output_prefix", "conf_vpts_output_prefix"]</data>
+      <data key="d4">[]</data>
+    </node>
+    <node id="3">
+      <data key="d0">conda-env-ravl-r</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">[]</data>
+      <data key="d4">[]</data>
+    </node>
+    <node id="4">
+      <data key="d0">conda-env-ravl-r</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">[]</data>
+      <data key="d4">[]</data>
+    </node>
+  </graph>
+</graphml>

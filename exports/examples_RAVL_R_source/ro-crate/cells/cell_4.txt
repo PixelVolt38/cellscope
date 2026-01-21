@@ -1,0 +1,68 @@
+# R-PPI
+# ---
+# NaaVRE:
+#  cell:
+#   inputs:
+#    - local_pvol_paths : List
+#   outputs:
+#    - local_ppi_paths : List
+#   params:
+#    - param_param : String
+#    - param_elevation : Float
+# ...
+
+# libraries
+library('bioRad')
+library("stringr")
+library("ggplot2")
+title_from_pvol <- function(pvol) {
+  date_prefix <- strftime(my_pvol$datetime, format = "%Y/%m/%d T %H:%M UTC", tz = "UTC")
+  corad <- pvol$radar
+  co <- substring(corad, 1, 2)
+  rad <- substring(corad, 3, 5)
+  corad_prefix <- paste0(c(co, rad), collapse = "/")
+  corad_prefix <- toupper(corad_prefix)
+  title_str <- paste0(c(co, rad, date_prefix), collapse = " ")
+  title_str <- toupper(title_str)
+  return(title_str)
+}
+# Retrieve the basemap
+basemap <- rosm::osm.types()[1]
+# initialize a output list for files
+local_ppi_paths <- list()
+for (pvol_path in local_pvol_paths) {
+  my_pvol <- read_pvolfile(pvol_path, param = c("DBZH", "VRADH"))
+  my_scan <- get_scan(
+    x = my_pvol,
+    elev = param_elevation,
+    all = FALSE
+  )
+  my_param <- get_param(my_scan, param = param_param)
+  ppi <- project_as_ppi(my_param)
+  # If elevation has a '.' in it, like 2.5, substitute the '.' for a '-'.
+  # Otherwise certain operating systems confuse it for a suffix.
+  elev <- my_scan$attributes$where$elangle %>% str_replace("\\.", "-")
+  # Create an image name
+  imname <- basename(pvol_path) %>%
+    str_replace(".h5", ".png") %>%
+    str_replace("pvol", paste("ppi", param_param, elev, sep = "_"))
+  print(imname)
+  # Create an image directory
+  impath_dir <- pvol_path %>%
+    str_replace(conf_local_odim, conf_local_ppi) %>%
+    str_replace(basename(pvol_path), "")
+  impath_dir <- paste(impath_dir, param_param, elev, sep = "/")
+  # Create the directory
+  dir.create(file.path(impath_dir), recursive = TRUE, showWarnings = FALSE)
+  # Create a image path
+  impath <- paste(impath_dir, imname, sep = "/")
+  title_str <- title_from_pvol(my_pvol)  
+  subtitle_str <- paste("param:",param_param, "- elevation angle:",param_elevation)
+  png(impath, width = 1024, height = 1024, units = "px")
+  plt <- map(ppi, map = basemap, alpha = 0.6) +
+    ggtitle(title_str, subtitle = subtitle_str) +
+    theme(plot.title = element_text(size = 40, face = "bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5))
+  print(plt)
+  dev.off()
+  local_ppi_paths <- append(local_ppi_paths, impath)
+}

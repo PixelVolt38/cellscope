@@ -1,0 +1,141 @@
+{
+  "notebook": "/path/to/repo/examples/exhaustive_r.ipynb",
+  "notes": "Manual labels for R cells; file hand-offs and URL download captured.",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "cell_0",
+      "kernel": "ir",
+      "source": [
+        "df <- read.csv(\"examples/data_outputs/climate_readings.csv\")"
+      ],
+      "defs": [
+        "df"
+      ],
+      "uses": [
+        "read.csv"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "read.csv"
+      ],
+      "file_reads": [
+        "examples/data_outputs/climate_readings.csv"
+      ],
+      "file_writes": []
+    },
+    {
+      "idx": 1,
+      "label": "cell_1",
+      "kernel": "ir",
+      "source": [
+        "df$temp_f <- df$temperature * 9 / 5 + 32"
+      ],
+      "defs": [
+        "df"
+      ],
+      "uses": [
+        "df"
+      ],
+      "funcs": [],
+      "func_calls": [],
+      "file_reads": [],
+      "file_writes": []
+    },
+    {
+      "idx": 2,
+      "label": "cell_2",
+      "kernel": "ir",
+      "source": [
+        "write.csv(df, \"examples/data_outputs/r_output.csv\", row.names = FALSE)"
+      ],
+      "defs": [],
+      "uses": [
+        "df",
+        "write.csv"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "write.csv"
+      ],
+      "file_reads": [],
+      "file_writes": [
+        "examples/data_outputs/r_output.csv"
+      ]
+    },
+    {
+      "idx": 3,
+      "label": "cell_3",
+      "kernel": "ir",
+      "source": [
+        "jsonlite::toJSON(list(mean=mean(df$temperature), max=max(df$temperature)))"
+      ],
+      "defs": [],
+      "uses": [
+        "df",
+        "jsonlite",
+        "list",
+        "mean",
+        "max",
+        "toJSON"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "toJSON",
+        "list",
+        "mean",
+        "max"
+      ],
+      "file_reads": [],
+      "file_writes": []
+    },
+    {
+      "idx": 4,
+      "label": "cell_4",
+      "kernel": "ir",
+      "source": [
+        "download.file(\"https://example.com/data.csv\", \"examples/data_outputs/http_download.csv\")"
+      ],
+      "defs": [],
+      "uses": [
+        "download.file"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "download.file"
+      ],
+      "file_reads": [
+        "https://example.com/data.csv"
+      ],
+      "file_writes": [
+        "examples/data_outputs/http_download.csv"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 2,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    }
+  ]
+}

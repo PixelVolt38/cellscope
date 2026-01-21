@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d7" for="edge" attr.name="label" attr.type="string" />
+  <key id="d6" for="edge" attr.name="via" attr.type="string" />
+  <key id="d5" for="edge" attr.name="type" attr.type="string" />
+  <key id="d4" for="node" attr.name="var_uses" attr.type="string" />
+  <key id="d3" for="node" attr.name="var_defs" attr.type="string" />
+  <key id="d2" for="node" attr.name="func_calls" attr.type="string" />
+  <key id="d1" for="node" attr.name="funcs" attr.type="string" />
+  <key id="d0" for="node" attr.name="kernel" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="0">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">["Path", "json", "pd", "threshold"]</data>
+      <data key="d4">[]</data>
+    </node>
+    <node id="1">
+      <data key="d0">python3</data>
+      <data key="d1">["compute_stats"]</data>
+      <data key="d2">["int"]</data>
+      <data key="d3">["above", "compute_stats", "mean_temp"]</data>
+      <data key="d4">["df", "int", "threshold"]</data>
+    </node>
+    <node id="2">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">["df"]</data>
+      <data key="d4">["pd"]</data>
+    </node>
+    <node id="3">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">[]</data>
+      <data key="d3">[]</data>
+      <data key="d4">["df"]</data>
+    </node>
+    <node id="4">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">["Path", "compute_stats"]</data>
+      <data key="d3">["summary"]</data>
+      <data key="d4">["Path", "compute_stats", "df", "json"]</data>
+    </node>
+    <node id="5">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">["open"]</data>
+      <data key="d3">["handle", "parsed", "raw"]</data>
+      <data key="d4">["json", "open"]</data>
+    </node>
+    <node id="6">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">["open"]</data>
+      <data key="d3">["handle", "missing_data"]</data>
+      <data key="d4">["open"]</data>
+    </node>
+    <node id="7">
+      <data key="d0">python3</data>
+      <data key="d1">[]</data>
+      <data key="d2">["Path"]</data>
+      <data key="d3">[]</data>
+      <data key="d4">["Path"]</data>
+    </node>
+    <edge source="0" target="1">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">threshold</data>
+    </edge>
+    <edge source="0" target="2">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">pd</data>
+    </edge>
+    <edge source="0" target="4">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">Path,json</data>
+    </edge>
+    <edge source="0" target="5">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">json</data>
+    </edge>
+    <edge source="0" target="7">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">Path</data>
+    </edge>
+    <edge source="1" target="4">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">compute_stats</data>
+    </edge>
+    <edge source="2" target="3">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">df</data>
+    </edge>
+    <edge source="2" target="4">
+      <data key="d5">uses</data>
+      <data key="d6">ast</data>
+      <data key="d7">df</data>
+    </edge>
+    <edge source="4" target="5">
+      <data key="d5">uses</data>
+      <data key="d6">file</data>
+      <data key="d7">summary.json</data>
+    </edge>
+  </graph>
+</graphml>

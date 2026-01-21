@@ -1,0 +1,219 @@
+{
+  "nb_path": "examples/multi_kernel_demo.ipynb",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "climate_data_frame",
+      "name": "climate_data_frame",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "max",
+        "min"
+      ],
+      "var_defs": [
+        "climate",
+        "climate_summary",
+        "locations",
+        "mean",
+        "pd",
+        "readings"
+      ],
+      "var_uses": [
+        "max",
+        "min"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 1,
+      "label": "materialize_outputs_for_hand_off",
+      "name": "materialize_outputs_for_hand_off",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "print"
+      ],
+      "var_defs": [
+        "climate_summary_df",
+        "csv_path",
+        "data_dir",
+        "json_path",
+        "os"
+      ],
+      "var_uses": [
+        "climate",
+        "climate_summary",
+        "pd",
+        "print"
+      ],
+      "file_writes": [
+        "data_outputs/climate_readings.csv",
+        "data_outputs/climate_summary.json"
+      ],
+      "file_reads": []
+    },
+    {
+      "idx": 2,
+      "label": "reference_external_configuration_for_provenance",
+      "name": "reference_external_configuration_for_provenance",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "float",
+        "open",
+        "print"
+      ],
+      "var_defs": [
+        "baseline",
+        "config_path",
+        "handle",
+        "line",
+        "thresholds"
+      ],
+      "var_uses": [
+        "float",
+        "open",
+        "print"
+      ],
+      "file_writes": [],
+      "file_reads": [
+        "config/thresholds.txt"
+      ]
+    },
+    {
+      "idx": 3,
+      "label": "consume_sos_hand_off_and_csv_artifact",
+      "name": "consume_sos_hand_off_and_csv_artifact",
+      "kernel": "ir",
+      "funcs": [],
+      "func_calls": [
+        "head"
+      ],
+      "var_defs": [
+        "climate_frame",
+        "summary"
+      ],
+      "var_uses": [
+        "climate_summary",
+        "head"
+      ],
+      "file_writes": [],
+      "file_reads": [
+        "data_outputs/climate_readings.csv"
+      ]
+    },
+    {
+      "idx": 4,
+      "label": "downstream_analysis_using_both_shared_data_and_file_reads",
+      "name": "downstream_analysis_using_both_shared_data_and_file_reads",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "print",
+        "str"
+      ],
+      "var_defs": [
+        "Path",
+        "json",
+        "json_path",
+        "report",
+        "report_path",
+        "summary_records"
+      ],
+      "var_uses": [
+        "climate_summary",
+        "print",
+        "str"
+      ],
+      "file_writes": [
+        "reports/climate_report.txt"
+      ],
+      "file_reads": [
+        "data_outputs/climate_summary.json"
+      ]
+    },
+    {
+      "idx": 5,
+      "label": "cell_5",
+      "name": "cell_5",
+      "kernel": "python3",
+      "funcs": [
+        "add"
+      ],
+      "func_calls": [],
+      "var_defs": [
+        "add"
+      ],
+      "var_uses": [
+        "x",
+        "y"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    }
+  ],
+  "edges": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "climate"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "climate_summary"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "pd"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "climate_summary"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "climate_summary"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "climate_readings.csv"
+      ],
+      "via": "file",
+      "file": "data_outputs/climate_readings.csv"
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "climate_summary.json"
+      ],
+      "via": "file",
+      "file": "data_outputs/climate_summary.json"
+    }
+  ]
+}

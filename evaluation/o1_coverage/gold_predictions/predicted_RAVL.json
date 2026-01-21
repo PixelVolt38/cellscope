@@ -1,0 +1,1796 @@
+{
+  "nb_path": "examples/RAVL/RAVL.ipynb",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "cell_0",
+      "name": "cell_0",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 1,
+      "label": "do_not_containerise",
+      "name": "do_not_containerise",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "os",
+        "param_clean_knmi_input",
+        "param_clean_pvol_output",
+        "param_clean_vp_output",
+        "param_concurrency",
+        "param_country",
+        "param_day",
+        "param_dtype",
+        "param_elevation",
+        "param_end_date",
+        "param_imtype",
+        "param_interval_in_minutes",
+        "param_maximum_KNMI_files",
+        "param_month",
+        "param_param",
+        "param_prefix",
+        "param_public_minio_data",
+        "param_radar",
+        "param_start_date",
+        "param_upload_results",
+        "param_user_number",
+        "param_year"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 2,
+      "label": "do_not_containerise_2",
+      "name": "do_not_containerise_2",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "SecretsProvider",
+        "getpass",
+        "secret_key_knmi_api",
+        "secret_minio_access_key",
+        "secret_minio_secret_key",
+        "secrets_provider"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 3,
+      "label": "do_not_containerize",
+      "name": "do_not_containerize",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "SecretsProvider",
+        "getpass",
+        "secrets_provider"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 4,
+      "label": "do_not_containerise_3",
+      "name": "do_not_containerise_3",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "conf_denhelder",
+        "conf_herwijnen",
+        "conf_local_conf",
+        "conf_local_knmi",
+        "conf_local_odim",
+        "conf_local_ppi",
+        "conf_local_radar_db",
+        "conf_local_root",
+        "conf_local_visualization_input",
+        "conf_local_visualization_output",
+        "conf_local_vp",
+        "conf_local_vpts",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_public_conf_prefix",
+        "conf_minio_public_conf_radar_db_object_name",
+        "conf_minio_public_root_prefix",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "conf_ppi_output_prefix",
+        "conf_pvol_output_prefix",
+        "conf_radars",
+        "conf_user_directory",
+        "conf_vp_output_prefix",
+        "conf_vpts_output_prefix",
+        "os",
+        "pathlib"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 5,
+      "label": "do_not_containerise_v60",
+      "name": "do_not_containerise_v60",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "open",
+        "print"
+      ],
+      "var_defs": [
+        "Minio",
+        "S3Error",
+        "debug",
+        "e",
+        "file_data",
+        "file_stat",
+        "minioClient",
+        "os",
+        "pathlib",
+        "put_result",
+        "radar_db_stat"
+      ],
+      "var_uses": [
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_public_conf_radar_db_object_name",
+        "open",
+        "print",
+        "secret_minio_access_key",
+        "secret_minio_secret_key"
+      ],
+      "file_writes": [],
+      "file_reads": [
+        "/path/to/jovyan/data/conf/OPERA_RADARS_DB.json"
+      ]
+    },
+    {
+      "idx": 6,
+      "label": "initializer",
+      "name": "initializer",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "print"
+      ],
+      "var_defs": [
+        "Minio",
+        "S3Error",
+        "init_complete",
+        "local_dir",
+        "minioClient",
+        "pathlib"
+      ],
+      "var_uses": [
+        "conf_local_conf",
+        "conf_local_knmi",
+        "conf_local_odim",
+        "conf_local_radar_db",
+        "conf_local_root",
+        "conf_local_vp",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_public_conf_radar_db_object_name",
+        "print",
+        "secret_minio_access_key",
+        "secret_minio_secret_key"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 7,
+      "label": "list_knmi_files",
+      "name": "list_knmi_files",
+      "kernel": "python3",
+      "funcs": [
+        "validate_api_errors",
+        "validate_number_of_KNMI_files"
+      ],
+      "func_calls": [
+        "ValueError",
+        "int",
+        "len",
+        "list",
+        "print",
+        "range"
+      ],
+      "var_defs": [
+        "_",
+        "api_reponse_json",
+        "api_response",
+        "api_url",
+        "datasetName",
+        "datasetVersion",
+        "dataset_file",
+        "dataset_files",
+        "dset_file",
+        "dset_files",
+        "end_ts",
+        "filtered_list",
+        "init_complete",
+        "interval_list",
+        "minute",
+        "nextPageToken",
+        "params",
+        "requests",
+        "start_ts",
+        "sys",
+        "validate_api_errors",
+        "validate_number_of_KNMI_files"
+      ],
+      "var_uses": [
+        "ValueError",
+        "conf_radars",
+        "int",
+        "len",
+        "list",
+        "param_end_date",
+        "param_interval_in_minutes",
+        "param_maximum_KNMI_files",
+        "param_radar",
+        "param_start_date",
+        "print",
+        "range",
+        "secret_key_knmi_api"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 8,
+      "label": "download_knmi",
+      "name": "download_knmi",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "len",
+        "print",
+        "str"
+      ],
+      "var_defs": [
+        "Path",
+        "_",
+        "api_url",
+        "dataset_file",
+        "dataset_file_response",
+        "day",
+        "download_url",
+        "endpoint",
+        "filename",
+        "fname_date_part",
+        "fname_parts",
+        "get_file_response",
+        "idx",
+        "knmi_pvol_paths",
+        "month",
+        "n_files",
+        "os",
+        "p",
+        "radar_code",
+        "requests",
+        "year"
+      ],
+      "var_uses": [
+        "conf_local_knmi",
+        "conf_radars",
+        "dataset_files",
+        "len",
+        "param_radar",
+        "print",
+        "secret_key_knmi_api",
+        "str"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 9,
+      "label": "knmi_to_odim_converter",
+      "name": "knmi_to_odim_converter",
+      "kernel": "python3",
+      "funcs": [
+        "extract_wmo_code",
+        "get_pvol_storage_path",
+        "knmi_to_odim",
+        "load_radar_db",
+        "str2bool",
+        "translate_knmi_filename",
+        "translate_wmo_odim"
+      ],
+      "func_calls": [
+        "ValueError",
+        "any",
+        "int",
+        "isinstance",
+        "len",
+        "open",
+        "print",
+        "str"
+      ],
+      "var_defs": [
+        "FileTranslatorFileTypeError",
+        "Minio",
+        "_",
+        "command",
+        "converter",
+        "converter_results",
+        "date",
+        "exists",
+        "extract_wmo_code",
+        "f",
+        "file_data",
+        "file_stat",
+        "filetype",
+        "get_pvol_storage_path",
+        "h5py",
+        "hh",
+        "ibed_fname",
+        "ibed_pvol_name",
+        "json",
+        "knmi_path",
+        "knmi_to_odim",
+        "load_radar_db",
+        "local_pvol_storage",
+        "math",
+        "minioClient",
+        "mm",
+        "name",
+        "odim_code",
+        "odim_pvol_path",
+        "odim_pvol_paths",
+        "out_path_pvol_odim",
+        "out_path_pvol_odim_tce",
+        "output",
+        "path",
+        "pathlib",
+        "proc",
+        "rad_code",
+        "rad_codes",
+        "rad_str",
+        "rad_str_split",
+        "radar_db",
+        "radar_db_json",
+        "radar_dict",
+        "relative_path",
+        "remote_odim_pvol_path",
+        "returncode",
+        "shutil",
+        "source",
+        "source_list",
+        "ss",
+        "str2bool",
+        "string",
+        "subprocess",
+        "sys",
+        "time",
+        "translate_knmi_filename",
+        "translate_wmo_odim",
+        "what",
+        "wmo_code"
+      ],
+      "var_uses": [
+        "Exception",
+        "LookupError",
+        "ValueError",
+        "any",
+        "bool",
+        "conf_local_odim",
+        "conf_local_radar_db",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_public_root_prefix",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "conf_pvol_output_prefix",
+        "conf_user_directory",
+        "in_fpath",
+        "in_path",
+        "in_path_h5",
+        "int",
+        "isinstance",
+        "knmi_pvol_paths",
+        "len",
+        "open",
+        "os",
+        "out_fpath",
+        "param_clean_knmi_input",
+        "param_public_minio_data",
+        "param_upload_results",
+        "param_user_number",
+        "print",
+        "radar_db_path",
+        "secret_minio_access_key",
+        "secret_minio_secret_key",
+        "str",
+        "v"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 10,
+      "label": "pvol_vp_converter",
+      "name": "pvol_vp_converter",
+      "kernel": "python3",
+      "funcs": [
+        "extract_wmo_code",
+        "get_vp_storage_path",
+        "load_radar_db",
+        "str2bool",
+        "translate_wmo_odim",
+        "vol2bird"
+      ],
+      "func_calls": [
+        "ValueError",
+        "any",
+        "int",
+        "isinstance",
+        "len",
+        "open",
+        "print",
+        "str"
+      ],
+      "var_defs": [
+        "Minio",
+        "PVOL_VP_converter_complete",
+        "_",
+        "command",
+        "date_regex",
+        "datetime",
+        "exists",
+        "extract_wmo_code",
+        "f",
+        "file_data",
+        "file_stat",
+        "get_vp_storage_path",
+        "ibed_path",
+        "in_file_name",
+        "in_file_stem",
+        "load_radar_db",
+        "local_vp_storage",
+        "minioClient",
+        "odim",
+        "odim_code",
+        "odim_pvol_path",
+        "odim_pvol_paths",
+        "out_file",
+        "out_file_dir",
+        "out_file_name",
+        "path",
+        "pathlib",
+        "pd",
+        "process",
+        "pvol_path",
+        "rad_code",
+        "rad_codes",
+        "rad_str",
+        "rad_str_split",
+        "radar_db",
+        "radar_db_json",
+        "radar_dict",
+        "re",
+        "relative_path",
+        "remote_vp_path",
+        "result",
+        "source",
+        "source_list",
+        "str2bool",
+        "string",
+        "suffix",
+        "translate_wmo_odim",
+        "version",
+        "vertical_profile_paths",
+        "vol2bird",
+        "vp_path",
+        "what",
+        "wmo",
+        "wmo_code"
+      ],
+      "var_uses": [
+        "Exception",
+        "ValueError",
+        "add_version",
+        "any",
+        "bool",
+        "conf_local_radar_db",
+        "conf_local_vp",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_public_root_prefix",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "conf_user_directory",
+        "conf_vp_output_prefix",
+        "h5py",
+        "in_file",
+        "in_path",
+        "int",
+        "isinstance",
+        "json",
+        "len",
+        "open",
+        "os",
+        "out_dir",
+        "overwrite",
+        "param_clean_pvol_output",
+        "param_clean_vp_output",
+        "param_public_minio_data",
+        "param_upload_results",
+        "param_user_number",
+        "print",
+        "radar_db_path",
+        "secret_minio_access_key",
+        "secret_minio_secret_key",
+        "str",
+        "subprocess",
+        "sys",
+        "v"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 11,
+      "label": "retrieve_pvol_deprecated",
+      "name": "retrieve_pvol_deprecated",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "print"
+      ],
+      "var_defs": [
+        "Minio",
+        "local_file_path",
+        "local_file_paths",
+        "minioClient",
+        "obj",
+        "obj_path",
+        "objects",
+        "pathlib",
+        "recursive",
+        "search_prefix",
+        "sys"
+      ],
+      "var_uses": [
+        "PVOL_VP_converter_complete",
+        "conf_local_visualization_input",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "conf_pvol_output_prefix",
+        "conf_user_directory",
+        "conf_vp_output_prefix",
+        "param_country",
+        "param_day",
+        "param_dtype",
+        "param_month",
+        "param_public_minio_data",
+        "param_radar",
+        "param_user_number",
+        "param_year",
+        "print",
+        "secret_minio_access_key",
+        "secret_minio_secret_key"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 12,
+      "label": "s3_pvol_downloader",
+      "name": "s3_pvol_downloader",
+      "kernel": "python3",
+      "funcs": [
+        "get_pvol_storage_path"
+      ],
+      "func_calls": [
+        "len",
+        "list",
+        "print",
+        "set"
+      ],
+      "var_defs": [
+        "Minio",
+        "_ped_prefix_objs",
+        "corad",
+        "country",
+        "date_prefix_list",
+        "datetimestr",
+        "day",
+        "download_objs",
+        "drange",
+        "dstamp",
+        "dtype",
+        "filename",
+        "fname",
+        "fpath",
+        "get_pvol_storage_path",
+        "intersect_object_names",
+        "lab",
+        "local_pvol_path",
+        "local_pvol_paths",
+        "middle_prefix",
+        "middle_prefix_objs",
+        "middle_prefixes",
+        "minioClient",
+        "month",
+        "obj",
+        "obj_name",
+        "obj_path",
+        "pathlib",
+        "pd",
+        "ped",
+        "ped_object_names",
+        "ped_prefix",
+        "ped_prefix_obj",
+        "ped_prefix_objs",
+        "ped_until_datetimestr",
+        "ped_until_prefix",
+        "ped_until_timestamp",
+        "psd",
+        "psd_object_names",
+        "psd_prefix",
+        "psd_prefix_obj",
+        "psd_prefix_objs",
+        "psd_start_after_prefix",
+        "radar",
+        "radcode_suffix",
+        "timestamp",
+        "uname",
+        "unique_date_prefix_list",
+        "workshop",
+        "year"
+      ],
+      "var_uses": [
+        "conf_local_odim",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_public_root_prefix",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "conf_pvol_output_prefix",
+        "conf_user_directory",
+        "len",
+        "list",
+        "param_end_date",
+        "param_public_minio_data",
+        "param_radar",
+        "param_start_date",
+        "param_user_number",
+        "print",
+        "relative_path",
+        "secret_minio_access_key",
+        "secret_minio_secret_key",
+        "set",
+        "str"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 13,
+      "label": "s3_vp_downloader",
+      "name": "s3_vp_downloader",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "list",
+        "print"
+      ],
+      "var_defs": [
+        "Minio",
+        "corad",
+        "country",
+        "datetimestr",
+        "day",
+        "download_objs",
+        "dtype",
+        "filename",
+        "fname",
+        "fpath",
+        "local_vp_path",
+        "minioClient",
+        "month",
+        "obj",
+        "obj_path",
+        "pathlib",
+        "pd",
+        "ped",
+        "ped_prefix",
+        "ped_prefix_objs",
+        "ped_until_datetimestr",
+        "ped_until_prefix",
+        "ped_until_timestamp",
+        "psd",
+        "psd_prefix",
+        "psd_prefix_objs",
+        "psd_start_after_prefix",
+        "radar",
+        "radcode",
+        "timestamp",
+        "uname",
+        "v2b_version_suffix",
+        "vp_paths",
+        "year"
+      ],
+      "var_uses": [
+        "conf_local_vp",
+        "conf_minio_endpoint",
+        "conf_minio_user_bucket_name",
+        "list",
+        "param_end_date",
+        "param_radar",
+        "param_start_date",
+        "print",
+        "secret_minio_access_key",
+        "secret_minio_secret_key"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 14,
+      "label": "s3_ppi_uploader",
+      "name": "s3_ppi_uploader",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "print"
+      ],
+      "var_defs": [
+        "Minio",
+        "minioClient",
+        "obj_key",
+        "obj_name",
+        "path"
+      ],
+      "var_uses": [
+        "conf_minio_endpoint",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "conf_user_directory",
+        "local_ppi_paths",
+        "param_user_number",
+        "pathlib",
+        "print",
+        "secret_minio_access_key",
+        "secret_minio_secret_key"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 15,
+      "label": "s3_vpts_uploader",
+      "name": "s3_vpts_uploader",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "print"
+      ],
+      "var_defs": [
+        "Minio",
+        "minioClient",
+        "obj_key",
+        "obj_name",
+        "path"
+      ],
+      "var_uses": [
+        "conf_minio_endpoint",
+        "conf_minio_tutorial_prefix",
+        "conf_minio_user_bucket_name",
+        "local_vpts_paths",
+        "pathlib",
+        "print",
+        "secret_minio_access_key",
+        "secret_minio_secret_key"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    }
+  ],
+  "edges": [
+    {
+      "source": 4,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_bucket_name"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_conf_radar_db_object_name"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_local_root"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_local_vp"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_local_odim"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_bucket_name"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_local_conf"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_local_knmi"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_local_radar_db"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 6,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_conf_radar_db_object_name"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "param_interval_in_minutes"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "param_radar"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "param_maximum_KNMI_files"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "param_start_date"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "secret_key_knmi_api"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "param_end_date"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "conf_radars"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 8,
+      "type": "uses",
+      "vars": [
+        "param_radar"
+      ]
+    },
+    {
+      "source": 7,
+      "target": 8,
+      "type": "uses",
+      "vars": [
+        "dataset_files"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 8,
+      "type": "uses",
+      "vars": [
+        "conf_local_knmi"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 8,
+      "type": "uses",
+      "vars": [
+        "secret_key_knmi_api"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 8,
+      "type": "uses",
+      "vars": [
+        "conf_radars"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "param_public_minio_data"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_user_directory"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_root_prefix"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_local_odim"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_bucket_name"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "param_clean_knmi_input"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_pvol_output_prefix"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "param_user_number"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "param_upload_results"
+      ]
+    },
+    {
+      "source": 8,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "os"
+      ]
+    },
+    {
+      "source": 8,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "knmi_pvol_paths"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_local_radar_db"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_minio_tutorial_prefix"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_local_vp"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_vp_output_prefix"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "param_public_minio_data"
+      ]
+    },
+    {
+      "source": 9,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "sys"
+      ]
+    },
+    {
+      "source": 9,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "subprocess"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_user_directory"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_root_prefix"
+      ]
+    },
+    {
+      "source": 9,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "h5py"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_bucket_name"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "param_user_number"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "param_clean_vp_output"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "param_upload_results"
+      ]
+    },
+    {
+      "source": 8,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "os"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_local_radar_db"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_minio_tutorial_prefix"
+      ]
+    },
+    {
+      "source": 9,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "json"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 10,
+      "type": "uses",
+      "vars": [
+        "param_clean_pvol_output"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_radar"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_vp_output_prefix"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_public_minio_data"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_local_visualization_input"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_user_directory"
+      ]
+    },
+    {
+      "source": 10,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "PVOL_VP_converter_complete"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_dtype"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_day"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_bucket_name"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_year"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_pvol_output_prefix"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_user_number"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_country"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "param_month"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_minio_tutorial_prefix"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 11,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 10,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "relative_path"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "param_radar"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "param_public_minio_data"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_user_directory"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_root_prefix"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_local_odim"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_minio_public_bucket_name"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "param_start_date"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_pvol_output_prefix"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "param_user_number"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "param_end_date"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_minio_tutorial_prefix"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 12,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "conf_local_vp"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "param_radar"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "param_start_date"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 13,
+      "type": "uses",
+      "vars": [
+        "param_end_date"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "conf_minio_tutorial_prefix"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 13,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "pathlib"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "conf_user_directory"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 14,
+      "type": "uses",
+      "vars": [
+        "param_user_number"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 15,
+      "type": "uses",
+      "vars": [
+        "conf_minio_tutorial_prefix"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 15,
+      "type": "uses",
+      "vars": [
+        "conf_minio_endpoint"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 15,
+      "type": "uses",
+      "vars": [
+        "secret_minio_secret_key"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 15,
+      "type": "uses",
+      "vars": [
+        "conf_minio_user_bucket_name"
+      ]
+    },
+    {
+      "source": 13,
+      "target": 15,
+      "type": "uses",
+      "vars": [
+        "pathlib"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 15,
+      "type": "uses",
+      "vars": [
+        "secret_minio_access_key"
+      ]
+    }
+  ]
+}

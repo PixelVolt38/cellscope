@@ -1,0 +1,828 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:45+00:00",
+            "description": "CellScope export for multi_kernel_demo.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.py"
+                },
+                {
+                    "@id": "cells/cell_1.py"
+                },
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.R"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                },
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "notebook/multi_kernel_demo.ipynb"
+                },
+                {
+                    "@id": "notebook/multi_kernel_demo.ipynb"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                },
+                {
+                    "@id": "files/climate_summary.json"
+                },
+                {
+                    "@id": "files/climate_readings.csv_2"
+                },
+                {
+                    "@id": "files/climate_readings.csv_2"
+                },
+                {
+                    "@id": "files/thresholds.txt"
+                },
+                {
+                    "@id": "files/thresholds.txt"
+                },
+                {
+                    "@id": "files/climate_report.txt"
+                },
+                {
+                    "@id": "files/summary.json"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "multi_kernel_demo.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# climate data frame\nimport pandas as pd\nfrom statistics import mean\n\nreadings = [22.1, 21.8, 23.4, 24.0, 22.7]\nlocations = [\"north\", \"south\", \"east\", \"west\", \"central\"]\nclimate = pd.DataFrame({\"location\": locations, \"temperature\": readings})\nclimate['temperature_c'] = climate['temperature']\nclimate_summary = {\n    'mean_c': mean(readings),\n    'max_c': max(readings),\n    'min_c': min(readings)\n}",
+            "funcCalls": [
+                "max",
+                "min"
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-climate_summary"
+                },
+                {
+                    "@id": "#var-locations"
+                },
+                {
+                    "@id": "#var-climate"
+                },
+                {
+                    "@id": "#var-mean"
+                },
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-readings"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "climate_data_frame",
+            "position": 1,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# materialize outputs for hand-off\ndata_dir = 'data_outputs'\nimport os\nos.makedirs(data_dir, exist_ok=True)\n\ncsv_path = os.path.join(data_dir, 'climate_readings.csv')\njson_path = os.path.join(data_dir, 'climate_summary.json')\n\nclimate.to_csv(csv_path, index=False)\nclimate_summary_df = pd.DataFrame([climate_summary])\n\n# explicit literal path for provenance capture (not executed in study)\nclimate.to_csv(\"examples/data_outputs/climate_readings.csv\", index=False)\nclimate_summary_df.to_json(json_path, orient='records', indent=2)\nprint(f\"wrote {csv_path} and {json_path}\")\n\n# share the climate summary via SoS for other kernels",
+            "funcCalls": [
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-climate"
+                },
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-climate_summary"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-climate"
+                },
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-climate_summary"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-csv_path"
+                },
+                {
+                    "@id": "#var-climate_summary_df"
+                },
+                {
+                    "@id": "#var-json_path"
+                },
+                {
+                    "@id": "#var-os"
+                },
+                {
+                    "@id": "#var-data_dir"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                },
+                {
+                    "@id": "files/climate_summary.json"
+                },
+                {
+                    "@id": "files/climate_readings.csv_2"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "materialize_outputs_for_hand_off",
+            "position": 2,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# reference external configuration for provenance\nconfig_path = 'config/thresholds.txt'\nwith open(config_path) as handle:\n    thresholds = [float(line.strip()) for line in handle if line.strip()]\n\nbaseline = thresholds[0] if thresholds else None\nprint('baseline threshold:', baseline)",
+            "funcCalls": [
+                "float",
+                "open",
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_2.py-files_thresholds.txt"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "files/thresholds.txt"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "files/thresholds.txt"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-config_path"
+                },
+                {
+                    "@id": "#var-handle"
+                },
+                {
+                    "@id": "#var-thresholds"
+                },
+                {
+                    "@id": "#var-line"
+                },
+                {
+                    "@id": "#var-baseline"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "reference_external_configuration_for_provenance",
+            "position": 3,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.R",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# consume SoS hand-off and CSV artifact\nsummary <- climate_summary\nsummary[['mean_c', 'max_c', 'min_c']]\n\n# Pretend to load the CSV produced by Python (path kept for provenance capture)\nclimate_frame <- read.csv('data_outputs/climate_readings.csv')\nhead(climate_frame)",
+            "funcCalls": [
+                "head"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_3.R-files_climate_readings.csv"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-climate_summary"
+                },
+                {
+                    "@id": "#var-climate_readings.csv"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-climate_summary"
+                },
+                {
+                    "@id": "#var-climate_readings.csv"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-climate_frame"
+                },
+                {
+                    "@id": "#var-summary"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "ir",
+            "name": "consume_sos_hand_off_and_csv_artifact",
+            "position": 4,
+            "programmingLanguage": "ir",
+            "version": "1",
+            "via": [
+                "file"
+            ]
+        },
+        {
+            "@id": "cells/cell_4.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# downstream analysis using both shared data and file reads\n\n# cross-notebook reference for provenance capture (not executed in study)\nwith open(\"examples/data_outputs/summary.json\", \"r\") as handle:\n    cross_summary = handle.read()\nimport json\nfrom pathlib import Path\n\njson_path = Path('data_outputs/climate_summary.json')\nif json_path.exists():\n    summary_records = json.loads(json_path.read_text())\nelse:\n    summary_records = []\n\nreport = {\n    'summary': climate_summary,\n    'shared_records': summary_records,\n    'notes': 'Derived in Cell 4'\n}\nreport_path = Path('reports/climate_report.txt')\nreport_path.parent.mkdir(exist_ok=True)\nreport_path.write_text(str(report), encoding='utf-8')\nprint('report saved to', report_path)",
+            "funcCalls": [
+                "open",
+                "print",
+                "str"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_4.py-files_summary.json"
+                },
+                {
+                    "@id": "#usage-cells_cell_4.py-files_climate_summary.json"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-climate_summary"
+                },
+                {
+                    "@id": "#var-climate_summary.json"
+                },
+                {
+                    "@id": "files/summary.json"
+                },
+                {
+                    "@id": "files/climate_summary.json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-climate_summary"
+                },
+                {
+                    "@id": "#var-climate_summary.json"
+                },
+                {
+                    "@id": "files/summary.json"
+                },
+                {
+                    "@id": "files/climate_summary.json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-json_path"
+                },
+                {
+                    "@id": "#var-summary_records"
+                },
+                {
+                    "@id": "#var-report_path"
+                },
+                {
+                    "@id": "#var-cross_summary"
+                },
+                {
+                    "@id": "#var-handle"
+                },
+                {
+                    "@id": "#var-json"
+                },
+                {
+                    "@id": "#var-report"
+                },
+                {
+                    "@id": "#var-Path"
+                },
+                {
+                    "@id": "files/climate_report.txt"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "downstream_analysis_using_both_shared_data_and_file_reads",
+            "position": 5,
+            "programmingLanguage": "python3",
+            "version": "1",
+            "via": [
+                "file"
+            ]
+        },
+        {
+            "@id": "cells/cell_5.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "def add(x,y):\n    return x+y",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-add"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_5",
+            "position": 6,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "#var-climate_summary",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "climate_summary",
+            "version": "1"
+        },
+        {
+            "@id": "#var-locations",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "locations",
+            "version": "1"
+        },
+        {
+            "@id": "#var-climate",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "climate",
+            "version": "1"
+        },
+        {
+            "@id": "#var-mean",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "mean",
+            "version": "1"
+        },
+        {
+            "@id": "#var-pd",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "pd",
+            "version": "1"
+        },
+        {
+            "@id": "#var-readings",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "readings",
+            "version": "1"
+        },
+        {
+            "@id": "#var-csv_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "csv_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-climate_summary_df",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "climate_summary_df",
+            "version": "1"
+        },
+        {
+            "@id": "#var-json_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "json_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-os",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "os",
+            "version": "1"
+        },
+        {
+            "@id": "#var-data_dir",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "data_dir",
+            "version": "1"
+        },
+        {
+            "@id": "#var-config_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "config_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-handle",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "handle",
+            "version": "1"
+        },
+        {
+            "@id": "#var-thresholds",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "thresholds",
+            "version": "1"
+        },
+        {
+            "@id": "#var-line",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "line",
+            "version": "1"
+        },
+        {
+            "@id": "#var-baseline",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "baseline",
+            "version": "1"
+        },
+        {
+            "@id": "#var-climate_frame",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_3.R"
+                }
+            ],
+            "name": "climate_frame",
+            "version": "1"
+        },
+        {
+            "@id": "#var-summary",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_3.R"
+                }
+            ],
+            "name": "summary",
+            "version": "1"
+        },
+        {
+            "@id": "#var-summary_records",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "summary_records",
+            "version": "1"
+        },
+        {
+            "@id": "#var-report_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "report_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-cross_summary",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "cross_summary",
+            "version": "1"
+        },
+        {
+            "@id": "#var-json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "json",
+            "version": "1"
+        },
+        {
+            "@id": "#var-report",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "report",
+            "version": "1"
+        },
+        {
+            "@id": "#var-Path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "Path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-add",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "add",
+            "version": "1"
+        },
+        {
+            "@id": "#var-climate_readings.csv",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "name": "climate_readings.csv",
+            "version": "1"
+        },
+        {
+            "@id": "#var-climate_summary.json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "name": "climate_summary.json",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/multi_kernel_demo.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o2_user_study/user_study/multi_kernel_demo.ipynb",
+            "isPartOf": "./",
+            "name": "multi_kernel_demo.ipynb"
+        },
+        {
+            "@id": "files/climate_readings.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o2_user_study/user_study/data_outputs/climate_readings.csv",
+            "isPartOf": "./",
+            "name": "climate_readings.csv",
+            "version": "1"
+        },
+        {
+            "@id": "files/climate_summary.json",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o2_user_study/user_study/data_outputs/climate_summary.json",
+            "isPartOf": "./",
+            "name": "climate_summary.json",
+            "version": "1"
+        },
+        {
+            "@id": "files/climate_readings.csv_2",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "contentHash": "blake2b-256:2955bc68328952e9b8b4c92cd6634df15c81ccb7e808c73870f0206440f2dc20",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/climate_readings.csv",
+            "isPartOf": "./",
+            "name": "climate_readings.csv",
+            "version": "1"
+        },
+        {
+            "@id": "files/thresholds.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "contentHash": "blake2b-256:6e9cd6d7825f3807546520a67fd9a56f8192b313060b045bef2744692367906d",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/config/thresholds.txt",
+            "isPartOf": "./",
+            "name": "thresholds.txt",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_2.py-files_thresholds.txt",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/thresholds.txt"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "#usage-cells_cell_3.R-files_climate_readings.csv",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/climate_readings.csv"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "files/climate_report.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o2_user_study/user_study/reports/climate_report.txt",
+            "isPartOf": "./",
+            "name": "climate_report.txt",
+            "version": "1"
+        },
+        {
+            "@id": "files/summary.json",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o2_user_study/user_study/examples/data_outputs/summary.json",
+            "isPartOf": "./",
+            "name": "summary.json",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_4.py-files_summary.json",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/summary.json"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "#usage-cells_cell_4.py-files_climate_summary.json",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/climate_summary.json"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

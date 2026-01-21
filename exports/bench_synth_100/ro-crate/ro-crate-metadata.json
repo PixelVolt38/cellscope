@@ -1,0 +1,1755 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:54+00:00",
+            "description": "CellScope export for synth_100.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.py"
+                },
+                {
+                    "@id": "cells/cell_1.py"
+                },
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.py"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                },
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                },
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                },
+                {
+                    "@id": "cells/cell_16.py"
+                },
+                {
+                    "@id": "cells/cell_17.py"
+                },
+                {
+                    "@id": "cells/cell_18.py"
+                },
+                {
+                    "@id": "cells/cell_19.py"
+                },
+                {
+                    "@id": "cells/cell_20.py"
+                },
+                {
+                    "@id": "cells/cell_21.py"
+                },
+                {
+                    "@id": "cells/cell_22.py"
+                },
+                {
+                    "@id": "cells/cell_23.py"
+                },
+                {
+                    "@id": "cells/cell_24.py"
+                },
+                {
+                    "@id": "cells/cell_25.py"
+                },
+                {
+                    "@id": "cells/cell_26.py"
+                },
+                {
+                    "@id": "cells/cell_27.py"
+                },
+                {
+                    "@id": "cells/cell_28.py"
+                },
+                {
+                    "@id": "cells/cell_29.py"
+                },
+                {
+                    "@id": "cells/cell_30.py"
+                },
+                {
+                    "@id": "cells/cell_31.py"
+                },
+                {
+                    "@id": "cells/cell_32.py"
+                },
+                {
+                    "@id": "cells/cell_33.py"
+                },
+                {
+                    "@id": "cells/cell_34.py"
+                },
+                {
+                    "@id": "cells/cell_35.py"
+                },
+                {
+                    "@id": "cells/cell_36.py"
+                },
+                {
+                    "@id": "cells/cell_37.py"
+                },
+                {
+                    "@id": "cells/cell_38.py"
+                },
+                {
+                    "@id": "cells/cell_39.py"
+                },
+                {
+                    "@id": "cells/cell_40.py"
+                },
+                {
+                    "@id": "cells/cell_41.py"
+                },
+                {
+                    "@id": "cells/cell_42.py"
+                },
+                {
+                    "@id": "cells/cell_43.py"
+                },
+                {
+                    "@id": "cells/cell_44.py"
+                },
+                {
+                    "@id": "cells/cell_45.py"
+                },
+                {
+                    "@id": "cells/cell_46.py"
+                },
+                {
+                    "@id": "cells/cell_47.py"
+                },
+                {
+                    "@id": "cells/cell_48.py"
+                },
+                {
+                    "@id": "cells/cell_49.py"
+                },
+                {
+                    "@id": "cells/cell_50.py"
+                },
+                {
+                    "@id": "cells/cell_51.py"
+                },
+                {
+                    "@id": "cells/cell_52.py"
+                },
+                {
+                    "@id": "cells/cell_53.py"
+                },
+                {
+                    "@id": "cells/cell_54.py"
+                },
+                {
+                    "@id": "cells/cell_55.py"
+                },
+                {
+                    "@id": "cells/cell_56.py"
+                },
+                {
+                    "@id": "cells/cell_57.py"
+                },
+                {
+                    "@id": "cells/cell_58.py"
+                },
+                {
+                    "@id": "cells/cell_59.py"
+                },
+                {
+                    "@id": "cells/cell_60.py"
+                },
+                {
+                    "@id": "cells/cell_61.py"
+                },
+                {
+                    "@id": "cells/cell_62.py"
+                },
+                {
+                    "@id": "cells/cell_63.py"
+                },
+                {
+                    "@id": "cells/cell_64.py"
+                },
+                {
+                    "@id": "cells/cell_65.py"
+                },
+                {
+                    "@id": "cells/cell_66.py"
+                },
+                {
+                    "@id": "cells/cell_67.py"
+                },
+                {
+                    "@id": "cells/cell_68.py"
+                },
+                {
+                    "@id": "cells/cell_69.py"
+                },
+                {
+                    "@id": "cells/cell_70.py"
+                },
+                {
+                    "@id": "cells/cell_71.py"
+                },
+                {
+                    "@id": "cells/cell_72.py"
+                },
+                {
+                    "@id": "cells/cell_73.py"
+                },
+                {
+                    "@id": "cells/cell_74.py"
+                },
+                {
+                    "@id": "cells/cell_75.py"
+                },
+                {
+                    "@id": "cells/cell_76.py"
+                },
+                {
+                    "@id": "cells/cell_77.py"
+                },
+                {
+                    "@id": "cells/cell_78.py"
+                },
+                {
+                    "@id": "cells/cell_79.py"
+                },
+                {
+                    "@id": "cells/cell_80.py"
+                },
+                {
+                    "@id": "cells/cell_81.py"
+                },
+                {
+                    "@id": "cells/cell_82.py"
+                },
+                {
+                    "@id": "cells/cell_83.py"
+                },
+                {
+                    "@id": "cells/cell_84.py"
+                },
+                {
+                    "@id": "cells/cell_85.py"
+                },
+                {
+                    "@id": "cells/cell_86.py"
+                },
+                {
+                    "@id": "cells/cell_87.py"
+                },
+                {
+                    "@id": "cells/cell_88.py"
+                },
+                {
+                    "@id": "cells/cell_89.py"
+                },
+                {
+                    "@id": "cells/cell_90.py"
+                },
+                {
+                    "@id": "cells/cell_91.py"
+                },
+                {
+                    "@id": "cells/cell_92.py"
+                },
+                {
+                    "@id": "cells/cell_93.py"
+                },
+                {
+                    "@id": "cells/cell_94.py"
+                },
+                {
+                    "@id": "cells/cell_95.py"
+                },
+                {
+                    "@id": "cells/cell_96.py"
+                },
+                {
+                    "@id": "cells/cell_97.py"
+                },
+                {
+                    "@id": "cells/cell_98.py"
+                },
+                {
+                    "@id": "cells/cell_99.py"
+                },
+                {
+                    "@id": "notebook/synth_100.ipynb"
+                },
+                {
+                    "@id": "notebook/synth_100.ipynb"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "synth_100.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_0 = 0y_0 = x_0 + 1z_0 = y_0 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_0",
+            "position": 0,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_1 = 1y_1 = x_1 + 1z_1 = y_1 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_1",
+            "position": 1,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_2 = 2y_2 = x_2 + 1z_2 = y_2 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_2",
+            "position": 2,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_3 = 3y_3 = x_3 + 1z_3 = y_3 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_3",
+            "position": 3,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_4.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_4 = 4y_4 = x_4 + 1z_4 = y_4 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_4",
+            "position": 4,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_5.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_5 = 5y_5 = x_5 + 1z_5 = y_5 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_5",
+            "position": 5,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_6.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_6 = 6y_6 = x_6 + 1z_6 = y_6 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_6",
+            "position": 6,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_7.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_7 = 7y_7 = x_7 + 1z_7 = y_7 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_7",
+            "position": 7,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_8.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_8 = 8y_8 = x_8 + 1z_8 = y_8 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_8",
+            "position": 8,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_9.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_9 = 9y_9 = x_9 + 1z_9 = y_9 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_9",
+            "position": 9,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_10.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_10 = 10y_10 = x_10 + 1z_10 = y_10 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_10",
+            "position": 10,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_11.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_11 = 11y_11 = x_11 + 1z_11 = y_11 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_11",
+            "position": 11,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_12.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_12 = 12y_12 = x_12 + 1z_12 = y_12 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_12",
+            "position": 12,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_13.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_13 = 13y_13 = x_13 + 1z_13 = y_13 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_13",
+            "position": 13,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_14.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_14 = 14y_14 = x_14 + 1z_14 = y_14 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_14",
+            "position": 14,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_15.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_15 = 15y_15 = x_15 + 1z_15 = y_15 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_15",
+            "position": 15,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_16.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_16 = 16y_16 = x_16 + 1z_16 = y_16 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_16",
+            "position": 16,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_17.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_17 = 17y_17 = x_17 + 1z_17 = y_17 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_17",
+            "position": 17,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_18.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_18 = 18y_18 = x_18 + 1z_18 = y_18 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_18",
+            "position": 18,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_19.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_19 = 19y_19 = x_19 + 1z_19 = y_19 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_19",
+            "position": 19,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_20.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_20 = 20y_20 = x_20 + 1z_20 = y_20 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_20",
+            "position": 20,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_21.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_21 = 21y_21 = x_21 + 1z_21 = y_21 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_21",
+            "position": 21,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_22.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_22 = 22y_22 = x_22 + 1z_22 = y_22 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_22",
+            "position": 22,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_23.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_23 = 23y_23 = x_23 + 1z_23 = y_23 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_23",
+            "position": 23,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_24.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_24 = 24y_24 = x_24 + 1z_24 = y_24 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_24",
+            "position": 24,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_25.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_25 = 25y_25 = x_25 + 1z_25 = y_25 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_25",
+            "position": 25,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_26.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_26 = 26y_26 = x_26 + 1z_26 = y_26 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_26",
+            "position": 26,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_27.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_27 = 27y_27 = x_27 + 1z_27 = y_27 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_27",
+            "position": 27,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_28.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_28 = 28y_28 = x_28 + 1z_28 = y_28 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_28",
+            "position": 28,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_29.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_29 = 29y_29 = x_29 + 1z_29 = y_29 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_29",
+            "position": 29,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_30.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_30 = 30y_30 = x_30 + 1z_30 = y_30 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_30",
+            "position": 30,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_31.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_31 = 31y_31 = x_31 + 1z_31 = y_31 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_31",
+            "position": 31,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_32.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_32 = 32y_32 = x_32 + 1z_32 = y_32 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_32",
+            "position": 32,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_33.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_33 = 33y_33 = x_33 + 1z_33 = y_33 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_33",
+            "position": 33,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_34.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_34 = 34y_34 = x_34 + 1z_34 = y_34 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_34",
+            "position": 34,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_35.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_35 = 35y_35 = x_35 + 1z_35 = y_35 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_35",
+            "position": 35,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_36.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_36 = 36y_36 = x_36 + 1z_36 = y_36 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_36",
+            "position": 36,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_37.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_37 = 37y_37 = x_37 + 1z_37 = y_37 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_37",
+            "position": 37,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_38.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_38 = 38y_38 = x_38 + 1z_38 = y_38 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_38",
+            "position": 38,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_39.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_39 = 39y_39 = x_39 + 1z_39 = y_39 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_39",
+            "position": 39,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_40.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_40 = 40y_40 = x_40 + 1z_40 = y_40 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_40",
+            "position": 40,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_41.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_41 = 41y_41 = x_41 + 1z_41 = y_41 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_41",
+            "position": 41,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_42.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_42 = 42y_42 = x_42 + 1z_42 = y_42 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_42",
+            "position": 42,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_43.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_43 = 43y_43 = x_43 + 1z_43 = y_43 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_43",
+            "position": 43,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_44.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_44 = 44y_44 = x_44 + 1z_44 = y_44 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_44",
+            "position": 44,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_45.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_45 = 45y_45 = x_45 + 1z_45 = y_45 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_45",
+            "position": 45,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_46.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_46 = 46y_46 = x_46 + 1z_46 = y_46 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_46",
+            "position": 46,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_47.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_47 = 47y_47 = x_47 + 1z_47 = y_47 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_47",
+            "position": 47,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_48.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_48 = 48y_48 = x_48 + 1z_48 = y_48 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_48",
+            "position": 48,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_49.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_49 = 49y_49 = x_49 + 1z_49 = y_49 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_49",
+            "position": 49,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_50.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_50 = 50y_50 = x_50 + 1z_50 = y_50 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_50",
+            "position": 50,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_51.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_51 = 51y_51 = x_51 + 1z_51 = y_51 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_51",
+            "position": 51,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_52.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_52 = 52y_52 = x_52 + 1z_52 = y_52 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_52",
+            "position": 52,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_53.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_53 = 53y_53 = x_53 + 1z_53 = y_53 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_53",
+            "position": 53,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_54.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_54 = 54y_54 = x_54 + 1z_54 = y_54 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_54",
+            "position": 54,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_55.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_55 = 55y_55 = x_55 + 1z_55 = y_55 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_55",
+            "position": 55,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_56.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_56 = 56y_56 = x_56 + 1z_56 = y_56 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_56",
+            "position": 56,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_57.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_57 = 57y_57 = x_57 + 1z_57 = y_57 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_57",
+            "position": 57,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_58.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_58 = 58y_58 = x_58 + 1z_58 = y_58 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_58",
+            "position": 58,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_59.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_59 = 59y_59 = x_59 + 1z_59 = y_59 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_59",
+            "position": 59,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_60.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_60 = 60y_60 = x_60 + 1z_60 = y_60 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_60",
+            "position": 60,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_61.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_61 = 61y_61 = x_61 + 1z_61 = y_61 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_61",
+            "position": 61,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_62.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_62 = 62y_62 = x_62 + 1z_62 = y_62 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_62",
+            "position": 62,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_63.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_63 = 63y_63 = x_63 + 1z_63 = y_63 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_63",
+            "position": 63,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_64.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_64 = 64y_64 = x_64 + 1z_64 = y_64 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_64",
+            "position": 64,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_65.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_65 = 65y_65 = x_65 + 1z_65 = y_65 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_65",
+            "position": 65,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_66.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_66 = 66y_66 = x_66 + 1z_66 = y_66 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_66",
+            "position": 66,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_67.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_67 = 67y_67 = x_67 + 1z_67 = y_67 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_67",
+            "position": 67,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_68.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_68 = 68y_68 = x_68 + 1z_68 = y_68 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_68",
+            "position": 68,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_69.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_69 = 69y_69 = x_69 + 1z_69 = y_69 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_69",
+            "position": 69,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_70.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_70 = 70y_70 = x_70 + 1z_70 = y_70 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_70",
+            "position": 70,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_71.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_71 = 71y_71 = x_71 + 1z_71 = y_71 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_71",
+            "position": 71,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_72.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_72 = 72y_72 = x_72 + 1z_72 = y_72 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_72",
+            "position": 72,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_73.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_73 = 73y_73 = x_73 + 1z_73 = y_73 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_73",
+            "position": 73,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_74.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_74 = 74y_74 = x_74 + 1z_74 = y_74 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_74",
+            "position": 74,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_75.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_75 = 75y_75 = x_75 + 1z_75 = y_75 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_75",
+            "position": 75,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_76.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_76 = 76y_76 = x_76 + 1z_76 = y_76 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_76",
+            "position": 76,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_77.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_77 = 77y_77 = x_77 + 1z_77 = y_77 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_77",
+            "position": 77,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_78.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_78 = 78y_78 = x_78 + 1z_78 = y_78 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_78",
+            "position": 78,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_79.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_79 = 79y_79 = x_79 + 1z_79 = y_79 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_79",
+            "position": 79,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_80.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_80 = 80y_80 = x_80 + 1z_80 = y_80 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_80",
+            "position": 80,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_81.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_81 = 81y_81 = x_81 + 1z_81 = y_81 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_81",
+            "position": 81,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_82.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_82 = 82y_82 = x_82 + 1z_82 = y_82 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_82",
+            "position": 82,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_83.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_83 = 83y_83 = x_83 + 1z_83 = y_83 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_83",
+            "position": 83,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_84.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_84 = 84y_84 = x_84 + 1z_84 = y_84 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_84",
+            "position": 84,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_85.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_85 = 85y_85 = x_85 + 1z_85 = y_85 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_85",
+            "position": 85,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_86.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_86 = 86y_86 = x_86 + 1z_86 = y_86 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_86",
+            "position": 86,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_87.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_87 = 87y_87 = x_87 + 1z_87 = y_87 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_87",
+            "position": 87,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_88.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_88 = 88y_88 = x_88 + 1z_88 = y_88 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_88",
+            "position": 88,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_89.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_89 = 89y_89 = x_89 + 1z_89 = y_89 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_89",
+            "position": 89,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_90.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_90 = 90y_90 = x_90 + 1z_90 = y_90 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_90",
+            "position": 90,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_91.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_91 = 91y_91 = x_91 + 1z_91 = y_91 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_91",
+            "position": 91,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_92.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_92 = 92y_92 = x_92 + 1z_92 = y_92 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_92",
+            "position": 92,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_93.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_93 = 93y_93 = x_93 + 1z_93 = y_93 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_93",
+            "position": 93,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_94.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_94 = 94y_94 = x_94 + 1z_94 = y_94 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_94",
+            "position": 94,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_95.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_95 = 95y_95 = x_95 + 1z_95 = y_95 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_95",
+            "position": 95,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_96.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_96 = 96y_96 = x_96 + 1z_96 = y_96 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_96",
+            "position": 96,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_97.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_97 = 97y_97 = x_97 + 1z_97 = y_97 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_97",
+            "position": 97,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_98.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_98 = 98y_98 = x_98 + 1z_98 = y_98 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_98",
+            "position": 98,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_99.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "x_99 = 99y_99 = x_99 + 1z_99 = y_99 * 2",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_99",
+            "position": 99,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/synth_100.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o3_benchmarks/notebooks/synth_100.ipynb",
+            "isPartOf": "./",
+            "name": "synth_100.ipynb"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

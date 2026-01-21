@@ -1,0 +1,135 @@
+[
+  {
+    "triples": 167,
+    "output": "out-lab/.analysis-cache/1767274248201/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767274248201/ro-crate"
+  },
+  {
+    "triples": 167,
+    "output": "out-lab/.analysis-cache/1767276051876/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767276051876/ro-crate"
+  },
+  {
+    "triples": 150,
+    "output": "out-lab/.analysis-cache/1767286369891/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767286369891/ro-crate"
+  },
+  {
+    "triples": 150,
+    "output": "out-lab/.analysis-cache/1767286400303/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767286400303/ro-crate"
+  },
+  {
+    "triples": 150,
+    "output": "out-lab/.analysis-cache/1767286487205/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767286487205/ro-crate"
+  },
+  {
+    "triples": 150,
+    "output": "out-lab/.analysis-cache/1767286568428/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767286568428/ro-crate"
+  },
+  {
+    "triples": 182,
+    "output": "out-lab/.analysis-cache/1767287708298/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767287708298/ro-crate"
+  },
+  {
+    "triples": 182,
+    "output": "out-lab/.analysis-cache/1767287725425/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767287725425/ro-crate"
+  },
+  {
+    "triples": 90,
+    "output": "out-lab/.analysis-cache/1767287862299/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767287862299/ro-crate"
+  },
+  {
+    "triples": 192,
+    "output": "out-lab/.analysis-cache/1767289543361/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767289543361/ro-crate"
+  },
+  {
+    "triples": 211,
+    "output": "out-lab/.analysis-cache/1767289648811/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767289648811/ro-crate"
+  },
+  {
+    "triples": 211,
+    "output": "out-lab/.analysis-cache/1767289662817/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767289662817/ro-crate"
+  },
+  {
+    "triples": 211,
+    "output": "out-lab/.analysis-cache/1767290291958/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767290291958/ro-crate"
+  },
+  {
+    "triples": 213,
+    "output": "out-lab/.analysis-cache/1767290313145/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/.analysis-cache/1767290313145/ro-crate"
+  },
+  {
+    "triples": 167,
+    "output": "out-lab/1767276104259/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/1767276104259/ro-crate"
+  },
+  {
+    "triples": 150,
+    "output": "out-lab/1767286405947/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/1767286405947/ro-crate"
+  },
+  {
+    "triples": 150,
+    "output": "out-lab/1767286571375/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/1767286571375/ro-crate"
+  },
+  {
+    "triples": 192,
+    "output": "out-lab/1767289615366/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/1767289615366/ro-crate"
+  },
+  {
+    "triples": 211,
+    "output": "out-lab/1767289653495/ro-crate/index/last_update.sparql",
+    "endpoint": "http://localhost:3030/cellscope/update",
+    "status": 204,
+    "crate": "out-lab/1767289653495/ro-crate"
+  }
+]

@@ -1,0 +1,279 @@
+{
+  "notebook": "/path/to/repo/examples/exhaustive_python.ipynb",
+  "notes": "Manual labels based on cell source; file hand-offs included.",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "cell_0",
+      "kernel": "python3",
+      "source": [
+        "import json",
+        "from pathlib import Path",
+        "import pandas as pd",
+        "",
+        "threshold = 0.5"
+      ],
+      "defs": [
+        "Path",
+        "json",
+        "pd",
+        "threshold"
+      ],
+      "uses": [],
+      "funcs": [],
+      "func_calls": [],
+      "file_reads": [],
+      "file_writes": []
+    },
+    {
+      "idx": 1,
+      "label": "cell_1",
+      "kernel": "python3",
+      "source": [
+        "def compute_stats(df):",
+        "    mean_temp = df[\"temperature\"].mean()",
+        "    above = (df[\"temperature\"] > threshold).sum()",
+        "    return {\"mean_temp\": mean_temp, \"above_threshold\": int(above)}"
+      ],
+      "defs": [
+        "above",
+        "compute_stats",
+        "mean_temp"
+      ],
+      "uses": [
+        "df",
+        "int",
+        "threshold"
+      ],
+      "funcs": [
+        "compute_stats"
+      ],
+      "func_calls": [
+        "int"
+      ],
+      "file_reads": [],
+      "file_writes": []
+    },
+    {
+      "idx": 2,
+      "label": "cell_2",
+      "kernel": "python3",
+      "source": [
+        "df = pd.read_csv(\"examples/data_outputs/climate_readings.csv\")",
+        "df[\"temp_f\"] = df[\"temperature\"] * 9 / 5 + 32"
+      ],
+      "defs": [
+        "df"
+      ],
+      "uses": [
+        "pd"
+      ],
+      "funcs": [],
+      "func_calls": [],
+      "file_reads": [
+        "examples/data_outputs/climate_readings.csv"
+      ],
+      "file_writes": []
+    },
+    {
+      "idx": 3,
+      "label": "cell_3",
+      "kernel": "python3",
+      "source": [
+        "df.to_csv(\"examples/data_outputs/derived_output.csv\", index=False)"
+      ],
+      "defs": [],
+      "uses": [
+        "df"
+      ],
+      "funcs": [],
+      "func_calls": [],
+      "file_reads": [],
+      "file_writes": [
+        "examples/data_outputs/derived_output.csv"
+      ]
+    },
+    {
+      "idx": 4,
+      "label": "cell_4",
+      "kernel": "python3",
+      "source": [
+        "summary = compute_stats(df)",
+        "Path(\"examples/data_outputs/summary.json\").write_text(json.dumps(summary))"
+      ],
+      "defs": [
+        "summary"
+      ],
+      "uses": [
+        "Path",
+        "compute_stats",
+        "df",
+        "json"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "Path",
+        "compute_stats"
+      ],
+      "file_reads": [],
+      "file_writes": [
+        "examples/data_outputs/summary.json"
+      ]
+    },
+    {
+      "idx": 5,
+      "label": "cell_5",
+      "kernel": "python3",
+      "source": [
+        "with open(\"examples/data_outputs/summary.json\", \"r\") as handle:",
+        "    raw = handle.read()",
+        "parsed = json.loads(raw)"
+      ],
+      "defs": [
+        "handle",
+        "parsed",
+        "raw"
+      ],
+      "uses": [
+        "json",
+        "open"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "open"
+      ],
+      "file_reads": [
+        "examples/data_outputs/summary.json"
+      ],
+      "file_writes": []
+    },
+    {
+      "idx": 6,
+      "label": "cell_6",
+      "kernel": "python3",
+      "source": [
+        "with open(\"examples/data_outputs/missing_input.csv\", \"r\") as handle:",
+        "    missing_data = handle.read()"
+      ],
+      "defs": [
+        "handle",
+        "missing_data"
+      ],
+      "uses": [
+        "open"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "open"
+      ],
+      "file_reads": [
+        "examples/data_outputs/missing_input.csv"
+      ],
+      "file_writes": []
+    },
+    {
+      "idx": 7,
+      "label": "cell_7",
+      "kernel": "python3",
+      "source": [
+        "Path(\"examples/data_outputs/reports/report.txt\").write_text(\"ok\")"
+      ],
+      "defs": [],
+      "uses": [
+        "Path"
+      ],
+      "funcs": [],
+      "func_calls": [
+        "Path"
+      ],
+      "file_reads": [],
+      "file_writes": [
+        "examples/data_outputs/reports/report.txt"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "threshold"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 2,
+      "type": "uses",
+      "vars": [
+        "pd"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "Path"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "compute_stats"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "json"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "json"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "Path"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "summary.json"
+      ],
+      "via": "file",
+      "file": "examples/data_outputs/summary.json"
+    }
+  ]
+}

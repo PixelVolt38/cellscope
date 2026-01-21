@@ -18,7 +18,6 @@ venv/
 ENV/
 env/
 .virtual_documents/
-examples/
 
 # Testing / tooling caches
 .pytest_cache/
@@ -47,7 +46,7 @@ labextension/node_modules/
 labextension/lib/
 labextension/dist/
 labextension/build/
-labextension/static/
+labextension/labextension/
 labextension/.yarn/
 labextension/.pnp.cjs
 labextension/.pnp.loader.mjs
@@ -56,6 +55,7 @@ labextension/.eslintcache
 labextension/.turbo/
 labextension/.parcel-cache/
 labextension/coverage/
+examples/lib/
 
 # Editors / OS
 .vscode/
@@ -64,40 +64,10 @@ labextension/coverage/
 .DS_Store
 Thumbs.db
 
-# Agent / AI artifacts (do not track)
-# Keep these local only so the repo has no AI trace
-AGENTS.md
-docs/history/
-.codex/
-.codex-*/
-.codex_history/
-.aider*
-aider*
-.cursor/
-.continue/
-.claude/
-.anthropic/
-.openai/
-.chatgpt/
-.copilot/
-*chat*.md
-*transcript*.md
-*.chatlog
-docs/
-
 # Jupyter runtime files occasionally copied by mistake
 jpserver-*-open.html
-
-# Local examples and tests (exclude from repo)
-examples/
-tests/
 
 # Local server config
 jupyter_server_config.d/
 !cellscope_server/jupyter_server_config.d/
 !cellscope_server/jupyter_server_config.d/cellscope_server.json
-
-component_containerizer/
-
-# Thesis folder
-thesis_content/

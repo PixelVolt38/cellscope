@@ -1,0 +1,620 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:37+00:00",
+            "description": "CellScope export for RAVL_R_source.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.txt"
+                },
+                {
+                    "@id": "cells/cell_1.txt"
+                },
+                {
+                    "@id": "cells/cell_2.txt"
+                },
+                {
+                    "@id": "cells/cell_3.txt"
+                },
+                {
+                    "@id": "cells/cell_4.txt"
+                },
+                {
+                    "@id": "notebook/RAVL_R_source.ipynb"
+                },
+                {
+                    "@id": "notebook/RAVL_R_source.ipynb"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "RAVL_R_source.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# PVOL R CODE\n# ---\n# NaaVRE:\n#  cell:\n#   inputs:\n#    - local_pvol_paths : List\n#   outputs:\n#    - local_ppi_paths : List\n#   params:\n#    - param_param : String\n#    - param_elevation : Float\n# ...\n\n\n\n\n# Code analyzer fix block. Assign empty strings to variables that should not be picked up by the analyzer.\npvol_path = \"\"\nim_fname = \"\"\nfilename_noext = \"\"\nfilename_noext_parts = \"\"\nfilename = \"\"\nlocal_image_path = \"\"\n\n# Print conf to ensure conf passing to cell build\n...",
+            "isPartOf": "./",
+            "kernel": "conda-env-ravl-r",
+            "name": "pvol_r_code",
+            "position": 0,
+            "programmingLanguage": "conda-env-ravl-r",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# DO NOT CONTAINERISE\n# parametrization - v95\n# Run specific - fill in text to preset, keep empty to prompt\n\n\n\nparam_radar = \"HRW\"  # DHL | HRW | DBL\n\nparam_concurrency = 5\nparam_interval = 60\n# This is to control uploads / cleaning\n# Move results to S3?\nparam_upload_results = \"True\"\n# Remove input after processing KNMI format to ODIM format\nparam_clean_knmi_input = \"True\"\n# Should we remove the final Polar Volumes after producing a VP and or RBC\nparam_clean_pvol_output = \"True\"\n#\nparam_clean_vp_output = \"True\"\n\n# Param\n### User specific, not neccesarily run specific.\n#### Update: Perhaps some of these userinfo should be hardcoded parameters. I mean\n#### Not something we'd enter every single time but should be set at setup time.\nparam_jupyterhub_user = 'user@example.com'\n...",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-param_clean_pvol_output"
+                },
+                {
+                    "@id": "#var-param_imtype"
+                },
+                {
+                    "@id": "#var-param_elevation"
+                },
+                {
+                    "@id": "#var-param_prefix"
+                },
+                {
+                    "@id": "#var-param_param"
+                },
+                {
+                    "@id": "#var-param_day"
+                },
+                {
+                    "@id": "#var-param_dtype"
+                },
+                {
+                    "@id": "#var-param_radar"
+                },
+                {
+                    "@id": "#var-param_month"
+                },
+                {
+                    "@id": "#var-param_concurrency"
+                },
+                {
+                    "@id": "#var-param_upload_results"
+                },
+                {
+                    "@id": "#var-param_year"
+                },
+                {
+                    "@id": "#var-param_clean_knmi_input"
+                },
+                {
+                    "@id": "#var-param_country"
+                },
+                {
+                    "@id": "#var-param_clean_vp_output"
+                },
+                {
+                    "@id": "#var-param_interval"
+                },
+                {
+                    "@id": "#var-param_jupyterhub_user"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "conda-env-ravl-r",
+            "name": "do_not_containerise",
+            "position": 1,
+            "programmingLanguage": "conda-env-ravl-r",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# DO NOT CONTAINERISE\n# configuration - v95\n\n\nconf_minio_user_bucket_name = \"example-user-bucket\"  # the user bucket name\nconf_minio_public_bucket_name = \"example-public-bucket\"  # the public bucket name\n\nconf_minio_endpoint = \"minio.example.org:9000\"\n\n### Directories\nconf_local_root = \"/tmp/data\"\nconf_local_knmi = \"/tmp/data/knmi\"\nconf_local_odim = \"/tmp/data/odim\"\nconf_local_vp = \"/tmp/data/vp\"\nconf_local_ppi = \"/tmp/data/ppi\"\nconf_local_vpts = \"/tmp/data/vpts\"\nconf_local_conf = \"/tmp/data/conf\"\nconf_local_radar_db = \"/tmp/data/conf/OPERA_RADARS_DB.json\"\nconf_local_visualization_input = \"/tmp/data/visualizations/input\"\nconf_local_visualization_output = \"/tmp/data/visualizatons/output\"\n\nconf_pvol_output_prefix = \"pvol\"\nconf_vp_output_prefix = \"vp\"\nconf_ppi_output_prefix = \"ppi\"\nconf_vpts_output_prefix = \"vpts\"\n...",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-conf_local_visualization_output"
+                },
+                {
+                    "@id": "#var-conf_ppi_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_local_ppi"
+                },
+                {
+                    "@id": "#var-conf_vp_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_vpts_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_local_conf"
+                },
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_local_visualization_input"
+                },
+                {
+                    "@id": "#var-conf_local_knmi"
+                },
+                {
+                    "@id": "#var-conf_local_root"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_vpts"
+                },
+                {
+                    "@id": "#var-conf_local_vp"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "conda-env-ravl-r",
+            "name": "do_not_containerise_2",
+            "position": 2,
+            "programmingLanguage": "conda-env-ravl-r",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# VP R Code\n# ---\n# NaaVRE:\n#  cell:\n#   inputs:\n#    - local_vp_paths : List\n#   outputs:\n#    - local_vpts_paths : List\n# ...\n\n# Libraries\nlibrary('bioRad')\nlibrary('ggplot2')\n\n# Code analyzer fix block. Assign empty strings to variables that should not be picked up by the analyzer.\nprint(conf_local_visualization_output)\n\n# Functions\nim_fname_from_vpts <- function(regvpts){\n  date_range = regvpts$daterange\n  radar = regvpts$radar\n  imtype = \"regvpts\"\n  dr1 <- as.character(date_range[[1]])\n  dr2 <- as.character(date_range[[2]])\n  dr2 <- strsplit(dr2,split=\" \")\n...",
+            "isPartOf": "./",
+            "kernel": "conda-env-ravl-r",
+            "name": "vp_r_code",
+            "position": 3,
+            "programmingLanguage": "conda-env-ravl-r",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_4.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# R-PPI\n# ---\n# NaaVRE:\n#  cell:\n#   inputs:\n#    - local_pvol_paths : List\n#   outputs:\n#    - local_ppi_paths : List\n#   params:\n#    - param_param : String\n#    - param_elevation : Float\n# ...\n\n# libraries\nlibrary('bioRad')\nlibrary(\"stringr\")\nlibrary(\"ggplot2\")\ntitle_from_pvol <- function(pvol) {\n  date_prefix <- strftime(my_pvol$datetime, format = \"%Y/%m/%d T %H:%M UTC\", tz = \"UTC\")\n  corad <- pvol$radar\n  co <- substring(corad, 1, 2)\n  rad <- substring(corad, 3, 5)\n  corad_prefix <- paste0(c(co, rad), collapse = \"/\")\n  corad_prefix <- toupper(corad_prefix)\n  title_str <- paste0(c(co, rad, date_prefix), collapse = \" \")\n...",
+            "isPartOf": "./",
+            "kernel": "conda-env-ravl-r",
+            "name": "r_ppi",
+            "position": 4,
+            "programmingLanguage": "conda-env-ravl-r",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_clean_pvol_output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_clean_pvol_output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_imtype",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_imtype",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_elevation",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_elevation",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_param",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_param",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_day",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_day",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_dtype",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_dtype",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_radar",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_radar",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_month",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_month",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_concurrency",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_concurrency",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_upload_results",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_upload_results",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_year",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_year",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_clean_knmi_input",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_clean_knmi_input",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_country",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_country",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_clean_vp_output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_clean_vp_output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_interval",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_interval",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_jupyterhub_user",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "param_jupyterhub_user",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_endpoint",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_minio_endpoint",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_visualization_output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_visualization_output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_ppi_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_ppi_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_odim",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_odim",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_radar_db",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_radar_db",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_ppi",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_ppi",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_vp_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_vp_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_vpts_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_vpts_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_user_bucket_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_minio_user_bucket_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_conf",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_conf",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_public_bucket_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_minio_public_bucket_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_visualization_input",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_visualization_input",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_knmi",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_knmi",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_root",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_root",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_pvol_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_pvol_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_vpts",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_vpts",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_vp",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "conf_local_vp",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/RAVL_R_source.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/RAVL/RAVL_R_source.ipynb",
+            "isPartOf": "./",
+            "name": "RAVL_R_source.ipynb"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

@@ -1,0 +1,95 @@
+{
+  "exhaustive_python": {
+    "defs": {
+      "metrics": {
+        "tp": 14,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "diff": {
+        "fp": [],
+        "fn": []
+      }
+    },
+    "uses": {
+      "metrics": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "diff": {
+        "fp": [],
+        "fn": []
+      }
+    },
+    "edges": {
+      "metrics": {
+        "tp": 10,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "diff": {
+        "fp": [],
+        "fn": []
+      }
+    }
+  },
+  "multi_kernel_demo": {
+    "defs": {
+      "metrics": {
+        "tp": 25,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "diff": {
+        "fp": [],
+        "fn": []
+      }
+    },
+    "uses": {
+      "metrics": {
+        "tp": 16,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.9411764705882353,
+        "recall": 1.0,
+        "f1": 0.9696969696969697
+      },
+      "diff": {
+        "fp": [
+          [
+            3,
+            "get"
+          ]
+        ],
+        "fn": []
+      }
+    },
+    "edges": {
+      "metrics": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "diff": {
+        "fp": [],
+        "fn": []
+      }
+    }
+  }
+}

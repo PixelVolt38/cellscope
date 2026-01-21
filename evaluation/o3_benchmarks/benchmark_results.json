@@ -1,0 +1,53 @@
+{
+  "synth_10.ipynb": {
+    "code_cells": 10,
+    "analyze": {
+      "runs": 10,
+      "p50_s": 0.0006,
+      "p95_s": 0.0007,
+      "min_s": 0.0004,
+      "max_s": 0.0016
+    },
+    "export_index": {
+      "runs": 5,
+      "p50_s": 0.019,
+      "p95_s": 0.0198,
+      "min_s": 0.0177,
+      "max_s": 0.0329
+    }
+  },
+  "synth_50.ipynb": {
+    "code_cells": 50,
+    "analyze": {
+      "runs": 10,
+      "p50_s": 0.0019,
+      "p95_s": 0.002,
+      "min_s": 0.0017,
+      "max_s": 0.002
+    },
+    "export_index": {
+      "runs": 5,
+      "p50_s": 0.0314,
+      "p95_s": 0.0332,
+      "min_s": 0.031,
+      "max_s": 0.0916
+    }
+  },
+  "synth_100.ipynb": {
+    "code_cells": 100,
+    "analyze": {
+      "runs": 10,
+      "p50_s": 0.0037,
+      "p95_s": 0.0039,
+      "min_s": 0.0036,
+      "max_s": 0.0043
+    },
+    "export_index": {
+      "runs": 5,
+      "p50_s": 0.0496,
+      "p95_s": 0.0497,
+      "min_s": 0.049,
+      "max_s": 0.0504
+    }
+  }
+}

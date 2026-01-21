@@ -1,0 +1,666 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:28+00:00",
+            "description": "CellScope export for exhaustive_python.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.py"
+                },
+                {
+                    "@id": "cells/cell_1.py"
+                },
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.py"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                },
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "notebook/exhaustive_python.ipynb"
+                },
+                {
+                    "@id": "notebook/exhaustive_python.ipynb"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                },
+                {
+                    "@id": "files/derived_output.csv"
+                },
+                {
+                    "@id": "files/summary.json"
+                },
+                {
+                    "@id": "files/missing_input.csv"
+                },
+                {
+                    "@id": "files/report.txt"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "exhaustive_python.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "import json\nfrom pathlib import Path\nimport pandas as pd\n\nthreshold = 0.5",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-Path"
+                },
+                {
+                    "@id": "#var-threshold"
+                },
+                {
+                    "@id": "#var-json"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_0",
+            "position": 0,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "def compute_stats(df):\n    mean_temp = df[\"temperature\"].mean()\n    above = (df[\"temperature\"] > threshold).sum()\n    return {\"mean_temp\": mean_temp, \"above_threshold\": int(above)}",
+            "funcCalls": [
+                "int"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-threshold"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-threshold"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-compute_stats"
+                },
+                {
+                    "@id": "#var-above"
+                },
+                {
+                    "@id": "#var-mean_temp"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_1",
+            "position": 1,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "df = pd.read_csv(\"examples/data_outputs/climate_readings.csv\")\ndf[\"temp_f\"] = df[\"temperature\"] * 9 / 5 + 32",
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_2.py-files_climate_readings.csv"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-df"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_2",
+            "position": 2,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "df.to_csv(\"examples/data_outputs/derived_output.csv\", index=False)",
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-df"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-df"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "files/derived_output.csv"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_3",
+            "position": 3,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_4.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "summary = compute_stats(df)\nPath(\"examples/data_outputs/summary.json\").write_text(json.dumps(summary))",
+            "funcCalls": [
+                "Path",
+                "compute_stats"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-compute_stats"
+                },
+                {
+                    "@id": "#var-Path"
+                },
+                {
+                    "@id": "#var-df"
+                },
+                {
+                    "@id": "#var-json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-compute_stats"
+                },
+                {
+                    "@id": "#var-Path"
+                },
+                {
+                    "@id": "#var-df"
+                },
+                {
+                    "@id": "#var-json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-summary"
+                },
+                {
+                    "@id": "files/summary.json"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_4",
+            "position": 4,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_5.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "with open(\"examples/data_outputs/summary.json\", \"r\") as handle:\n    raw = handle.read()\nparsed = json.loads(raw)",
+            "funcCalls": [
+                "open"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_5.py-files_summary.json"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-json"
+                },
+                {
+                    "@id": "#var-summary.json"
+                },
+                {
+                    "@id": "files/summary.json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-json"
+                },
+                {
+                    "@id": "#var-summary.json"
+                },
+                {
+                    "@id": "files/summary.json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-handle"
+                },
+                {
+                    "@id": "#var-raw"
+                },
+                {
+                    "@id": "#var-parsed"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_5",
+            "position": 5,
+            "programmingLanguage": "python3",
+            "version": "1",
+            "via": [
+                "file"
+            ]
+        },
+        {
+            "@id": "cells/cell_6.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "with open(\"examples/data_outputs/missing_input.csv\", \"r\") as handle:\n    missing_data = handle.read()",
+            "funcCalls": [
+                "open"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_6.py-files_missing_input.csv"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "files/missing_input.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "files/missing_input.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-handle"
+                },
+                {
+                    "@id": "#var-missing_data"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_6",
+            "position": 6,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_7.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "Path(\"examples/data_outputs/reports/report.txt\").write_text(\"ok\")",
+            "funcCalls": [
+                "Path"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-Path"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-Path"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "files/report.txt"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_7",
+            "position": 7,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "#var-pd",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "pd",
+            "version": "1"
+        },
+        {
+            "@id": "#var-Path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "Path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-threshold",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "threshold",
+            "version": "1"
+        },
+        {
+            "@id": "#var-json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.py"
+                }
+            ],
+            "name": "json",
+            "version": "1"
+        },
+        {
+            "@id": "#var-compute_stats",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "compute_stats",
+            "version": "1"
+        },
+        {
+            "@id": "#var-above",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "above",
+            "version": "1"
+        },
+        {
+            "@id": "#var-mean_temp",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "mean_temp",
+            "version": "1"
+        },
+        {
+            "@id": "#var-df",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "df",
+            "version": "1"
+        },
+        {
+            "@id": "#var-summary",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "summary",
+            "version": "1"
+        },
+        {
+            "@id": "#var-handle",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                }
+            ],
+            "name": "handle",
+            "version": "1"
+        },
+        {
+            "@id": "#var-raw",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "raw",
+            "version": "1"
+        },
+        {
+            "@id": "#var-parsed",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "parsed",
+            "version": "1"
+        },
+        {
+            "@id": "#var-missing_data",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_6.py"
+                }
+            ],
+            "name": "missing_data",
+            "version": "1"
+        },
+        {
+            "@id": "#var-summary.json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "name": "summary.json",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/exhaustive_python.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/exhaustive_python.ipynb",
+            "isPartOf": "./",
+            "name": "exhaustive_python.ipynb"
+        },
+        {
+            "@id": "files/climate_readings.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "contentHash": "blake2b-256:2955bc68328952e9b8b4c92cd6634df15c81ccb7e808c73870f0206440f2dc20",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/climate_readings.csv",
+            "isPartOf": "./",
+            "name": "climate_readings.csv",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_2.py-files_climate_readings.csv",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/climate_readings.csv"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "files/derived_output.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_3.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/derived_output.csv",
+            "isPartOf": "./",
+            "name": "derived_output.csv",
+            "version": "1"
+        },
+        {
+            "@id": "files/summary.json",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/summary.json",
+            "isPartOf": "./",
+            "name": "summary.json",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_5.py-files_summary.json",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/summary.json"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "files/missing_input.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/missing_input.csv",
+            "isPartOf": "./",
+            "name": "missing_input.csv",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_6.py-files_missing_input.csv",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/missing_input.csv"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "files/report.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/reports/report.txt",
+            "isPartOf": "./",
+            "name": "report.txt",
+            "version": "1"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

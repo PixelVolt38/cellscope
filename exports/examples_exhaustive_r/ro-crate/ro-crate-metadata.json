@@ -1,0 +1,316 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:30+00:00",
+            "description": "CellScope export for exhaustive_r.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.R"
+                },
+                {
+                    "@id": "cells/cell_1.R"
+                },
+                {
+                    "@id": "cells/cell_2.R"
+                },
+                {
+                    "@id": "cells/cell_3.R"
+                },
+                {
+                    "@id": "cells/cell_4.R"
+                },
+                {
+                    "@id": "notebook/exhaustive_r.ipynb"
+                },
+                {
+                    "@id": "notebook/exhaustive_r.ipynb"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                },
+                {
+                    "@id": "files/climate_readings.csv"
+                },
+                {
+                    "@id": "files/r_output.csv"
+                },
+                {
+                    "@id": "files/http_download.csv"
+                },
+                {
+                    "@id": "files/data.csv"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "exhaustive_r.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.R",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "df <- read.csv(\"examples/data_outputs/climate_readings.csv\")",
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_0.R-files_climate_readings.csv"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "files/climate_readings.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "files/climate_readings.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-df"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "ir",
+            "name": "cell_0",
+            "position": 0,
+            "programmingLanguage": "ir",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.R",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "df$temp_f <- df$temperature * 9 / 5 + 32",
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-df"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-df"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-temp_f"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "ir",
+            "name": "cell_1",
+            "position": 1,
+            "programmingLanguage": "ir",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.R",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "write.csv(df, \"examples/data_outputs/r_output.csv\", row.names = FALSE)",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "files/r_output.csv"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "ir",
+            "name": "cell_2",
+            "position": 2,
+            "programmingLanguage": "ir",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.R",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "jsonlite::toJSON(list(mean=mean(df$temperature), max=max(df$temperature)))",
+            "funcCalls": [
+                "max",
+                "mean",
+                "toJSON"
+            ],
+            "isPartOf": "./",
+            "kernel": "ir",
+            "name": "cell_3",
+            "position": 3,
+            "programmingLanguage": "ir",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_4.R",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "download.file(\"https://example.com/data.csv\", \"examples/data_outputs/http_download.csv\")",
+            "funcCalls": [
+                "download.file"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_4.R-files_data.csv"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "files/data.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "files/data.csv"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "files/http_download.csv"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "ir",
+            "name": "cell_4",
+            "position": 4,
+            "programmingLanguage": "ir",
+            "version": "1"
+        },
+        {
+            "@id": "#var-df",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_0.R"
+                }
+            ],
+            "name": "df",
+            "version": "1"
+        },
+        {
+            "@id": "#var-temp_f",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.R"
+                }
+            ],
+            "name": "temp_f",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/exhaustive_r.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/exhaustive_r.ipynb",
+            "isPartOf": "./",
+            "name": "exhaustive_r.ipynb"
+        },
+        {
+            "@id": "files/climate_readings.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "contentHash": "blake2b-256:2955bc68328952e9b8b4c92cd6634df15c81ccb7e808c73870f0206440f2dc20",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/climate_readings.csv",
+            "isPartOf": "./",
+            "name": "climate_readings.csv",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_0.R-files_climate_readings.csv",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/climate_readings.csv"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "files/r_output.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.R"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/r_output.csv",
+            "isPartOf": "./",
+            "name": "r_output.csv",
+            "version": "1"
+        },
+        {
+            "@id": "files/http_download.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.R"
+                }
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/data_outputs/http_download.csv",
+            "isPartOf": "./",
+            "name": "http_download.csv",
+            "version": "1"
+        },
+        {
+            "@id": "files/data.csv",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "accessURL": "https://example.com/data.csv",
+            "isPartOf": "./",
+            "name": "data.csv",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_4.R-files_data.csv",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/data.csv"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

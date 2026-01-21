@@ -1,0 +1,2 @@
+#Get a non existing secret. The user will be prompted to enter a secret.
+secret_new_secret: str = SecretsProvider().get_secret("new_secret")

@@ -1,0 +1,983 @@
+# Coverage Results (O1)
+
+Gold labels vs. model predictions.
+
+## RAVL
+- defs: precision 1.0000, recall 0.9573, F1 0.9782 (tp 336, fp 0, fn 15)
+- uses: precision 0.9227, recall 1.0000, F1 0.9598 (tp 167, fp 14, fn 0)
+- edges: precision 0.9919, recall 1.0000, F1 0.9959 (tp 122, fp 1, fn 0)
+
+### defs mismatches
+False negatives:
+```json
+[
+  [
+    9,
+    "in_fpath"
+  ],
+  [
+    9,
+    "in_path"
+  ],
+  [
+    9,
+    "in_path_h5"
+  ],
+  [
+    9,
+    "out_fpath"
+  ],
+  [
+    9,
+    "radar_db_path"
+  ],
+  [
+    9,
+    "v"
+  ],
+  [
+    10,
+    "add_sector"
+  ],
+  [
+    10,
+    "add_version"
+  ],
+  [
+    10,
+    "in_file"
+  ],
+  [
+    10,
+    "in_path"
+  ],
+  [
+    10,
+    "out_dir"
+  ],
+  [
+    10,
+    "overwrite"
+  ],
+  [
+    10,
+    "radar_db_path"
+  ],
+  [
+    10,
+    "v"
+  ],
+  [
+    12,
+    "relative_path"
+  ]
+]
+```
+
+### uses mismatches
+False positives:
+```json
+[
+  [
+    9,
+    "in_fpath"
+  ],
+  [
+    9,
+    "in_path"
+  ],
+  [
+    9,
+    "in_path_h5"
+  ],
+  [
+    9,
+    "out_fpath"
+  ],
+  [
+    9,
+    "radar_db_path"
+  ],
+  [
+    9,
+    "v"
+  ],
+  [
+    10,
+    "add_version"
+  ],
+  [
+    10,
+    "in_file"
+  ],
+  [
+    10,
+    "in_path"
+  ],
+  [
+    10,
+    "out_dir"
+  ],
+  [
+    10,
+    "overwrite"
+  ],
+  [
+    10,
+    "radar_db_path"
+  ],
+  [
+    10,
+    "v"
+  ],
+  [
+    12,
+    "relative_path"
+  ]
+]
+```
+
+### edges mismatches
+False positives:
+```json
+[
+  [
+    10,
+    12,
+    "relative_path"
+  ]
+]
+```
+
+## RAVL_R_source
+- defs: precision 1.0000, recall 0.3238, F1 0.4892 (tp 34, fp 0, fn 71)
+- uses: precision 0.0000, recall 0.0000, F1 0.0000 (tp 0, fp 0, fn 83)
+- edges: precision 0.0000, recall 0.0000, F1 0.0000 (tp 0, fp 0, fn 4)
+
+### defs mismatches
+False negatives:
+```json
+[
+  [
+    0,
+    "co"
+  ],
+  [
+    0,
+    "corad"
+  ],
+  [
+    0,
+    "corad_prefix"
+  ],
+  [
+    0,
+    "date_prefix"
+  ],
+  [
+    0,
+    "filename"
+  ],
+  [
+    0,
+    "filename_noext"
+  ],
+  [
+    0,
+    "filename_noext_parts"
+  ],
+  [
+    0,
+    "idx"
+  ],
+  [
+    0,
+    "im_fname"
+  ],
+  [
+    0,
+    "im_fname_from_path"
+  ],
+  [
+    0,
+    "image_filename"
+  ],
+  [
+    0,
+    "local_image_dir"
+  ],
+  [
+    0,
+    "local_image_path"
+  ],
+  [
+    0,
+    "local_ppi_paths"
+  ],
+  [
+    0,
+    "local_prefix"
+  ],
+  [
+    0,
+    "my_ppi"
+  ],
+  [
+    0,
+    "my_pvol"
+  ],
+  [
+    0,
+    "my_scan"
+  ],
+  [
+    0,
+    "p"
+  ],
+  [
+    0,
+    "prefix"
+  ],
+  [
+    0,
+    "prefix_from_pvol"
+  ],
+  [
+    0,
+    "pvol_path"
+  ],
+  [
+    0,
+    "rad"
+  ],
+  [
+    0,
+    "title_from_pvol"
+  ],
+  [
+    0,
+    "title_str"
+  ],
+  [
+    3,
+    "co"
+  ],
+  [
+    3,
+    "corad"
+  ],
+  [
+    3,
+    "corad_prefix"
+  ],
+  [
+    3,
+    "date_prefix"
+  ],
+  [
+    3,
+    "date_range"
+  ],
+  [
+    3,
+    "dr1"
+  ],
+  [
+    3,
+    "dr2"
+  ],
+  [
+    3,
+    "dr_str"
+  ],
+  [
+    3,
+    "fname_noext"
+  ],
+  [
+    3,
+    "im_fname"
+  ],
+  [
+    3,
+    "im_fname_from_vpts"
+  ],
+  [
+    3,
+    "image_filename"
+  ],
+  [
+    3,
+    "imtype"
+  ],
+  [
+    3,
+    "local_image_dir"
+  ],
+  [
+    3,
+    "local_image_path"
+  ],
+  [
+    3,
+    "local_prefix"
+  ],
+  [
+    3,
+    "local_vpts_paths"
+  ],
+  [
+    3,
+    "p"
+  ],
+  [
+    3,
+    "prefix"
+  ],
+  [
+    3,
+    "prefix_from_vpts"
+  ],
+  [
+    3,
+    "rad"
+  ],
+  [
+    3,
+    "radar"
+  ],
+  [
+    3,
+    "reg_vpts"
+  ],
+  [
+    3,
+    "title_str"
+  ],
+  [
+    3,
+    "title_str_from_regvpts"
+  ],
+  [
+    3,
+    "vp_list"
+  ],
+  [
+    3,
+    "vpts"
+  ],
+  [
+    4,
+    "basemap"
+  ],
+  [
+    4,
+    "co"
+  ],
+  [
+    4,
+    "corad"
+  ],
+  [
+    4,
+    "corad_prefix"
+  ],
+  [
+    4,
+    "date_prefix"
+  ],
+  [
+    4,
+    "elev"
+  ],
+  [
+    4,
+    "imname"
+  ],
+  [
+    4,
+    "impath"
+  ],
+  [
+    4,
+    "impath_dir"
+  ],
+  [
+    4,
+    "local_ppi_paths"
+  ],
+  [
+    4,
+    "my_param"
+  ],
+  [
+    4,
+    "my_pvol"
+  ],
+  [
+    4,
+    "my_scan"
+  ],
+  [
+    4,
+    "plt"
+  ],
+  [
+    4,
+    "ppi"
+  ],
+  [
+    4,
+    "rad"
+  ],
+  [
+    4,
+    "subtitle_str"
+  ],
+  [
+    4,
+    "title_from_pvol"
+  ],
+  [
+    4,
+    "title_str"
+  ]
+]
+```
+
+### uses mismatches
+False negatives:
+```json
+[
+  [
+    0,
+    ".5"
+  ],
+  [
+    0,
+    "T"
+  ],
+  [
+    0,
+    "append"
+  ],
+  [
+    0,
+    "basename"
+  ],
+  [
+    0,
+    "dev.off"
+  ],
+  [
+    0,
+    "dir.create"
+  ],
+  [
+    0,
+    "element_text"
+  ],
+  [
+    0,
+    "file_path_sans_ext"
+  ],
+  [
+    0,
+    "get_scan"
+  ],
+  [
+    0,
+    "ggtitle"
+  ],
+  [
+    0,
+    "library"
+  ],
+  [
+    0,
+    "list"
+  ],
+  [
+    0,
+    "local_pvol_paths"
+  ],
+  [
+    0,
+    "param_elevation"
+  ],
+  [
+    0,
+    "param_param"
+  ],
+  [
+    0,
+    "paste"
+  ],
+  [
+    0,
+    "paste0"
+  ],
+  [
+    0,
+    "plot"
+  ],
+  [
+    0,
+    "png"
+  ],
+  [
+    0,
+    "print"
+  ],
+  [
+    0,
+    "project_as_ppi"
+  ],
+  [
+    0,
+    "pvol"
+  ],
+  [
+    0,
+    "read_pvolfile"
+  ],
+  [
+    0,
+    "return"
+  ],
+  [
+    0,
+    "strftime"
+  ],
+  [
+    0,
+    "substring"
+  ],
+  [
+    0,
+    "theme"
+  ],
+  [
+    0,
+    "toupper"
+  ],
+  [
+    0,
+    "unlist"
+  ],
+  [
+    3,
+    "F"
+  ],
+  [
+    3,
+    "T"
+  ],
+  [
+    3,
+    "as.character"
+  ],
+  [
+    3,
+    "bind_into_vpts"
+  ],
+  [
+    3,
+    "dev.off"
+  ],
+  [
+    3,
+    "dir.create"
+  ],
+  [
+    3,
+    "library"
+  ],
+  [
+    3,
+    "list"
+  ],
+  [
+    3,
+    "paste"
+  ],
+  [
+    3,
+    "paste0"
+  ],
+  [
+    3,
+    "plot"
+  ],
+  [
+    3,
+    "png"
+  ],
+  [
+    3,
+    "print"
+  ],
+  [
+    3,
+    "read_vpfiles"
+  ],
+  [
+    3,
+    "regularize_vpts"
+  ],
+  [
+    3,
+    "regvpts"
+  ],
+  [
+    3,
+    "return"
+  ],
+  [
+    3,
+    "strftime"
+  ],
+  [
+    3,
+    "strsplit"
+  ],
+  [
+    3,
+    "substring"
+  ],
+  [
+    3,
+    "title"
+  ],
+  [
+    3,
+    "title_from_pvol"
+  ],
+  [
+    3,
+    "toupper"
+  ],
+  [
+    4,
+    ".5"
+  ],
+  [
+    4,
+    ".6"
+  ],
+  [
+    4,
+    "append"
+  ],
+  [
+    4,
+    "basename"
+  ],
+  [
+    4,
+    "dev.off"
+  ],
+  [
+    4,
+    "dir.create"
+  ],
+  [
+    4,
+    "element_text"
+  ],
+  [
+    4,
+    "get_param"
+  ],
+  [
+    4,
+    "get_scan"
+  ],
+  [
+    4,
+    "ggtitle"
+  ],
+  [
+    4,
+    "library"
+  ],
+  [
+    4,
+    "list"
+  ],
+  [
+    4,
+    "local_pvol_paths"
+  ],
+  [
+    4,
+    "map"
+  ],
+  [
+    4,
+    "osm.types"
+  ],
+  [
+    4,
+    "param_elevation"
+  ],
+  [
+    4,
+    "param_param"
+  ],
+  [
+    4,
+    "paste"
+  ],
+  [
+    4,
+    "paste0"
+  ],
+  [
+    4,
+    "png"
+  ],
+  [
+    4,
+    "print"
+  ],
+  [
+    4,
+    "project_as_ppi"
+  ],
+  [
+    4,
+    "pvol"
+  ],
+  [
+    4,
+    "pvol_path"
+  ],
+  [
+    4,
+    "read_pvolfile"
+  ],
+  [
+    4,
+    "return"
+  ],
+  [
+    4,
+    "str_replace"
+  ],
+  [
+    4,
+    "strftime"
+  ],
+  [
+    4,
+    "substring"
+  ],
+  [
+    4,
+    "theme"
+  ],
+  [
+    4,
+    "toupper"
+  ]
+]
+```
+
+### edges mismatches
+False negatives:
+```json
+[
+  [
+    0,
+    3,
+    "title_from_pvol"
+  ],
+  [
+    0,
+    4,
+    "pvol_path"
+  ],
+  [
+    1,
+    4,
+    "param_elevation"
+  ],
+  [
+    1,
+    4,
+    "param_param"
+  ]
+]
+```
+
+## SecretsProvider_demo
+- defs: precision 1.0000, recall 1.0000, F1 1.0000 (tp 4, fp 0, fn 0)
+- uses: precision 0.6000, recall 0.6000, F1 0.6000 (tp 3, fp 2, fn 2)
+- edges: precision 1.0000, recall 1.0000, F1 1.0000 (tp 2, fp 0, fn 0)
+
+### uses mismatches
+False positives:
+```json
+[
+  [
+    2,
+    "str"
+  ],
+  [
+    3,
+    "str"
+  ]
+]
+```
+False negatives:
+```json
+[
+  [
+    1,
+    "SecretsProvider"
+  ],
+  [
+    2,
+    "param_KMNI_key_name"
+  ]
+]
+```
+
+## exhaustive_python
+- defs: precision 1.0000, recall 1.0000, F1 1.0000 (tp 14, fp 0, fn 0)
+- uses: precision 1.0000, recall 1.0000, F1 1.0000 (tp 13, fp 0, fn 0)
+- edges: precision 1.0000, recall 1.0000, F1 1.0000 (tp 10, fp 0, fn 0)
+
+## exhaustive_r
+- defs: precision 0.5000, recall 0.5000, F1 0.5000 (tp 1, fp 1, fn 1)
+- uses: precision 1.0000, recall 0.4545, F1 0.6250 (tp 5, fp 0, fn 6)
+- edges: precision 1.0000, recall 0.3333, F1 0.5000 (tp 1, fp 0, fn 2)
+
+### defs mismatches
+False positives:
+```json
+[
+  [
+    1,
+    "temp_f"
+  ]
+]
+```
+False negatives:
+```json
+[
+  [
+    1,
+    "df"
+  ]
+]
+```
+
+### uses mismatches
+False negatives:
+```json
+[
+  [
+    0,
+    "read.csv"
+  ],
+  [
+    2,
+    "df"
+  ],
+  [
+    2,
+    "write.csv"
+  ],
+  [
+    3,
+    "df"
+  ],
+  [
+    3,
+    "jsonlite"
+  ],
+  [
+    3,
+    "list"
+  ]
+]
+```
+
+### edges mismatches
+False negatives:
+```json
+[
+  [
+    1,
+    2,
+    "df"
+  ],
+  [
+    1,
+    3,
+    "df"
+  ]
+]
+```
+
+## migrate_secrets
+- defs: precision 1.0000, recall 0.8462, F1 0.9167 (tp 11, fp 0, fn 2)
+- uses: precision 0.6667, recall 0.8000, F1 0.7273 (tp 4, fp 2, fn 1)
+- edges: precision 0.0000, recall 0.0000, F1 0.0000 (tp 0, fp 0, fn 0)
+
+### defs mismatches
+False negatives:
+```json
+[
+  [
+    1,
+    "destination_path"
+  ],
+  [
+    1,
+    "source_path"
+  ]
+]
+```
+
+### uses mismatches
+False positives:
+```json
+[
+  [
+    1,
+    "destination_path"
+  ],
+  [
+    1,
+    "source_path"
+  ]
+]
+```
+False negatives:
+```json
+[
+  [
+    1,
+    "yaml"
+  ]
+]
+```
+
+## multi_kernel_demo
+- defs: precision 1.0000, recall 1.0000, F1 1.0000 (tp 25, fp 0, fn 0)
+- uses: precision 1.0000, recall 0.9412, F1 0.9697 (tp 16, fp 0, fn 1)
+- edges: precision 1.0000, recall 1.0000, F1 1.0000 (tp 7, fp 0, fn 0)
+
+### uses mismatches
+False negatives:
+```json
+[
+  [
+    3,
+    "read.csv"
+  ]
+]
+```

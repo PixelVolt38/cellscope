@@ -1,0 +1,250 @@
+{
+  "nb_path": "examples/exhaustive_python.ipynb",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "cell_0",
+      "name": "cell_0",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "Path",
+        "json",
+        "pd",
+        "threshold"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 1,
+      "label": "cell_1",
+      "name": "cell_1",
+      "kernel": "python3",
+      "funcs": [
+        "compute_stats"
+      ],
+      "func_calls": [
+        "int"
+      ],
+      "var_defs": [
+        "above",
+        "compute_stats",
+        "mean_temp"
+      ],
+      "var_uses": [
+        "df",
+        "int",
+        "threshold"
+      ],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 2,
+      "label": "cell_2",
+      "name": "cell_2",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "df"
+      ],
+      "var_uses": [
+        "pd"
+      ],
+      "file_writes": [],
+      "file_reads": [
+        "examples/data_outputs/climate_readings.csv"
+      ]
+    },
+    {
+      "idx": 3,
+      "label": "cell_3",
+      "name": "cell_3",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [],
+      "var_uses": [
+        "df"
+      ],
+      "file_writes": [
+        "examples/data_outputs/derived_output.csv"
+      ],
+      "file_reads": []
+    },
+    {
+      "idx": 4,
+      "label": "cell_4",
+      "name": "cell_4",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "Path",
+        "compute_stats"
+      ],
+      "var_defs": [
+        "summary"
+      ],
+      "var_uses": [
+        "Path",
+        "compute_stats",
+        "df",
+        "json"
+      ],
+      "file_writes": [
+        "examples/data_outputs/summary.json"
+      ],
+      "file_reads": []
+    },
+    {
+      "idx": 5,
+      "label": "cell_5",
+      "name": "cell_5",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "open"
+      ],
+      "var_defs": [
+        "handle",
+        "parsed",
+        "raw"
+      ],
+      "var_uses": [
+        "json",
+        "open"
+      ],
+      "file_writes": [],
+      "file_reads": [
+        "examples/data_outputs/summary.json"
+      ]
+    },
+    {
+      "idx": 6,
+      "label": "cell_6",
+      "name": "cell_6",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "open"
+      ],
+      "var_defs": [
+        "handle",
+        "missing_data"
+      ],
+      "var_uses": [
+        "open"
+      ],
+      "file_writes": [],
+      "file_reads": [
+        "examples/data_outputs/missing_input.csv"
+      ]
+    },
+    {
+      "idx": 7,
+      "label": "cell_7",
+      "name": "cell_7",
+      "kernel": "python3",
+      "funcs": [],
+      "func_calls": [
+        "Path"
+      ],
+      "var_defs": [],
+      "var_uses": [
+        "Path"
+      ],
+      "file_writes": [
+        "examples/data_outputs/reports/report.txt"
+      ],
+      "file_reads": []
+    }
+  ],
+  "edges": [
+    {
+      "source": 0,
+      "target": 1,
+      "type": "uses",
+      "vars": [
+        "threshold"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 2,
+      "type": "uses",
+      "vars": [
+        "pd"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    },
+    {
+      "source": 2,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "df"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "json"
+      ]
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "compute_stats"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "type": "uses",
+      "vars": [
+        "Path"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "json"
+      ]
+    },
+    {
+      "source": 0,
+      "target": 7,
+      "type": "uses",
+      "vars": [
+        "Path"
+      ]
+    },
+    {
+      "source": 4,
+      "target": 5,
+      "type": "uses",
+      "vars": [
+        "summary.json"
+      ],
+      "via": "file",
+      "file": "examples/data_outputs/summary.json"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "nb_path": "examples/RAVL/RAVL_R_source.ipynb",
+  "cells": [
+    {
+      "idx": 0,
+      "label": "pvol_r_code",
+      "name": "pvol_r_code",
+      "kernel": "conda-env-ravl-r",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 1,
+      "label": "do_not_containerise",
+      "name": "do_not_containerise",
+      "kernel": "conda-env-ravl-r",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "param_clean_knmi_input",
+        "param_clean_pvol_output",
+        "param_clean_vp_output",
+        "param_concurrency",
+        "param_country",
+        "param_day",
+        "param_dtype",
+        "param_elevation",
+        "param_imtype",
+        "param_interval",
+        "param_jupyterhub_user",
+        "param_month",
+        "param_param",
+        "param_prefix",
+        "param_radar",
+        "param_upload_results",
+        "param_year"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 2,
+      "label": "do_not_containerise_2",
+      "name": "do_not_containerise_2",
+      "kernel": "conda-env-ravl-r",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [
+        "conf_local_conf",
+        "conf_local_knmi",
+        "conf_local_odim",
+        "conf_local_ppi",
+        "conf_local_radar_db",
+        "conf_local_root",
+        "conf_local_visualization_input",
+        "conf_local_visualization_output",
+        "conf_local_vp",
+        "conf_local_vpts",
+        "conf_minio_endpoint",
+        "conf_minio_public_bucket_name",
+        "conf_minio_user_bucket_name",
+        "conf_ppi_output_prefix",
+        "conf_pvol_output_prefix",
+        "conf_vp_output_prefix",
+        "conf_vpts_output_prefix"
+      ],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 3,
+      "label": "vp_r_code",
+      "name": "vp_r_code",
+      "kernel": "conda-env-ravl-r",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    },
+    {
+      "idx": 4,
+      "label": "r_ppi",
+      "name": "r_ppi",
+      "kernel": "conda-env-ravl-r",
+      "funcs": [],
+      "func_calls": [],
+      "var_defs": [],
+      "var_uses": [],
+      "file_writes": [],
+      "file_reads": []
+    }
+  ],
+  "edges": []
+}

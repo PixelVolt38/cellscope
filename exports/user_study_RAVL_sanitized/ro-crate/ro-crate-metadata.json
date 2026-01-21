@@ -1,0 +1,5117 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:48+00:00",
+            "description": "CellScope export for RAVL_sanitized.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.py"
+                },
+                {
+                    "@id": "cells/cell_1.py"
+                },
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.py"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                },
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                },
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                },
+                {
+                    "@id": "notebook/RAVL_sanitized.ipynb"
+                },
+                {
+                    "@id": "notebook/RAVL_sanitized.ipynb"
+                },
+                {
+                    "@id": "files/OPERA_RADARS_DB.json"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "RAVL_sanitized.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_0_pip_install_pandas\n!pip install pandas",
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_0_pip_install_pandas",
+            "position": 0,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_1_do_not_containerise\n# parametrization - v95\n# Run specific - fill in text to preset, keep empty to prompt\nimport os\n\n\nparam_radar = \"HRW\"  # DHL | HRW | DBL\nparam_start_date = (\n    \"2019-12-31T23:00+00:00\"  # %Y%m%dT%H:%M+TZ; 2019-12-31T23:00+00:00\n)\nparam_end_date = (\n    \"2020-01-01T01:00+00:00\"  # %Y%m%dT%H:%M+TZ; 2020-01-01T01:00+00:00\n)\nparam_concurrency = 5\nparam_interval_in_minutes = 60\n# This is to control uploads / cleaning\n# Move results to S3?\nparam_upload_results = \"True\"\n# Store and retrieve data from the public S3 / MinIO bucket\nparam_public_minio_data = 0\n# Remove input after processing KNMI format to ODIM format\nparam_clean_knmi_input = \"True\"\n# Should we remove the final Polar Volumes after producing a VP and or RBC\nparam_clean_pvol_output = \"True\"\n#\n...",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-param_clean_knmi_input"
+                },
+                {
+                    "@id": "#var-param_year"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-param_upload_results"
+                },
+                {
+                    "@id": "#var-param_clean_pvol_output"
+                },
+                {
+                    "@id": "#var-param_clean_vp_output"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-param_imtype"
+                },
+                {
+                    "@id": "#var-param_radar"
+                },
+                {
+                    "@id": "#var-param_country"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-param_month"
+                },
+                {
+                    "@id": "#var-param_elevation"
+                },
+                {
+                    "@id": "#var-param_concurrency"
+                },
+                {
+                    "@id": "#var-param_day"
+                },
+                {
+                    "@id": "#var-param_param"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-param_maximum_KNMI_files"
+                },
+                {
+                    "@id": "#var-param_prefix"
+                },
+                {
+                    "@id": "#var-param_interval_in_minutes"
+                },
+                {
+                    "@id": "#var-os"
+                },
+                {
+                    "@id": "#var-param_dtype"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_1_do_not_containerise",
+            "position": 1,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_2_do_not_containerise\n# Get secrets, if they dont exist, set them\nfrom SecretsProvider import SecretsProvider\nfrom getpass import getpass\n\n\nsecrets_provider = SecretsProvider(input_func=getpass)\nsecret_key_knmi_api = secrets_provider.get_secret(\"secret_knmi_api_key\")\nsecret_minio_access_key = secrets_provider.get_secret(\n    \"secret_minio_access_key\"\n)\nsecret_minio_secret_key = secrets_provider.get_secret(\n    \"secret_minio_secret_key\"\n)",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-SecretsProvider"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-secrets_provider"
+                },
+                {
+                    "@id": "#var-getpass"
+                },
+                {
+                    "@id": "#var-secret_key_knmi_api"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_2_do_not_containerise",
+            "position": 2,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_3_do_not_containerize\n# Use to re-set existing keys\nfrom SecretsProvider import SecretsProvider\nfrom getpass import getpass\n\n\nsecrets_provider = SecretsProvider(input_func=getpass)\nsecrets_provider.set_secret(\"secret_knmi_api_key\")\nsecrets_provider.set_secret(\"secret_minio_access_key\")\nsecrets_provider.set_secret(\"secret_minio_secret_key\")",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-getpass"
+                },
+                {
+                    "@id": "#var-SecretsProvider"
+                },
+                {
+                    "@id": "#var-secrets_provider"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_3_do_not_containerize",
+            "position": 3,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_4.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_4_do_not_containerise\n# configuration - v95\nimport os\nimport pathlib\n\nconf_minio_user_bucket_name = \"example-user-bucket\"  # the user bucket name\nconf_minio_tutorial_prefix = \"example-tutorial\"\nconf_minio_public_bucket_name = \"example-public-bucket\"  # the public bucket name\nconf_minio_public_root_prefix = \"example-public-root\"\nconf_minio_public_conf_prefix = \"example-public-root/conf\"\nconf_minio_public_conf_radar_db_object_name = (\n    \"example-public-root/conf/OPERA_RADARS_DB.json\"\n)\nconf_minio_endpoint = \"minio.example.org:9000\"\n\n### Directories\nconf_local_root = \"/tmp/data\"\nconf_local_knmi = \"/tmp/data/knmi\"\nconf_local_odim = \"/tmp/data/odim\"\nconf_local_vp = \"/tmp/data/vp\"\nconf_local_ppi = \"/tmp/data/ppi\"\nconf_local_vpts = \"/tmp/data/vpts\"\nconf_local_conf = \"/tmp/data/conf\"\nconf_local_radar_db = \"/tmp/data/conf/OPERA_RADARS_DB.json\"\nconf_local_visualization_input = \"/tmp/data/visualizations/input\"\n...",
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_local_conf"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-conf_local_vpts"
+                },
+                {
+                    "@id": "#var-os"
+                },
+                {
+                    "@id": "#var-conf_ppi_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_public_conf_prefix"
+                },
+                {
+                    "@id": "#var-conf_vp_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_root"
+                },
+                {
+                    "@id": "#var-conf_minio_public_conf_radar_db_object_name"
+                },
+                {
+                    "@id": "#var-conf_local_visualization_input"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_ppi"
+                },
+                {
+                    "@id": "#var-conf_denhelder"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-conf_radars"
+                },
+                {
+                    "@id": "#var-conf_local_knmi"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-conf_local_visualization_output"
+                },
+                {
+                    "@id": "#var-conf_vpts_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_herwijnen"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_4_do_not_containerise",
+            "position": 4,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_5.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_5_do_not_containerise_v60\n# Set initial resource in minio, the conf in common\ndebug = False\nfrom minio import Minio, S3Error\nimport os\nimport pathlib\n\nminioClient = Minio(\n    endpoint=conf_minio_endpoint,\n    access_key=secret_minio_access_key,\n    secret_key=secret_minio_secret_key,\n    secure=True,\n)\n# Stat object to see if it is there. We could also just try a try except on fget\n# However, canonically this seems better to stat\n# Cast to str as stat object doesnt like posix\ntry:\n    radar_db_stat = minioClient.stat_object(\n        bucket_name=pathlib.Path(conf_minio_public_bucket_name).as_posix(),\n        object_name=pathlib.Path(\n            conf_minio_public_conf_radar_db_object_name\n        ).as_posix(),\n    )\n    print(\n        f\"Reference file found [{pathlib.Path(conf_minio_public_bucket_name).as_posix()}]/{pathlib.Path(conf_minio_public_conf_radar_db_object_name).as_posix()}\"\n...",
+            "funcCalls": [
+                "open",
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#qualifiedUsage": [
+                {
+                    "@id": "#usage-cells_cell_5.py-files_OPERA_RADARS_DB.json"
+                }
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_public_conf_radar_db_object_name"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "files/OPERA_RADARS_DB.json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_public_conf_radar_db_object_name"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "files/OPERA_RADARS_DB.json"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-debug"
+                },
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-e"
+                },
+                {
+                    "@id": "#var-os"
+                },
+                {
+                    "@id": "#var-file_stat"
+                },
+                {
+                    "@id": "#var-S3Error"
+                },
+                {
+                    "@id": "#var-radar_db_stat"
+                },
+                {
+                    "@id": "#var-put_result"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-file_data"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_5_do_not_containerise_v60",
+            "position": 5,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_6.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_6_initializer\nimport pathlib\n\n# Make directories on shared (local) storage\nfor local_dir in [\n    conf_local_root,\n    conf_local_knmi,\n    conf_local_odim,\n    conf_local_vp,\n    conf_local_conf,\n]:\n    local_dir = pathlib.Path(local_dir)\n    if not local_dir.exists():\n        local_dir.mkdir(parents=True, exist_ok=True)\n# Reference files\nif not pathlib.Path(conf_local_radar_db).exists():\n    from minio import Minio, S3Error\n\n    minioClient = Minio(\n        endpoint=conf_minio_endpoint,\n        access_key=secret_minio_access_key,\n        secret_key=secret_minio_secret_key,\n        secure=True,\n    )\n    print(f\"{conf_local_radar_db} not found, downloading\")\n...",
+            "funcCalls": [
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_public_conf_radar_db_object_name"
+                },
+                {
+                    "@id": "#var-conf_local_conf"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_local_knmi"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-conf_local_root"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_public_conf_radar_db_object_name"
+                },
+                {
+                    "@id": "#var-conf_local_conf"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_local_knmi"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-conf_local_root"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-local_dir"
+                },
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-S3Error"
+                },
+                {
+                    "@id": "#var-init_complete"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_6_initializer",
+            "position": 6,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_7.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_7_list_knmi_files\n\"\"\"\nconsume dummy var from config to signal workflow start\nThere is something dodgy going on with how\nstrings are being passed around.\nThe string \"Yes\" is being sent as '\"Yes\"'\nSo, to prevent extra quotes being introduced\nwe eval init_complete first before\nwe test if it contains \"Yes\"\n\"\"\"\n# Libraries\nimport requests\n\n\ndef validate_api_errors():\n    if api_response.status_code >= 400:\n        raise ValueError(\n            f\"API {api_response.url} returned an error status code: {api_response.status_code}. {api_response.json()=}\"\n        )\n\n\ndef validate_number_of_KNMI_files():\n    if len(dataset_files) > param_maximum_KNMI_files:\n        raise ValueError(\n            f\"{len(dataset_files)} KNMI files were found to download, but {param_maximum_KNMI_files=}.\"\n...",
+            "funcCalls": [
+                "ValueError",
+                "int",
+                "len",
+                "list",
+                "print",
+                "range"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_radars"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-secret_key_knmi_api"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-param_maximum_KNMI_files"
+                },
+                {
+                    "@id": "#var-param_interval_in_minutes"
+                },
+                {
+                    "@id": "#var-param_radar"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_radars"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-secret_key_knmi_api"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-param_maximum_KNMI_files"
+                },
+                {
+                    "@id": "#var-param_interval_in_minutes"
+                },
+                {
+                    "@id": "#var-param_radar"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-dset_files"
+                },
+                {
+                    "@id": "#var-requests"
+                },
+                {
+                    "@id": "#var-validate_number_of_KNMI_files"
+                },
+                {
+                    "@id": "#var-nextPageToken"
+                },
+                {
+                    "@id": "#var-dataset_file"
+                },
+                {
+                    "@id": "#var-filtered_list"
+                },
+                {
+                    "@id": "#var-minute"
+                },
+                {
+                    "@id": "#var-dataset_files"
+                },
+                {
+                    "@id": "#var-api_reponse_json"
+                },
+                {
+                    "@id": "#var-init_complete"
+                },
+                {
+                    "@id": "#var-datasetName"
+                },
+                {
+                    "@id": "#var-api_url"
+                },
+                {
+                    "@id": "#var-sys"
+                },
+                {
+                    "@id": "#var-api_response"
+                },
+                {
+                    "@id": "#var-start_ts"
+                },
+                {
+                    "@id": "#var-end_ts"
+                },
+                {
+                    "@id": "#var-dset_file"
+                },
+                {
+                    "@id": "#var-_"
+                },
+                {
+                    "@id": "#var-validate_api_errors"
+                },
+                {
+                    "@id": "#var-params"
+                },
+                {
+                    "@id": "#var-interval_list"
+                },
+                {
+                    "@id": "#var-datasetVersion"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_7_list_knmi_files",
+            "position": 7,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_8.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_8_download_knmi\n##libraries\nimport requests\nfrom pathlib import Path\nimport os\n\n# Changes per 16-11-2023\n# Test if we are working with a one element nested list\ndataset_files\nn_files = len(dataset_files)\nprint(f\"Starting download of {n_files} files.\")\n_, _, api_url, radar_code = conf_radars.get(param_radar.lower())\nknmi_pvol_paths = []\nidx = 1\nfor dataset_file in dataset_files:\n    filename = dataset_file[0]\n    fname_parts = filename.split(\"_\")\n    fname_date_part = fname_parts[-1].split(\".\")[0]\n    year = fname_date_part[0:4]\n    month = fname_date_part[4:6]\n    day = fname_date_part[6:8]\n    p = Path(f\"{conf_local_knmi}/{radar_code}/{year}/{month}/{day}/{filename}\")\n    knmi_pvol_paths.append(\"{}\".format(str(p)))\n\n    if not p.exists():\n...",
+            "funcCalls": [
+                "len",
+                "print",
+                "str"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_radars"
+                },
+                {
+                    "@id": "#var-conf_local_knmi"
+                },
+                {
+                    "@id": "#var-secret_key_knmi_api"
+                },
+                {
+                    "@id": "#var-dataset_files"
+                },
+                {
+                    "@id": "#var-param_radar"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_radars"
+                },
+                {
+                    "@id": "#var-conf_local_knmi"
+                },
+                {
+                    "@id": "#var-secret_key_knmi_api"
+                },
+                {
+                    "@id": "#var-dataset_files"
+                },
+                {
+                    "@id": "#var-param_radar"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-filename"
+                },
+                {
+                    "@id": "#var-fname_parts"
+                },
+                {
+                    "@id": "#var-requests"
+                },
+                {
+                    "@id": "#var-dataset_file_response"
+                },
+                {
+                    "@id": "#var-p"
+                },
+                {
+                    "@id": "#var-os"
+                },
+                {
+                    "@id": "#var-dataset_file"
+                },
+                {
+                    "@id": "#var-day"
+                },
+                {
+                    "@id": "#var-radar_code"
+                },
+                {
+                    "@id": "#var-knmi_pvol_paths"
+                },
+                {
+                    "@id": "#var-Path"
+                },
+                {
+                    "@id": "#var-year"
+                },
+                {
+                    "@id": "#var-endpoint"
+                },
+                {
+                    "@id": "#var-idx"
+                },
+                {
+                    "@id": "#var-_"
+                },
+                {
+                    "@id": "#var-month"
+                },
+                {
+                    "@id": "#var-get_file_response"
+                },
+                {
+                    "@id": "#var-download_url"
+                },
+                {
+                    "@id": "#var-fname_date_part"
+                },
+                {
+                    "@id": "#var-api_url"
+                },
+                {
+                    "@id": "#var-n_files"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_8_download_knmi",
+            "position": 8,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_9.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_9_knmi_to_odim_converter\n\"\"\"\nnotes:\nNeed to add this such that it can upload the PVOL From this stage\nNeed to add option such that this can remove the PVOL files from this stage.\nWarning, with the removal of PVOL on this stage auto-bricks the VP / RBC gen\nWe can introduce a flag check where RBC and VP check if PVOL 'needed' to be removed\nIf that flag is met - abort, there 'shouldnt' be any INPUT files then.\n\"\"\"\nimport subprocess\nimport pathlib\nimport h5py\nimport json\nimport sys\nimport shutil\n\n\n# from typing import List, Object\nimport math\n\n\ndef str2bool(v):\n    if isinstance(v, bool):\n        return v\n    if v.lower() in (\"yes\", \"true\", \"t\", \"y\", \"1\"):\n...",
+            "funcCalls": [
+                "ValueError",
+                "any",
+                "int",
+                "isinstance",
+                "len",
+                "open",
+                "print",
+                "str"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-param_upload_results"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-knmi_pvol_paths"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_clean_knmi_input"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-os"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-param_upload_results"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-knmi_pvol_paths"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_clean_knmi_input"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-os"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-relative_path"
+                },
+                {
+                    "@id": "#var-knmi_path"
+                },
+                {
+                    "@id": "#var-local_pvol_storage"
+                },
+                {
+                    "@id": "#var-radar_dict"
+                },
+                {
+                    "@id": "#var-rad_str_split"
+                },
+                {
+                    "@id": "#var-subprocess"
+                },
+                {
+                    "@id": "#var-returncode"
+                },
+                {
+                    "@id": "#var-odim_pvol_paths"
+                },
+                {
+                    "@id": "#var-extract_wmo_code"
+                },
+                {
+                    "@id": "#var-ibed_pvol_name"
+                },
+                {
+                    "@id": "#var-hh"
+                },
+                {
+                    "@id": "#var-odim_code"
+                },
+                {
+                    "@id": "#var-file_data"
+                },
+                {
+                    "@id": "#var-radar_db"
+                },
+                {
+                    "@id": "#var-converter"
+                },
+                {
+                    "@id": "#var-shutil"
+                },
+                {
+                    "@id": "#var-translate_knmi_filename"
+                },
+                {
+                    "@id": "#var-str2bool"
+                },
+                {
+                    "@id": "#var-json"
+                },
+                {
+                    "@id": "#var-name"
+                },
+                {
+                    "@id": "#var-ibed_fname"
+                },
+                {
+                    "@id": "#var-string"
+                },
+                {
+                    "@id": "#var-rad_str"
+                },
+                {
+                    "@id": "#var-exists"
+                },
+                {
+                    "@id": "#var-sys"
+                },
+                {
+                    "@id": "#var-radar_db_json"
+                },
+                {
+                    "@id": "#var-mm"
+                },
+                {
+                    "@id": "#var-rad_codes"
+                },
+                {
+                    "@id": "#var-_"
+                },
+                {
+                    "@id": "#var-filetype"
+                },
+                {
+                    "@id": "#var-file_stat"
+                },
+                {
+                    "@id": "#var-translate_wmo_odim"
+                },
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-wmo_code"
+                },
+                {
+                    "@id": "#var-f"
+                },
+                {
+                    "@id": "#var-proc"
+                },
+                {
+                    "@id": "#var-odim_pvol_path"
+                },
+                {
+                    "@id": "#var-math"
+                },
+                {
+                    "@id": "#var-ss"
+                },
+                {
+                    "@id": "#var-path"
+                },
+                {
+                    "@id": "#var-output"
+                },
+                {
+                    "@id": "#var-what"
+                },
+                {
+                    "@id": "#var-FileTranslatorFileTypeError"
+                },
+                {
+                    "@id": "#var-rad_code"
+                },
+                {
+                    "@id": "#var-load_radar_db"
+                },
+                {
+                    "@id": "#var-get_pvol_storage_path"
+                },
+                {
+                    "@id": "#var-converter_results"
+                },
+                {
+                    "@id": "#var-source"
+                },
+                {
+                    "@id": "#var-time"
+                },
+                {
+                    "@id": "#var-h5py"
+                },
+                {
+                    "@id": "#var-source_list"
+                },
+                {
+                    "@id": "#var-out_path_pvol_odim_tce"
+                },
+                {
+                    "@id": "#var-remote_odim_pvol_path"
+                },
+                {
+                    "@id": "#var-knmi_to_odim"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-date"
+                },
+                {
+                    "@id": "#var-command"
+                },
+                {
+                    "@id": "#var-pathlib"
+                },
+                {
+                    "@id": "#var-out_path_pvol_odim"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_9_knmi_to_odim_converter",
+            "position": 9,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_10.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_10_pvol_vp_converter\nimport pandas as pd\nimport re\nimport pathlib\n\n\ndef str2bool(v):\n    if isinstance(v, bool):\n        return v\n    if v.lower() in (\"yes\", \"true\", \"t\", \"y\", \"1\"):\n        return True\n    elif v.lower() in (\"no\", \"false\", \"f\", \"n\", \"0\"):\n        return False\n    else:\n        raise Exception\n\n\ndef load_radar_db(radar_db_path):\n    \"\"\"Load and return the radar database\n    Output dict sample (wmo code is used as key):\n    {\n        11038: {'number': '1209', 'country': 'Austria', 'countryid': 'LOWM41', 'oldcountryid': 'OS41', 'wmocode': '11038', 'odimcode': 'atrau', 'location': 'Wien/Schwechat', 'status': '1', 'latitude': '48.074', 'longitude': '16.536', 'heightofstation': ' ', 'band': 'C', 'doppler': 'Y', 'polarization': 'D', 'maxrange': '224', 'startyear': '1978', 'heightantenna': '224', 'diametrantenna': ' ', 'beam': ' ', 'gain': ' ', 'frequency': '5.625', 'single_rrr': 'Y', 'composite_rrr': 'Y', 'wrwp': 'Y'},\n        11052: {'number': '1210', 'country': 'Austria', 'countryid': 'LOWM43', 'oldcountryid': 'OS43', 'wmocode': '11052', 'odimcode': 'atfel', 'location': 'Salzburg/Feldkirchen', 'status': '1', 'latitude': '48.065', 'longitude': '13.062', 'heightofstation': ' ', 'band': 'C', 'doppler': 'Y', 'polarization': 'D', 'maxrange': '224', 'startyear': '1992', 'heightantenna': '581', 'diametrantenna': ' ', 'beam': ' ', 'gain': ' ', 'frequency': '5.6', 'single_rrr': 'Y', 'composite_rrr': ' ', 'wrwp': ' '},\n        ...\n    }\n...",
+            "funcCalls": [
+                "ValueError",
+                "any",
+                "int",
+                "isinstance",
+                "len",
+                "open",
+                "print",
+                "str"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-param_upload_results"
+                },
+                {
+                    "@id": "#var-subprocess"
+                },
+                {
+                    "@id": "#var-param_clean_pvol_output"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-conf_vp_output_prefix"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-json"
+                },
+                {
+                    "@id": "#var-sys"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_clean_vp_output"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-h5py"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-os"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_local_radar_db"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-param_upload_results"
+                },
+                {
+                    "@id": "#var-subprocess"
+                },
+                {
+                    "@id": "#var-param_clean_pvol_output"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-conf_vp_output_prefix"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-json"
+                },
+                {
+                    "@id": "#var-sys"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_clean_vp_output"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-h5py"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-os"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-relative_path"
+                },
+                {
+                    "@id": "#var-radar_dict"
+                },
+                {
+                    "@id": "#var-out_file"
+                },
+                {
+                    "@id": "#var-ibed_path"
+                },
+                {
+                    "@id": "#var-rad_str_split"
+                },
+                {
+                    "@id": "#var-odim_pvol_paths"
+                },
+                {
+                    "@id": "#var-extract_wmo_code"
+                },
+                {
+                    "@id": "#var-file_data"
+                },
+                {
+                    "@id": "#var-odim_code"
+                },
+                {
+                    "@id": "#var-re"
+                },
+                {
+                    "@id": "#var-radar_db"
+                },
+                {
+                    "@id": "#var-suffix"
+                },
+                {
+                    "@id": "#var-out_file_name"
+                },
+                {
+                    "@id": "#var-str2bool"
+                },
+                {
+                    "@id": "#var-datetime"
+                },
+                {
+                    "@id": "#var-string"
+                },
+                {
+                    "@id": "#var-rad_str"
+                },
+                {
+                    "@id": "#var-date_regex"
+                },
+                {
+                    "@id": "#var-rad_codes"
+                },
+                {
+                    "@id": "#var-exists"
+                },
+                {
+                    "@id": "#var-radar_db_json"
+                },
+                {
+                    "@id": "#var-vp_path"
+                },
+                {
+                    "@id": "#var-_"
+                },
+                {
+                    "@id": "#var-version"
+                },
+                {
+                    "@id": "#var-file_stat"
+                },
+                {
+                    "@id": "#var-translate_wmo_odim"
+                },
+                {
+                    "@id": "#var-result"
+                },
+                {
+                    "@id": "#var-odim"
+                },
+                {
+                    "@id": "#var-out_file_dir"
+                },
+                {
+                    "@id": "#var-process"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-PVOL_VP_converter_complete"
+                },
+                {
+                    "@id": "#var-wmo_code"
+                },
+                {
+                    "@id": "#var-f"
+                },
+                {
+                    "@id": "#var-odim_pvol_path"
+                },
+                {
+                    "@id": "#var-wmo"
+                },
+                {
+                    "@id": "#var-remote_vp_path"
+                },
+                {
+                    "@id": "#var-path"
+                },
+                {
+                    "@id": "#var-what"
+                },
+                {
+                    "@id": "#var-local_vp_storage"
+                },
+                {
+                    "@id": "#var-rad_code"
+                },
+                {
+                    "@id": "#var-load_radar_db"
+                },
+                {
+                    "@id": "#var-source"
+                },
+                {
+                    "@id": "#var-vol2bird"
+                },
+                {
+                    "@id": "#var-in_file_stem"
+                },
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-source_list"
+                },
+                {
+                    "@id": "#var-vertical_profile_paths"
+                },
+                {
+                    "@id": "#var-in_file_name"
+                },
+                {
+                    "@id": "#var-pvol_path"
+                },
+                {
+                    "@id": "#var-get_vp_storage_path"
+                },
+                {
+                    "@id": "#var-command"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_10_pvol_vp_converter",
+            "position": 10,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_11.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_11_retrieve_pvol_deprecated\nfrom minio import Minio\nimport sys\nimport pathlib\n\nif PVOL_VP_converter_complete:\n    print(\"PVOL-VP-converter successfull\")\nelse:\n    print(\"PVOL-VP-converter was not complete, exitting\")\n    import sys\n\n    sys.exit(1)\n\n#\nminioClient = Minio(\n    endpoint=conf_minio_endpoint,\n    access_key=secret_minio_access_key,\n    secret_key=secret_minio_secret_key,\n    secure=True,\n)\n\n# dtype = \"pvol\"\n# country = \"NL\"\n# radar = \"DHL\"\n# year = \"2023\"\n...",
+            "funcCalls": [
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-param_year"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-conf_vp_output_prefix"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-param_radar"
+                },
+                {
+                    "@id": "#var-conf_local_visualization_input"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-PVOL_VP_converter_complete"
+                },
+                {
+                    "@id": "#var-param_country"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-param_month"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-param_day"
+                },
+                {
+                    "@id": "#var-param_dtype"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-param_year"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-conf_vp_output_prefix"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-param_radar"
+                },
+                {
+                    "@id": "#var-conf_local_visualization_input"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-PVOL_VP_converter_complete"
+                },
+                {
+                    "@id": "#var-param_country"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-param_month"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-param_day"
+                },
+                {
+                    "@id": "#var-param_dtype"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-search_prefix"
+                },
+                {
+                    "@id": "#var-local_file_paths"
+                },
+                {
+                    "@id": "#var-local_file_path"
+                },
+                {
+                    "@id": "#var-obj"
+                },
+                {
+                    "@id": "#var-sys"
+                },
+                {
+                    "@id": "#var-objects"
+                },
+                {
+                    "@id": "#var-obj_path"
+                },
+                {
+                    "@id": "#var-recursive"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_11_retrieve_pvol_deprecated",
+            "position": 11,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_12.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_12_s3_pvol_downloader\n# ---\n# NaaVRE:\n#  cell:\n#   outputs:\n#    - local_pvol_paths: List\n# ...\n\n# Code analyzer fix block. Assign empty strings to variables that should not be picked up by the analyzer.\nminioClient = \"\"\n\n# libraries\nfrom minio import Minio\nimport pandas as pd\nimport pathlib\n\n\n# functions\ndef get_pvol_storage_path(relative_path: str = \"\") -> str:\n    if param_public_minio_data:\n        return (\n            pathlib.Path(conf_minio_public_root_prefix)\n            .joinpath(conf_minio_tutorial_prefix)\n            .joinpath(conf_pvol_output_prefix)\n            .joinpath(relative_path)\n...",
+            "funcCalls": [
+                "len",
+                "list",
+                "print",
+                "set"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-relative_path"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-param_radar"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_public_bucket_name"
+                },
+                {
+                    "@id": "#var-relative_path"
+                },
+                {
+                    "@id": "#var-conf_pvol_output_prefix"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-param_radar"
+                },
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_local_odim"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-param_public_minio_data"
+                },
+                {
+                    "@id": "#var-conf_minio_public_root_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-filename"
+                },
+                {
+                    "@id": "#var-dstamp"
+                },
+                {
+                    "@id": "#var-middle_prefixes"
+                },
+                {
+                    "@id": "#var-obj_name"
+                },
+                {
+                    "@id": "#var-lab"
+                },
+                {
+                    "@id": "#var-psd_prefix_obj"
+                },
+                {
+                    "@id": "#var-corad"
+                },
+                {
+                    "@id": "#var-_ped_prefix_objs"
+                },
+                {
+                    "@id": "#var-day"
+                },
+                {
+                    "@id": "#var-middle_prefix_objs"
+                },
+                {
+                    "@id": "#var-fname"
+                },
+                {
+                    "@id": "#var-unique_date_prefix_list"
+                },
+                {
+                    "@id": "#var-download_objs"
+                },
+                {
+                    "@id": "#var-ped_prefix_obj"
+                },
+                {
+                    "@id": "#var-year"
+                },
+                {
+                    "@id": "#var-dtype"
+                },
+                {
+                    "@id": "#var-ped_until_timestamp"
+                },
+                {
+                    "@id": "#var-month"
+                },
+                {
+                    "@id": "#var-workshop"
+                },
+                {
+                    "@id": "#var-ped"
+                },
+                {
+                    "@id": "#var-ped_until_prefix"
+                },
+                {
+                    "@id": "#var-ped_prefix"
+                },
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-radcode_suffix"
+                },
+                {
+                    "@id": "#var-obj"
+                },
+                {
+                    "@id": "#var-timestamp"
+                },
+                {
+                    "@id": "#var-psd_start_after_prefix"
+                },
+                {
+                    "@id": "#var-middle_prefix"
+                },
+                {
+                    "@id": "#var-psd_object_names"
+                },
+                {
+                    "@id": "#var-country"
+                },
+                {
+                    "@id": "#var-local_pvol_paths"
+                },
+                {
+                    "@id": "#var-psd_prefix"
+                },
+                {
+                    "@id": "#var-psd_prefix_objs"
+                },
+                {
+                    "@id": "#var-get_pvol_storage_path"
+                },
+                {
+                    "@id": "#var-ped_prefix_objs"
+                },
+                {
+                    "@id": "#var-datetimestr"
+                },
+                {
+                    "@id": "#var-obj_path"
+                },
+                {
+                    "@id": "#var-ped_until_datetimestr"
+                },
+                {
+                    "@id": "#var-ped_object_names"
+                },
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-radar"
+                },
+                {
+                    "@id": "#var-drange"
+                },
+                {
+                    "@id": "#var-intersect_object_names"
+                },
+                {
+                    "@id": "#var-local_pvol_path"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-psd"
+                },
+                {
+                    "@id": "#var-fpath"
+                },
+                {
+                    "@id": "#var-uname"
+                },
+                {
+                    "@id": "#var-date_prefix_list"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_12_s3_pvol_downloader",
+            "position": 12,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_13.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_13_s3_vp_downloader\n# ---\n# NaaVRE:\n#  cell:\n#   outputs:\n#    - vp_paths: List\n# ...\n\n# Code analyzer fix block. Assign empty strings to variables that should not be picked up by the analyzer.\nminioClient = \"\"\n\n# libraries\nfrom minio import Minio\nimport pandas as pd\nimport pathlib\n\n# functions\n\n# main\npsd = pd.to_datetime(param_start_date)\nped = pd.to_datetime(param_end_date)\nminioClient = Minio(\n    endpoint=conf_minio_endpoint,\n    access_key=secret_minio_access_key,\n    secret_key=secret_minio_secret_key,\n...",
+            "funcCalls": [
+                "list",
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-param_radar"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_local_vp"
+                },
+                {
+                    "@id": "#var-param_end_date"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-param_start_date"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-param_radar"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-filename"
+                },
+                {
+                    "@id": "#var-corad"
+                },
+                {
+                    "@id": "#var-day"
+                },
+                {
+                    "@id": "#var-fname"
+                },
+                {
+                    "@id": "#var-download_objs"
+                },
+                {
+                    "@id": "#var-year"
+                },
+                {
+                    "@id": "#var-dtype"
+                },
+                {
+                    "@id": "#var-ped_until_timestamp"
+                },
+                {
+                    "@id": "#var-month"
+                },
+                {
+                    "@id": "#var-local_vp_path"
+                },
+                {
+                    "@id": "#var-ped"
+                },
+                {
+                    "@id": "#var-ped_until_prefix"
+                },
+                {
+                    "@id": "#var-ped_prefix"
+                },
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-obj"
+                },
+                {
+                    "@id": "#var-timestamp"
+                },
+                {
+                    "@id": "#var-psd_start_after_prefix"
+                },
+                {
+                    "@id": "#var-country"
+                },
+                {
+                    "@id": "#var-psd_prefix"
+                },
+                {
+                    "@id": "#var-radcode"
+                },
+                {
+                    "@id": "#var-v2b_version_suffix"
+                },
+                {
+                    "@id": "#var-psd_prefix_objs"
+                },
+                {
+                    "@id": "#var-datetimestr"
+                },
+                {
+                    "@id": "#var-ped_prefix_objs"
+                },
+                {
+                    "@id": "#var-obj_path"
+                },
+                {
+                    "@id": "#var-ped_until_datetimestr"
+                },
+                {
+                    "@id": "#var-vp_paths"
+                },
+                {
+                    "@id": "#var-pd"
+                },
+                {
+                    "@id": "#var-radar"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-psd"
+                },
+                {
+                    "@id": "#var-fpath"
+                },
+                {
+                    "@id": "#var-uname"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_13_s3_vp_downloader",
+            "position": 13,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_14.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_14_s3_ppi_uploader\n\n# Libraries\nfrom minio import Minio\n\nminioClient = Minio(\n    endpoint=conf_minio_endpoint,\n    access_key=secret_minio_access_key,\n    secret_key=secret_minio_secret_key,\n    secure=True,\n)\n\nfor path in local_ppi_paths:\n    print(path)\n    # strip the leading \"/tmp/data\"\n    obj_key = pathlib.Path(*pathlib.Path(path).parts[3:])\n    obj_name = f\"{conf_minio_tutorial_prefix}/{conf_user_directory + param_user_number}/{obj_key}\"\n    print(obj_name)\n    minioClient.fput_object(\n        bucket_name=conf_minio_user_bucket_name,\n        object_name=obj_name,\n        file_path=path,\n    )",
+            "funcCalls": [
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_user_directory"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-param_user_number"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-path"
+                },
+                {
+                    "@id": "#var-obj_name"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-obj_key"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_14_s3_ppi_uploader",
+            "position": 14,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_15.py",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "# cell_15_s3_vpts_uploader\n# Libraries\nfrom minio import Minio\n\nminioClient = Minio(\n    endpoint=conf_minio_endpoint,\n    access_key=secret_minio_access_key,\n    secret_key=secret_minio_secret_key,\n    secure=True,\n)\n\nfor path in local_vpts_paths:\n    # strip the leading \"/tmp/data\"\n    print(path)\n    obj_key = pathlib.Path(*pathlib.Path(path).parts[3:])\n    obj_name = f\"{conf_minio_tutorial_prefix}/{obj_key}\"\n    print(obj_name)\n    minioClient.fput_object(\n        bucket_name=conf_minio_user_bucket_name,\n        object_name=obj_name,\n        file_path=path,\n    )",
+            "funcCalls": [
+                "print"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-conf_minio_tutorial_prefix"
+                },
+                {
+                    "@id": "#var-conf_minio_user_bucket_name"
+                },
+                {
+                    "@id": "#var-conf_minio_endpoint"
+                },
+                {
+                    "@id": "#var-secret_minio_secret_key"
+                },
+                {
+                    "@id": "#var-secret_minio_access_key"
+                },
+                {
+                    "@id": "#var-pathlib"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-Minio"
+                },
+                {
+                    "@id": "#var-path"
+                },
+                {
+                    "@id": "#var-obj_name"
+                },
+                {
+                    "@id": "#var-minioClient"
+                },
+                {
+                    "@id": "#var-obj_key"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "python3",
+            "name": "cell_15_s3_vpts_uploader",
+            "position": 15,
+            "programmingLanguage": "python3",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_clean_knmi_input",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_clean_knmi_input",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_year",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_year",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_end_date",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_end_date",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_upload_results",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_upload_results",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_clean_pvol_output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_clean_pvol_output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_clean_vp_output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_clean_vp_output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_user_number",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_user_number",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_imtype",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_imtype",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_radar",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_radar",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_country",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_country",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_public_minio_data",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_public_minio_data",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_month",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_month",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_elevation",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_elevation",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_concurrency",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_concurrency",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_day",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_day",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_param",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_param",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_start_date",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_start_date",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_maximum_KNMI_files",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_maximum_KNMI_files",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_interval_in_minutes",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_interval_in_minutes",
+            "version": "1"
+        },
+        {
+            "@id": "#var-os",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                },
+                {
+                    "@id": "cells/cell_4.py"
+                },
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "os",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_dtype",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.py"
+                }
+            ],
+            "name": "param_dtype",
+            "version": "1"
+        },
+        {
+            "@id": "#var-secret_minio_secret_key",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "secret_minio_secret_key",
+            "version": "1"
+        },
+        {
+            "@id": "#var-SecretsProvider",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.py"
+                }
+            ],
+            "name": "SecretsProvider",
+            "version": "1"
+        },
+        {
+            "@id": "#var-secret_minio_access_key",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "secret_minio_access_key",
+            "version": "1"
+        },
+        {
+            "@id": "#var-secrets_provider",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.py"
+                }
+            ],
+            "name": "secrets_provider",
+            "version": "1"
+        },
+        {
+            "@id": "#var-getpass",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                },
+                {
+                    "@id": "cells/cell_3.py"
+                }
+            ],
+            "name": "getpass",
+            "version": "1"
+        },
+        {
+            "@id": "#var-secret_key_knmi_api",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.py"
+                }
+            ],
+            "name": "secret_key_knmi_api",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_public_bucket_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_public_bucket_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_conf",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_conf",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_pvol_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_pvol_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_radar_db",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_radar_db",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_vp",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_vp",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_user_directory",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_user_directory",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_vpts",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_vpts",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_ppi_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_ppi_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_public_conf_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_public_conf_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_vp_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_vp_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_root",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_root",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_public_conf_radar_db_object_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_public_conf_radar_db_object_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_visualization_input",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_visualization_input",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_tutorial_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_tutorial_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_ppi",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_ppi",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_denhelder",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_denhelder",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_public_root_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_public_root_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_radars",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_radars",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_knmi",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_knmi",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_odim",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_odim",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_user_bucket_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_user_bucket_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_minio_endpoint",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_minio_endpoint",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_local_visualization_output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_local_visualization_output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_vpts_output_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_vpts_output_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-conf_herwijnen",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                }
+            ],
+            "name": "conf_herwijnen",
+            "version": "1"
+        },
+        {
+            "@id": "#var-pathlib",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_4.py"
+                },
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "pathlib",
+            "version": "1"
+        },
+        {
+            "@id": "#var-debug",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "debug",
+            "version": "1"
+        },
+        {
+            "@id": "#var-Minio",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                },
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                }
+            ],
+            "name": "Minio",
+            "version": "1"
+        },
+        {
+            "@id": "#var-e",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "e",
+            "version": "1"
+        },
+        {
+            "@id": "#var-file_stat",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "file_stat",
+            "version": "1"
+        },
+        {
+            "@id": "#var-S3Error",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                }
+            ],
+            "name": "S3Error",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radar_db_stat",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "radar_db_stat",
+            "version": "1"
+        },
+        {
+            "@id": "#var-put_result",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                }
+            ],
+            "name": "put_result",
+            "version": "1"
+        },
+        {
+            "@id": "#var-minioClient",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                },
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                }
+            ],
+            "name": "minioClient",
+            "version": "1"
+        },
+        {
+            "@id": "#var-file_data",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_5.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "file_data",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_dir",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_6.py"
+                }
+            ],
+            "name": "local_dir",
+            "version": "1"
+        },
+        {
+            "@id": "#var-init_complete",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_6.py"
+                },
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "init_complete",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dset_files",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "dset_files",
+            "version": "1"
+        },
+        {
+            "@id": "#var-requests",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "requests",
+            "version": "1"
+        },
+        {
+            "@id": "#var-validate_number_of_KNMI_files",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "validate_number_of_KNMI_files",
+            "version": "1"
+        },
+        {
+            "@id": "#var-nextPageToken",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "nextPageToken",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dataset_file",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "dataset_file",
+            "version": "1"
+        },
+        {
+            "@id": "#var-filtered_list",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "filtered_list",
+            "version": "1"
+        },
+        {
+            "@id": "#var-minute",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "minute",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dataset_files",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "dataset_files",
+            "version": "1"
+        },
+        {
+            "@id": "#var-api_reponse_json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "api_reponse_json",
+            "version": "1"
+        },
+        {
+            "@id": "#var-datasetName",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "datasetName",
+            "version": "1"
+        },
+        {
+            "@id": "#var-api_url",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "api_url",
+            "version": "1"
+        },
+        {
+            "@id": "#var-sys",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_11.py"
+                }
+            ],
+            "name": "sys",
+            "version": "1"
+        },
+        {
+            "@id": "#var-api_response",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "api_response",
+            "version": "1"
+        },
+        {
+            "@id": "#var-start_ts",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "start_ts",
+            "version": "1"
+        },
+        {
+            "@id": "#var-end_ts",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "end_ts",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dset_file",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "dset_file",
+            "version": "1"
+        },
+        {
+            "@id": "#var-_",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                },
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "_",
+            "version": "1"
+        },
+        {
+            "@id": "#var-validate_api_errors",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "validate_api_errors",
+            "version": "1"
+        },
+        {
+            "@id": "#var-params",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "params",
+            "version": "1"
+        },
+        {
+            "@id": "#var-interval_list",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "interval_list",
+            "version": "1"
+        },
+        {
+            "@id": "#var-datasetVersion",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_7.py"
+                }
+            ],
+            "name": "datasetVersion",
+            "version": "1"
+        },
+        {
+            "@id": "#var-filename",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "filename",
+            "version": "1"
+        },
+        {
+            "@id": "#var-fname_parts",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "fname_parts",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dataset_file_response",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "dataset_file_response",
+            "version": "1"
+        },
+        {
+            "@id": "#var-p",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "p",
+            "version": "1"
+        },
+        {
+            "@id": "#var-day",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "day",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radar_code",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "radar_code",
+            "version": "1"
+        },
+        {
+            "@id": "#var-knmi_pvol_paths",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "knmi_pvol_paths",
+            "version": "1"
+        },
+        {
+            "@id": "#var-Path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "Path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-year",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "year",
+            "version": "1"
+        },
+        {
+            "@id": "#var-endpoint",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "endpoint",
+            "version": "1"
+        },
+        {
+            "@id": "#var-idx",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "idx",
+            "version": "1"
+        },
+        {
+            "@id": "#var-month",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "month",
+            "version": "1"
+        },
+        {
+            "@id": "#var-get_file_response",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "get_file_response",
+            "version": "1"
+        },
+        {
+            "@id": "#var-download_url",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "download_url",
+            "version": "1"
+        },
+        {
+            "@id": "#var-fname_date_part",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "fname_date_part",
+            "version": "1"
+        },
+        {
+            "@id": "#var-n_files",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_8.py"
+                }
+            ],
+            "name": "n_files",
+            "version": "1"
+        },
+        {
+            "@id": "#var-relative_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "relative_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-knmi_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "knmi_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_pvol_storage",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "local_pvol_storage",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radar_dict",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "radar_dict",
+            "version": "1"
+        },
+        {
+            "@id": "#var-rad_str_split",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "rad_str_split",
+            "version": "1"
+        },
+        {
+            "@id": "#var-subprocess",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "subprocess",
+            "version": "1"
+        },
+        {
+            "@id": "#var-returncode",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "returncode",
+            "version": "1"
+        },
+        {
+            "@id": "#var-odim_pvol_paths",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "odim_pvol_paths",
+            "version": "1"
+        },
+        {
+            "@id": "#var-extract_wmo_code",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function",
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "extract_wmo_code",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ibed_pvol_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "ibed_pvol_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-hh",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "hh",
+            "version": "1"
+        },
+        {
+            "@id": "#var-odim_code",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "odim_code",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radar_db",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "radar_db",
+            "version": "1"
+        },
+        {
+            "@id": "#var-converter",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "converter",
+            "version": "1"
+        },
+        {
+            "@id": "#var-shutil",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "shutil",
+            "version": "1"
+        },
+        {
+            "@id": "#var-translate_knmi_filename",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "translate_knmi_filename",
+            "version": "1"
+        },
+        {
+            "@id": "#var-str2bool",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function",
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "str2bool",
+            "version": "1"
+        },
+        {
+            "@id": "#var-json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "json",
+            "version": "1"
+        },
+        {
+            "@id": "#var-name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ibed_fname",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "ibed_fname",
+            "version": "1"
+        },
+        {
+            "@id": "#var-string",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "string",
+            "version": "1"
+        },
+        {
+            "@id": "#var-rad_str",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "rad_str",
+            "version": "1"
+        },
+        {
+            "@id": "#var-exists",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "exists",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radar_db_json",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "radar_db_json",
+            "version": "1"
+        },
+        {
+            "@id": "#var-mm",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "mm",
+            "version": "1"
+        },
+        {
+            "@id": "#var-rad_codes",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "rad_codes",
+            "version": "1"
+        },
+        {
+            "@id": "#var-filetype",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "filetype",
+            "version": "1"
+        },
+        {
+            "@id": "#var-translate_wmo_odim",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function",
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "translate_wmo_odim",
+            "version": "1"
+        },
+        {
+            "@id": "#var-wmo_code",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "wmo_code",
+            "version": "1"
+        },
+        {
+            "@id": "#var-f",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "f",
+            "version": "1"
+        },
+        {
+            "@id": "#var-proc",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "proc",
+            "version": "1"
+        },
+        {
+            "@id": "#var-odim_pvol_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "odim_pvol_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-math",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "math",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ss",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "ss",
+            "version": "1"
+        },
+        {
+            "@id": "#var-path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                }
+            ],
+            "name": "path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-output",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "output",
+            "version": "1"
+        },
+        {
+            "@id": "#var-what",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "what",
+            "version": "1"
+        },
+        {
+            "@id": "#var-FileTranslatorFileTypeError",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "FileTranslatorFileTypeError",
+            "version": "1"
+        },
+        {
+            "@id": "#var-rad_code",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "rad_code",
+            "version": "1"
+        },
+        {
+            "@id": "#var-load_radar_db",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function",
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "load_radar_db",
+            "version": "1"
+        },
+        {
+            "@id": "#var-get_pvol_storage_path",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function",
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "get_pvol_storage_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-converter_results",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "converter_results",
+            "version": "1"
+        },
+        {
+            "@id": "#var-source",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "source",
+            "version": "1"
+        },
+        {
+            "@id": "#var-time",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "time",
+            "version": "1"
+        },
+        {
+            "@id": "#var-h5py",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "h5py",
+            "version": "1"
+        },
+        {
+            "@id": "#var-source_list",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "source_list",
+            "version": "1"
+        },
+        {
+            "@id": "#var-out_path_pvol_odim_tce",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "out_path_pvol_odim_tce",
+            "version": "1"
+        },
+        {
+            "@id": "#var-remote_odim_pvol_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "remote_odim_pvol_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-knmi_to_odim",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "knmi_to_odim",
+            "version": "1"
+        },
+        {
+            "@id": "#var-date",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "date",
+            "version": "1"
+        },
+        {
+            "@id": "#var-command",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                },
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "command",
+            "version": "1"
+        },
+        {
+            "@id": "#var-out_path_pvol_odim",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_9.py"
+                }
+            ],
+            "name": "out_path_pvol_odim",
+            "version": "1"
+        },
+        {
+            "@id": "#var-out_file",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "out_file",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ibed_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "ibed_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-re",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "re",
+            "version": "1"
+        },
+        {
+            "@id": "#var-suffix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "suffix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-out_file_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "out_file_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-datetime",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "datetime",
+            "version": "1"
+        },
+        {
+            "@id": "#var-date_regex",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "date_regex",
+            "version": "1"
+        },
+        {
+            "@id": "#var-vp_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "vp_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-version",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "version",
+            "version": "1"
+        },
+        {
+            "@id": "#var-result",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "result",
+            "version": "1"
+        },
+        {
+            "@id": "#var-odim",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "odim",
+            "version": "1"
+        },
+        {
+            "@id": "#var-out_file_dir",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "out_file_dir",
+            "version": "1"
+        },
+        {
+            "@id": "#var-process",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "process",
+            "version": "1"
+        },
+        {
+            "@id": "#var-PVOL_VP_converter_complete",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "PVOL_VP_converter_complete",
+            "version": "1"
+        },
+        {
+            "@id": "#var-wmo",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "wmo",
+            "version": "1"
+        },
+        {
+            "@id": "#var-remote_vp_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "remote_vp_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_vp_storage",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "local_vp_storage",
+            "version": "1"
+        },
+        {
+            "@id": "#var-vol2bird",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "vol2bird",
+            "version": "1"
+        },
+        {
+            "@id": "#var-in_file_stem",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "in_file_stem",
+            "version": "1"
+        },
+        {
+            "@id": "#var-pd",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "pd",
+            "version": "1"
+        },
+        {
+            "@id": "#var-vertical_profile_paths",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "vertical_profile_paths",
+            "version": "1"
+        },
+        {
+            "@id": "#var-in_file_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "in_file_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-pvol_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "pvol_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-get_vp_storage_path",
+            "@type": "https://example.org/ontology/ontodt#Symbol",
+            "category": [
+                "function"
+            ],
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_10.py"
+                }
+            ],
+            "name": "get_vp_storage_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-search_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                }
+            ],
+            "name": "search_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_file_paths",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                }
+            ],
+            "name": "local_file_paths",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_file_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                }
+            ],
+            "name": "local_file_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-obj",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "obj",
+            "version": "1"
+        },
+        {
+            "@id": "#var-objects",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                }
+            ],
+            "name": "objects",
+            "version": "1"
+        },
+        {
+            "@id": "#var-obj_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                },
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "obj_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-recursive",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_11.py"
+                }
+            ],
+            "name": "recursive",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dstamp",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "dstamp",
+            "version": "1"
+        },
+        {
+            "@id": "#var-middle_prefixes",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "middle_prefixes",
+            "version": "1"
+        },
+        {
+            "@id": "#var-obj_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                }
+            ],
+            "name": "obj_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-lab",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "lab",
+            "version": "1"
+        },
+        {
+            "@id": "#var-psd_prefix_obj",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "psd_prefix_obj",
+            "version": "1"
+        },
+        {
+            "@id": "#var-corad",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "corad",
+            "version": "1"
+        },
+        {
+            "@id": "#var-_ped_prefix_objs",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "_ped_prefix_objs",
+            "version": "1"
+        },
+        {
+            "@id": "#var-middle_prefix_objs",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "middle_prefix_objs",
+            "version": "1"
+        },
+        {
+            "@id": "#var-fname",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "fname",
+            "version": "1"
+        },
+        {
+            "@id": "#var-unique_date_prefix_list",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "unique_date_prefix_list",
+            "version": "1"
+        },
+        {
+            "@id": "#var-download_objs",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "download_objs",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_prefix_obj",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "ped_prefix_obj",
+            "version": "1"
+        },
+        {
+            "@id": "#var-dtype",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "dtype",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_until_timestamp",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "ped_until_timestamp",
+            "version": "1"
+        },
+        {
+            "@id": "#var-workshop",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "workshop",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "ped",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_until_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "ped_until_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "ped_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radcode_suffix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "radcode_suffix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-timestamp",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "timestamp",
+            "version": "1"
+        },
+        {
+            "@id": "#var-psd_start_after_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "psd_start_after_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-middle_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "middle_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-psd_object_names",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "psd_object_names",
+            "version": "1"
+        },
+        {
+            "@id": "#var-country",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "country",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_pvol_paths",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "local_pvol_paths",
+            "version": "1"
+        },
+        {
+            "@id": "#var-psd_prefix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "psd_prefix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-psd_prefix_objs",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "psd_prefix_objs",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_prefix_objs",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "ped_prefix_objs",
+            "version": "1"
+        },
+        {
+            "@id": "#var-datetimestr",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "datetimestr",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_until_datetimestr",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "ped_until_datetimestr",
+            "version": "1"
+        },
+        {
+            "@id": "#var-ped_object_names",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "ped_object_names",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radar",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "radar",
+            "version": "1"
+        },
+        {
+            "@id": "#var-drange",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "drange",
+            "version": "1"
+        },
+        {
+            "@id": "#var-intersect_object_names",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "intersect_object_names",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_pvol_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "local_pvol_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-psd",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "psd",
+            "version": "1"
+        },
+        {
+            "@id": "#var-fpath",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "fpath",
+            "version": "1"
+        },
+        {
+            "@id": "#var-uname",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                },
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "uname",
+            "version": "1"
+        },
+        {
+            "@id": "#var-date_prefix_list",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_12.py"
+                }
+            ],
+            "name": "date_prefix_list",
+            "version": "1"
+        },
+        {
+            "@id": "#var-local_vp_path",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "local_vp_path",
+            "version": "1"
+        },
+        {
+            "@id": "#var-radcode",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "radcode",
+            "version": "1"
+        },
+        {
+            "@id": "#var-v2b_version_suffix",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "v2b_version_suffix",
+            "version": "1"
+        },
+        {
+            "@id": "#var-vp_paths",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_13.py"
+                }
+            ],
+            "name": "vp_paths",
+            "version": "1"
+        },
+        {
+            "@id": "#var-obj_key",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_14.py"
+                },
+                {
+                    "@id": "cells/cell_15.py"
+                }
+            ],
+            "name": "obj_key",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/RAVL_sanitized.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/evaluation/o2_user_study/user_study/RAVL_sanitized.ipynb",
+            "isPartOf": "./",
+            "name": "RAVL_sanitized.ipynb"
+        },
+        {
+            "@id": "files/OPERA_RADARS_DB.json",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontodt#Data"
+            ],
+            "https://cellscope.dev/terms/localPath": "/path/to/jovyan/data/conf/OPERA_RADARS_DB.json",
+            "isPartOf": "./",
+            "name": "OPERA_RADARS_DB.json",
+            "version": "1"
+        },
+        {
+            "@id": "#usage-cells_cell_5.py-files_OPERA_RADARS_DB.json",
+            "@type": "http://www.w3.org/ns/prov#Usage",
+            "http://www.w3.org/ns/prov#entity": {
+                "@id": "files/OPERA_RADARS_DB.json"
+            },
+            "http://www.w3.org/ns/prov#hadRole": "dataset"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

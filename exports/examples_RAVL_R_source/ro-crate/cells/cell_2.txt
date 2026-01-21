@@ -1,0 +1,30 @@
+# DO NOT CONTAINERISE
+# configuration - v95
+
+
+conf_minio_user_bucket_name = "example-user-bucket"  # the user bucket name
+conf_minio_public_bucket_name = "example-public-bucket"  # the public bucket name
+
+conf_minio_endpoint = "minio.example.org:9000"
+
+### Directories
+conf_local_root = "/tmp/data"
+conf_local_knmi = "/tmp/data/knmi"
+conf_local_odim = "/tmp/data/odim"
+conf_local_vp = "/tmp/data/vp"
+conf_local_ppi = "/tmp/data/ppi"
+conf_local_vpts = "/tmp/data/vpts"
+conf_local_conf = "/tmp/data/conf"
+conf_local_radar_db = "/tmp/data/conf/OPERA_RADARS_DB.json"
+conf_local_visualization_input = "/tmp/data/visualizations/input"
+conf_local_visualization_output = "/tmp/data/visualizatons/output"
+
+conf_pvol_output_prefix = "pvol"
+conf_vp_output_prefix = "vp"
+conf_ppi_output_prefix = "ppi"
+conf_vpts_output_prefix = "vpts"
+
+# radar configuration for the KNMI api
+# Rewritten in a long format without page breaks. This is to prevent
+# the code analyzer to yield an error.
+# datasetName, datasetVersion, api_url, radar code (odim)

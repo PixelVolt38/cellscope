@@ -1,0 +1,40 @@
+# DO NOT CONTAINERISE
+# parametrization - v95
+# Run specific - fill in text to preset, keep empty to prompt
+
+
+
+param_radar = "HRW"  # DHL | HRW | DBL
+
+param_concurrency = 5
+param_interval = 60
+# This is to control uploads / cleaning
+# Move results to S3?
+param_upload_results = "True"
+# Remove input after processing KNMI format to ODIM format
+param_clean_knmi_input = "True"
+# Should we remove the final Polar Volumes after producing a VP and or RBC
+param_clean_pvol_output = "True"
+#
+param_clean_vp_output = "True"
+
+# Param
+### User specific, not neccesarily run specific.
+#### Update: Perhaps some of these userinfo should be hardcoded parameters. I mean
+#### Not something we'd enter every single time but should be set at setup time.
+param_jupyterhub_user = 'user@example.com'
+
+#### Visualization parameters
+param_dtype = "pvol"  # pvol | vp
+param_country = "NL"  # only NL
+param_year = "2023"  # as string, YYYY
+param_month = "12"  # as string, mm
+param_day = "31"  # as string, dd
+
+# Perhaps param prefix works better
+param_prefix = "NL/DHL/2023/12/31"
+
+# parameters
+param_elevation = 3  #
+param_param = "VRADH"  # I know...VRADH, DBZH, TH, WRADH, RHOHV, DBZ...
+param_imtype = "ppi"  # Likely only type so far. PVOL -> PPI, VP -> VPTS. Future there would be more.

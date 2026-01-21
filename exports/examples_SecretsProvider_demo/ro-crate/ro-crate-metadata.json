@@ -1,0 +1,214 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "datePublished": "2026-01-21T19:28:39+00:00",
+            "description": "CellScope export for SecretsProvider_demo.ipynb",
+            "hasPart": [
+                {
+                    "@id": "cells/cell_0.txt"
+                },
+                {
+                    "@id": "cells/cell_1.txt"
+                },
+                {
+                    "@id": "cells/cell_2.txt"
+                },
+                {
+                    "@id": "cells/cell_3.txt"
+                },
+                {
+                    "@id": "notebook/SecretsProvider_demo.ipynb"
+                },
+                {
+                    "@id": "notebook/SecretsProvider_demo.ipynb"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                },
+                {
+                    "@id": "cell_graph.graphml"
+                }
+            ],
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "name": "SecretsProvider_demo.ipynb"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "cells/cell_0.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "!pip install SecretsProvider==2.0.0",
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "cell_0",
+            "position": 0,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_1.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "#Show the documentation of SecretsProvider\nfrom SecretsProvider import SecretsProvider\nhelp(SecretsProvider)",
+            "funcCalls": [
+                "help"
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-SecretsProvider"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "show_the_documentation_of_secretsprovider",
+            "position": 1,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_2.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "#Get an existing secret (the secret should be found after using migrate_secrets.ipynb\nparam_KMNI_key_name = \"KNMI_OPEN_DATA_API_KEY\"\nsecret_KNMI_API_key: str = SecretsProvider().get_secret(param_KMNI_key_name)",
+            "funcCalls": [
+                "SecretsProvider"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-SecretsProvider"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-SecretsProvider"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-param_KMNI_key_name"
+                },
+                {
+                    "@id": "#var-secret_KNMI_API_key"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "get_an_existing_secret_the_secret_should_be_found_after_using_migrate_secrets_ipynb",
+            "position": 2,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "cells/cell_3.txt",
+            "@type": [
+                "File",
+                "https://example.org/ontology/ontoflow#Activity"
+            ],
+            "codeSnippet": "#Get a non existing secret. The user will be prompted to enter a secret.\nsecret_new_secret: str = SecretsProvider().get_secret(\"new_secret\")",
+            "funcCalls": [
+                "SecretsProvider"
+            ],
+            "http://www.w3.org/ns/prov#used": [
+                {
+                    "@id": "#var-SecretsProvider"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasInput": [
+                {
+                    "@id": "#var-SecretsProvider"
+                }
+            ],
+            "https://example.org/ontology/ontoflow#hasOutput": [
+                {
+                    "@id": "#var-secret_new_secret"
+                }
+            ],
+            "isPartOf": "./",
+            "kernel": "conda-env-vol2bird-py",
+            "name": "get_a_non_existing_secret_the_user_will_be_prompted_to_enter_a_secret",
+            "position": 3,
+            "programmingLanguage": "conda-env-vol2bird-py",
+            "version": "1"
+        },
+        {
+            "@id": "#var-SecretsProvider",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_1.txt"
+                }
+            ],
+            "name": "SecretsProvider",
+            "version": "1"
+        },
+        {
+            "@id": "#var-param_KMNI_key_name",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "param_KMNI_key_name",
+            "version": "1"
+        },
+        {
+            "@id": "#var-secret_KNMI_API_key",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_2.txt"
+                }
+            ],
+            "name": "secret_KNMI_API_key",
+            "version": "1"
+        },
+        {
+            "@id": "#var-secret_new_secret",
+            "@type": "https://example.org/ontology/ontodt#Data",
+            "http://www.w3.org/ns/prov#wasGeneratedBy": [
+                {
+                    "@id": "cells/cell_3.txt"
+                }
+            ],
+            "name": "secret_new_secret",
+            "version": "1"
+        },
+        {
+            "@id": "notebook/SecretsProvider_demo.ipynb",
+            "@type": [
+                "File"
+            ],
+            "encodingFormat": "application/x-ipynb+json",
+            "https://cellscope.dev/terms/localPath": "/path/to/repo/examples/RAVL/SecretsProvider_demo.ipynb",
+            "isPartOf": "./",
+            "name": "SecretsProvider_demo.ipynb"
+        },
+        {
+            "@id": "cell_graph.graphml",
+            "@type": [
+                "File",
+                "https://example.org/ontology/graph#Graph"
+            ],
+            "name": "cell_graph"
+        }
+    ]
+}

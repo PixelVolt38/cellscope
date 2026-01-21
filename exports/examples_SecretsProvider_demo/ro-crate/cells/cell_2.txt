@@ -1,0 +1,3 @@
+#Get an existing secret (the secret should be found after using migrate_secrets.ipynb
+param_KMNI_key_name = "KNMI_OPEN_DATA_API_KEY"
+secret_KNMI_API_key: str = SecretsProvider().get_secret(param_KMNI_key_name)

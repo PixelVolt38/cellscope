@@ -1,8 +1,8 @@
 # CellScope
 
 CellScope makes the execution flow inside a Jupyter notebook observable and portable.  
-It inspects every code cell, captures symbol definitions/uses, and file hand‑offs
-exchanges, and emits that graph as an RO‑Crate bundle enriched with PROV metadata.
+It inspects every code cell, captures symbol definitions/uses and file hand‑offs,
+and emits a cell-level graph as an RO‑Crate bundle enriched with PROV metadata.
 The accompanying JupyterLab extension surfaces the capture in an interactive analyzer
 panel and can push the resulting provenance graph to a SPARQL endpoint.
 
@@ -11,7 +11,7 @@ panel and can push the resulting provenance graph to a SPARQL endpoint.
 ## Features
 
 - **Notebook analysis**: track code cell functions, variables, file reads/writes,
-  File hand-offs inferred across cells.
+  and file hand-offs inferred across cells.
 - **Confirm-first export**: review and edit variable roles or per-file metadata before
   building an RO‑Crate. Edits persist for the current session and flow into the export.
 - **RO‑Crate + PROV output**: write `ro-crate-metadata.json`, GraphML,
@@ -23,11 +23,28 @@ panel and can push the resulting provenance graph to a SPARQL endpoint.
   - Searchable, faceted cell list (kernel, roles, file metadata).
   - Filters are presented in a dropdown popover (stays clear of the cell list), and
     the panel auto-refreshes after notebook saves/executions with a “pending” indicator.
-  - Quick action buttons jump to notebook cells.
 - **CLI utilities**: `cellscope build` for headless crate generation and
   `cellscope vis` to rehydrate the PyVis HTML for an existing crate.
 
 ---
+
+## Repository layout
+
+- `cellscope/`: core capture, RO‑Crate builder, SPARQL indexer.
+- `cellscope_server/`: Jupyter Server extension (`/cellscope/*` endpoints).
+- `labextension/`: JupyterLab UI source and build assets.
+- `examples/`: notebooks used for development and evaluation.
+- `evaluation/`: validation artifacts (gold labels, user study, benchmarks).
+- `exports/`: representative RO‑Crates (one per evaluation notebook).
+
+---
+
+## Prerequisites
+
+- Python 3.9+ (use 64‑bit on Windows).
+- Node.js + npm (required to build the JupyterLab extension).
+  - Windows: `winget install OpenJS.NodeJS.LTS` (restart shell).
+  - Debian/Ubuntu: `sudo apt-get install -y nodejs npm` (or NodeSource).
 
 ## Quick Start (Windows)
 
@@ -50,6 +67,32 @@ cd ..
 
 # Launch JupyterLab with the extension
 .\.venv\Scripts\jupyter-lab
+```
+
+If you want the extension config written inside the virtualenv, set:
+`$env:JUPYTER_CONFIG_DIR = "$env:VIRTUAL_ENV\\etc\\jupyter"` before enabling/listing.
+
+## Quick Start (Linux/macOS)
+
+```bash
+cd /path/to/cellscope_platform
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e .
+
+# Enable the server extension once per virtualenv
+export JUPYTER_CONFIG_DIR="$VIRTUAL_ENV/etc/jupyter"
+python -m jupyter server extension enable cellscope_server
+
+# Build/stage the labextension
+cd labextension
+npm install
+npm run stage
+cd ..
+
+# Launch JupyterLab
+python -m jupyterlab
 ```
 
 Inside JupyterLab open the **CellScope Analyzer** panel (left sidebar) and run
@@ -115,6 +158,9 @@ JupyterLab.
 
 # Regenerate cell_graph.html for an existing crate
 .\.venv\Scripts\python.exe -m cellscope_cli vis out-lab/<timestamp>/ro-crate
+
+# Validate a crate (JSON-LD structure + required entities)
+.\.venv\Scripts\python.exe -m cellscope_cli validate out-lab/<timestamp>/ro-crate
 ```
 
 Each export creates a versioned directory under `out-lab/` containing the RO‑Crate,
@@ -130,14 +176,11 @@ Automated backend/CLI smoke tests (run from repo root):
 
 Manual UI checklist: see `docs/testing.md`.
 
-### Workflows (optional)
-The `.naavrewf` workflow capture/import tooling is disabled by default to keep CellScope portable. Set `CELLSCOPE_ENABLE_WORKFLOWS=1` if you have those assets locally and want to enable the CLI commands and JupyterLab Workflow dialog.
-
-### R analysis and external services
-CellScope now uses an internal static analyzer for R cells. Hooks for the external Component Containerizer/NaaVRE stack remain in the codebase for future integrations, but they are not required for normal operation.
+### R analysis
+CellScope uses an internal static analyzer for R cells; no external services are required for R capture.
 
 ### SPARQL graph naming
-Indexing now uses notebook-based graph URIs (slug + version) and issues a drop+insert so re-exports replace the same graph instead of creating duplicates.
+Indexing uses notebook-based graph URIs (slug + version) and issues a drop+insert so re-exports replace the same graph instead of creating duplicates.
 
 ---
 
@@ -154,9 +197,7 @@ Indexing now uses notebook-based graph URIs (slug + version) and issues a drop+i
   through the analyzer UI, the RO-Crate activities, and SPARQL triples so downstream
   consumers see stable names instead of `Cell 0`, `Cell 1`, etc.
 - **Metadata serialization**: the indexer now emits `schema:roles` on activities
-  and `schema:roleName` on variables in addition to file MIME/tags. Any future
-  integrations (e.g., external containerizers) can rely on those triples.
-- **Planned work**: see `AGENTS.md` / `docs/history/latest.md` for the current roadmap
+  and `schema:roleName` on variables in addition to file MIME/tags.
   (confirm-first persistence, manual refresh controls, richer SPARQL telemetry,
   sidecar metadata editing, and improved non-Python analyzers).
 
@@ -166,6 +207,9 @@ Indexing now uses notebook-based graph URIs (slug + version) and issues a drop+i
 
 - **Node shim on Windows**: ensure `where node` resolves to `C:\Program Files\nodejs\node.exe`
   (avoid `WindowsApps\node.exe`) before running `npm run stage`.
+- **Server extension not found**: verify the module import with
+  `python -c "import importlib.util; print(importlib.util.find_spec('cellscope_server'))"`,
+  and reinstall with `pip install -e .` if needed.
 - **Missing PyVis HTML**: install `pyvis` into the same virtualenv and re-run the export
   or `cellscope vis`.
 - **500 errors during export**: check the notebook for unsupported kernels or unparseable
@@ -182,5 +226,9 @@ Indexing now uses notebook-based graph URIs (slug + version) and issues a drop+i
 - Provide a user-facing toggle to pause auto-refresh or clear the “pending” state after errors.
 - Expose SPARQL configuration in the UI and capture telemetry for pushes.
 - Extend sidecar/domain hints surfaced in the dialog and crate.
-- Explore integration with external containerizers (e.g., NaaVRE) by publishing
-  CellScope analysis artifacts via a shared adapter.
+
+---
+
+## License
+
+Apache License 2.0. See `LICENSE`.

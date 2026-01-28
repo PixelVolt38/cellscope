@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the CellScope software and the accompanying MSc thesis (see preferred-citation)."
+title: "CellScope: Capturing Cell-Level Metadata in Jupyter Notebooks"
+type: software
+
+authors:
+  - family-names: "Camacho Hortelano"
+    given-names: "Guillermo"
+    affiliation: "University of Amsterdam"
+
+repository-code: "https://github.com/PixelVolt38/cellscope"
+url: "https://github.com/PixelVolt38/cellscope"
+
+license: "Apache-2.0"
+version: "1.0.0"
+date-released: "2026-01-29"
+
+keywords:
+  - Jupyter
+  - JupyterLab
+  - research objects
+  - RO-Crate
+  - provenance
+  - metadata
+  - reproducibility
+  - digital objects
+  - static analysis
+  - knowledge graph
+
+abstract: >
+  CellScope is a JupyterLab-first tool for capturing and packaging cell-level metadata
+  about notebook digital objects (cells, symbols, files/artifacts) using a static-first
+  capture pipeline with confirm-first enrichment. It exports portable RO-Crates with
+  PROV-aligned links and supports offline inspection and optional indexing for discovery.
+
+preferred-citation:
+  type: thesis
+  title: "CellScope: Capturing Cell-Level Metadata in Jupyter Notebooks"
+  authors:
+    - family-names: "Camacho Hortelano"
+      given-names: "Guillermo"
+      affiliation: "University of Amsterdam"
+  institution: "University of Amsterdam"
+  year: 2026
